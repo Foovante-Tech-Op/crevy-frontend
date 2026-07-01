@@ -2,18 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight,
   ChevronDown,
-  Globe2,
   RotateCcw,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
-  TrendingUp,
   X,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import {
   useCallback,
   useDeferredValue,

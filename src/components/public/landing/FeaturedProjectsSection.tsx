@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 // ─── INSTITUTIONAL TICKER ───
 export function ScrollingMarquee() {
@@ -34,7 +32,7 @@ export function FinalCTASection({
   shouldReduceMotion?: boolean;
 }) {
   return (
-    <section className="bg-slate-900 py-32 border-t border-slate-800">
+    <section className="bg-foreground py-32 border-t border-slate-800">
       <div className="max-w-[1000px] mx-auto px-6 text-center">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -62,7 +60,7 @@ export function FinalCTASection({
             </Link>
             <Link
               href="/marketplace"
-              className="w-full sm:w-auto bg-brand text-white hover:bg-slate-900 px-8 py-5 text-[10px] font-bold uppercase tracking-widest transition-colors"
+              className="w-full sm:w-auto bg-foreground text-brand hover:bg-slate-900 px-8 py-5 text-[10px] font-bold uppercase tracking-widest transition-colors"
             >
               Start Buying Credits
             </Link>

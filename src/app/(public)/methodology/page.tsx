@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Activity,
   Code2,
   Cpu,
   Database,

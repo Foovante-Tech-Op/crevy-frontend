@@ -136,6 +136,7 @@ function CountryDropdownInner<
               <PopoverContent
                 className="p-0 w-[--radix-popover-trigger-width] min-w-[200px]"
                 align="start"
+                data-lenis-prevent="true"
               >
                 <Command>
                   <CommandInput placeholder="Search country..." />

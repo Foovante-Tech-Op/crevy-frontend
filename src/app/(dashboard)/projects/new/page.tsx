@@ -1,9 +1,10 @@
+// src/app/(dashboard)/projects/new/page.tsx
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { AssignmentCheckModal } from "@/components/AssignmentCheckModal";
@@ -15,33 +16,34 @@ import {
 import { authClient } from "@/lib/auth";
 import { ProjectService } from "@/lib/services/project-service";
 import { StorageService } from "@/lib/services/storage-service";
+import { cn } from "@/lib/utils";
 import type { TRole } from "@/types/user.types";
+import AssessmentModuleStep from "./_components/AssessmentModuleStep";
 import ProcessingStep from "./_components/ProcessingStep";
-import SidebarProgress from "./_components/SidebarProgress";
+import ReviewStep from "./_components/ReviewStep";
+import SidebarProgress, {
+  type ModuleStep,
+} from "./_components/SidebarProgress";
 import Step1_ProjectProfile from "./_components/Step1_ProjectProfile";
-import Step2_PracticesContext from "./_components/Step2_PracticesContext";
 import Step3_Documents from "./_components/Step3_Documents";
 
-const STEPS = [
-  "Asset Telemetry",
-  "Operational Context",
-  "Cryptographic Documentation",
-];
-
 const NewProject = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const existingProjectIdParam = searchParams.get("projectId");
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(true);
-  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(!existingProjectIdParam);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [manifest, setManifest] = useState<any>(null);
+  const [modules, setModules] = useState<ModuleStep[]>([]);
+  const [score, setScore] = useState<any>(null);
+  const [isResuming, setIsResuming] = useState(!!existingProjectIdParam);
+  const hasAttemptedResume = useRef(false);
 
   const { data: session, isPending } = authClient.useSession();
   const role = (session?.user as any)?.role as TRole;
-
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login");
-    }
-  }, [session, isPending, router]);
 
   const methods = useForm<TCreateProject>({
     resolver: zodResolver(createProjectInputSchema) as any,
@@ -49,40 +51,155 @@ const NewProject = () => {
     mode: "onTouched",
   });
 
-  const nextStep = () =>
-    setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
+  const selectedType = methods.watch("projectType");
+
+  // Determine if the full screen methodology panel is active
+  const isMethodologySelection = currentStep === 0 && !selectedType;
+
+  useEffect(() => {
+    ProjectService.getAssessmentManifest()
+      .then((res) => {
+        if (res.success) setManifest(res.data);
+      })
+      .catch(() => {
+        toast.error("Failed to load assessment manifest. Please refresh.");
+      });
+  }, []);
+
+  const deriveSteps = useCallback((): ModuleStep[] => {
+    if (!manifest || !selectedType) return [];
+    const moduleKeys: string[] =
+      manifest.projectTypeModuleMap?.[selectedType] ?? [];
+    return moduleKeys.map((key) => {
+      const mod = manifest.modules?.[key];
+      return {
+        moduleKey: key,
+        title: mod?.title ?? key,
+        description: mod?.description ?? "",
+        status: "not_started",
+      };
+    });
+  }, [manifest, selectedType]);
+
+  const refreshModules = useCallback(async () => {
+    if (!projectId) return;
+    try {
+      const res = await ProjectService.listAssessments(projectId);
+      if (res.success) {
+        const serverModules = res.data.map((m: any) => ({
+          moduleKey: m.moduleKey,
+          title: m.title,
+          description: m.description,
+          status: m.status,
+        }));
+        setModules(serverModules);
+      }
+      const scoreRes = await ProjectService.getLatestScore(projectId);
+      if (scoreRes?.success) setScore(scoreRes.data);
+    } catch {}
+  }, [projectId]);
+
+  const handleProjectCreated = (id: string) => {
+    setProjectId(id);
+    const steps = deriveSteps();
+    setModules(steps);
+    // Persist the projectId in the URL so a reload can resume instead of
+    // silently dropping back to Step 1 and POSTing a duplicate project.
+    router.replace(`/projects/new?projectId=${id}`, { scroll: false });
+  };
+
+  // ── Resume-in-progress-registration ─────────────────────────────────────
+  // On mount, if the URL carries a projectId (either because we just set
+  // it above, or because the user reloaded/revisited the page), rebuild
+  // wizard state from the server instead of starting over at Step 1. The
+  // backend's listAssessments already synthesizes 'not_started' rows for
+  // every applicable module, so it's a reliable source of truth for "which
+  // step was I on" — we don't need to persist currentStep ourselves.
+  useEffect(() => {
+    if (hasAttemptedResume.current) return;
+    hasAttemptedResume.current = true;
+
+    if (!existingProjectIdParam) {
+      setIsResuming(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const [projectRes, assessmentsRes] = await Promise.all([
+          ProjectService.getProject(existingProjectIdParam),
+          ProjectService.listAssessments(existingProjectIdParam),
+        ]);
+
+        if (projectRes?.success && projectRes.data) {
+          const p = projectRes.data;
+          if (p.projectType) {
+            methods.setValue("projectType", p.projectType, {
+              shouldValidate: false,
+            });
+          }
+          if (p.name) {
+            methods.setValue("name", p.name, { shouldValidate: false });
+          }
+        }
+
+        setProjectId(existingProjectIdParam);
+        setIsModalOpen(false);
+
+        if (assessmentsRes?.success) {
+          const serverModules: ModuleStep[] = assessmentsRes.data.map(
+            (m: any) => ({
+              moduleKey: m.moduleKey,
+              title: m.title,
+              description: m.description,
+              status: m.status,
+            }),
+          );
+          setModules(serverModules);
+
+          const firstIncompleteIndex = serverModules.findIndex(
+            (m) => m.status !== "submitted",
+          );
+          const resumeStep =
+            firstIncompleteIndex === -1
+              ? serverModules.length + 1 // every module submitted — resume at Documents
+              : 1 + firstIncompleteIndex;
+          setCurrentStep(resumeStep);
+        }
+
+        toast.info("Resumed your in-progress asset registration.");
+      } catch (error) {
+        console.error("Failed to resume registration:", error);
+        toast.error(
+          "Could not resume your previous registration. Starting over.",
+        );
+        router.replace("/projects/new");
+      } finally {
+        setIsResuming(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingProjectIdParam, methods.setValue, router.replace]);
+
+  const totalSteps = 1 + modules.length + 2;
+  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, totalSteps - 1));
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
-  if (isPending) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-900 rounded-none animate-spin" />
-          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
-            Initializing Secure Terminal...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (currentStep >= 1 + modules.length) {
+      refreshModules();
+    }
+  }, [currentStep, modules.length, refreshModules]);
 
   const onSubmit = async (data: TCreateProject) => {
-    console.log("Submitting Project Data:", data);
+    if (!projectId) return;
     setIsSubmitting(true);
     try {
-      const projectRes = await ProjectService.createProject(data);
-      const projectId: string = projectRes?.data?.id;
-
-      if (!projectId) {
-        throw new Error("Registry did not return a valid asset ID.");
-      }
-
       const documentEntries = Object.entries(data.documents ?? {}).filter(
         ([, file]) => file != null,
       );
-
       if (documentEntries.length > 0) {
-        const projectCode = projectRes?.data?.code || projectId;
+        const projectCode = methods.getValues("name") || projectId;
         const uploadResults = await Promise.allSettled(
           documentEntries.flatMap(([documentType, fileOrFiles]) => {
             const files = Array.isArray(fileOrFiles)
@@ -104,19 +221,12 @@ const NewProject = () => {
             });
           }),
         );
-
         const failed = uploadResults.filter((r) => r.status === "rejected");
         if (failed.length > 0) {
           toast.warning(
             `Asset registered but ${failed.length} artifact(s) failed to sync.`,
           );
         }
-      }
-
-      try {
-        await ProjectService.simulateMrv(projectId);
-      } catch (simError) {
-        console.warn("MRV simulation failed to trigger:", simError);
       }
 
       toast.success("Asset successfully committed to registry.");
@@ -126,7 +236,7 @@ const NewProject = () => {
       toast.error(
         error?.response?.data?.message ??
           error?.message ??
-          "Failed to register asset. Protocol aborted.",
+          "Failed to finalize asset. Protocol aborted.",
       );
     } finally {
       setIsSubmitting(false);
@@ -146,8 +256,38 @@ const NewProject = () => {
     }
   };
 
+  if (isPending || isResuming) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-slate-200 border-t-foreground rounded-none animate-spin" />
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
+            {isResuming
+              ? "Resuming Registration..."
+              : "Initializing Secure Terminal..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const sidebarSteps: ModuleStep[] =
+    currentStep === 0
+      ? [
+          {
+            moduleKey: "project_profile",
+            title: "Asset Telemetry",
+            status: "in_progress",
+          },
+        ]
+      : modules.length > 0
+        ? modules
+        : [];
+
+  const projectName = methods.getValues("name");
+
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-slate-900 selection:text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 selection:bg-foreground selection:text-white font-sans overflow-x-hidden transition-colors duration-300">
       {isSubmitting && <ProcessingStep />}
 
       <AssignmentCheckModal
@@ -162,72 +302,130 @@ const NewProject = () => {
         }}
       />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-12 flex flex-col lg:flex-row gap-8 lg:gap-14">
+      <div
+        className={cn(
+          "mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-12 flex flex-col gap-8 lg:gap-14 transition-all duration-300",
+          isMethodologySelection
+            ? "max-w-[1600px] lg:flex-col"
+            : "max-w-[1400px] lg:flex-row",
+        )}
+      >
         {/* ── Progress Sidebar ── */}
-        <aside className="w-full lg:w-72 shrink-0 h-fit lg:sticky top-12">
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
-            className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 flex items-center gap-2 mb-8 md:mb-12 transition-colors"
-          >
-            <ChevronLeft size={14} /> Abort Registration
-          </button>
-
-          <h1 className="font-serif text-3xl md:text-4xl text-slate-900 leading-tight mb-8">
-            Asset <br className="hidden lg:block" />
-            <span className="italic text-slate-500">Ingestion.</span>
-          </h1>
-
-          {/* Hidden on mobile, shown on desktop for cleaner UX */}
-          <div className="hidden md:block">
-            <SidebarProgress currentStep={currentStep} steps={STEPS} />
-          </div>
-
-          <div className="mt-8 md:mt-16 p-5 md:p-6 bg-white border border-slate-200 rounded-none">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-2">
-              Project Support
-            </p>
-            <p className="text-xs text-slate-500 leading-relaxed mb-4">
-              Require assistance with methodology alignment or document mapping?
-            </p>
+        {!isMethodologySelection && (
+          <aside className="w-full lg:w-72 shrink-0 h-fit lg:sticky top-12 animate-in fade-in slide-in-from-left-4 duration-300">
             <button
               type="button"
-              className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700 hover:text-slate-900 hover:border-slate-900 transition-all"
-              onClick={() => router.push("/support")}
+              onClick={() => router.push("/dashboard")}
+              className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-foreground flex items-center gap-2 mb-8 md:mb-12 transition-colors"
             >
-              Contact Directory
+              <ChevronLeft size={14} />{" "}
+              {projectId ? "Save & Exit" : "Abort Registration"}
             </button>
-          </div>
-        </aside>
+
+            <h1 className="font-serif text-3xl md:text-4xl text-foreground leading-tight mb-8">
+              Asset <br className="hidden lg:block" />
+              <span className="italic text-slate-500">Ingestion.</span>
+            </h1>
+
+            <div className="hidden md:block">
+              <SidebarProgress
+                currentStep={
+                  currentStep === 0 ? 0 : Math.max(0, currentStep - 1)
+                }
+                steps={sidebarSteps}
+              />
+            </div>
+
+            <div className="mt-8 md:mt-16 p-5 md:p-6 bg-white border border-slate-200 rounded-none">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground mb-2">
+                Project Support
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                Require assistance with methodology alignment or document
+                mapping?
+              </p>
+              <button
+                type="button"
+                className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700 hover:text-foreground hover:border-foreground transition-all"
+                onClick={() => router.push("/support")}
+              >
+                Contact Directory
+              </button>
+            </div>
+          </aside>
+        )}
 
         {/* ── Form Payload ── */}
-        <main className="flex-1 min-w-0 bg-white border border-slate-200 p-5 sm:p-8 md:p-14">
+        <main
+          className={cn(
+            "flex-1 min-w-0 transition-all duration-300",
+            isMethodologySelection
+              ? "bg-transparent border-none p-0"
+              : "bg-white border border-slate-200 p-5 sm:p-8 md:p-14 shadow-sm",
+          )}
+        >
           {/* Mobile Progress Indicator */}
-          <div className="md:hidden mb-8 border-b-2 border-slate-900 pb-4">
-            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em]">
-              Phase 0{currentStep + 1} / 03
-            </p>
-            <h2 className="text-xl font-serif text-slate-900 tracking-tight mt-1">
-              {STEPS[currentStep]}
-            </h2>
-          </div>
+          {!isMethodologySelection && (
+            <div className="md:hidden mb-8 border-b-2 border-foreground pb-4">
+              <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em]">
+                Phase 0{currentStep + 1} /{" "}
+                {totalSteps.toString().padStart(2, "0")}
+              </p>
+              <h2 className="text-xl font-serif text-foreground tracking-tight mt-1">
+                {currentStep === 0
+                  ? "Asset Telemetry"
+                  : currentStep <= modules.length
+                    ? (modules[currentStep - 1]?.title ?? "Assessment")
+                    : currentStep === modules.length + 1
+                      ? "Cryptographic Documentation"
+                      : "Review & Submit"}
+              </h2>
+            </div>
+          )}
 
           <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)} noValidate>
+            <form
+              onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
+              noValidate
+            >
               {currentStep === 0 && (
                 <Step1_ProjectProfile
                   onNext={nextStep}
                   onPrev={() => router.push("/dashboard")}
+                  onProjectCreated={handleProjectCreated}
                 />
               )}
-              {currentStep === 1 && (
-                <Step2_PracticesContext onNext={nextStep} onPrev={prevStep} />
-              )}
-              {currentStep === 2 && (
+
+              {currentStep >= 1 &&
+                currentStep <= modules.length &&
+                projectId && (
+                  <AssessmentModuleStep
+                    projectId={projectId}
+                    moduleKey={modules[currentStep - 1]?.moduleKey}
+                    manifest={manifest}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onSave={refreshModules}
+                  />
+                )}
+
+              {currentStep === modules.length + 1 && projectId && (
                 <Step3_Documents
                   onPrev={prevStep}
                   isSubmitting={isSubmitting}
                   onSubmit={() => methods.handleSubmit(onSubmit, onInvalid)()}
+                />
+              )}
+
+              {currentStep === modules.length + 2 && projectId && (
+                <ReviewStep
+                  onPrev={prevStep}
+                  onSubmit={() => methods.handleSubmit(onSubmit, onInvalid)()}
+                  isSubmitting={isSubmitting}
+                  projectName={projectName}
+                  projectType={selectedType}
+                  modules={modules}
+                  score={score}
                 />
               )}
             </form>

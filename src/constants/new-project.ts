@@ -1,7 +1,12 @@
 // src/constants/new-project.ts
 import { z } from "zod";
 
-// ─── Taxonomy ──────────────────────────────────────────────────────────────────
+// ─── Taxonomy (display-only metadata) ────────────────────────────────────────
+// NOTE: The canonical source for project types, sectors, and modules is the
+// backend manifest (GET /api/v2/projects/assessment-manifest). This constant
+// is kept for display metadata (icons, descriptions) that the manifest does
+// not carry. Always fetch the manifest at runtime for the authoritative
+// module list, pilot status, and sector mappings.
 
 export const PROJECT_TYPES = [
   {
@@ -23,12 +28,28 @@ export const PROJECT_TYPES = [
       "Generate clean power using solar, wind, or hydro infrastructure.",
   },
   {
-    id: "waste_management",
+    id: "agricultural_waste_management",
     sector: "brown_economy",
-    title: "Waste Management",
-    pilotEnabled: false,
+    title: "Agricultural Waste Management",
+    pilotEnabled: true,
     icon: "/icons/3d-waste.png",
     description: "Reduce landfill reliance and capture methane emissions.",
+  },
+  {
+    id: "biochar",
+    sector: "green_economy",
+    title: "Biochar",
+    pilotEnabled: false,
+    icon: "/icons/3d-waste.png",
+    description: "Carbon-negative soil amendment from waste biomass.",
+  },
+  {
+    id: "circular_bioeconomy",
+    sector: "brown_economy",
+    title: "Circular Bioeconomy",
+    pilotEnabled: false,
+    icon: "/icons/3d-waste.png",
+    description: "Closed-loop waste-to-value processing systems.",
   },
   {
     id: "water_projects",
@@ -46,30 +67,39 @@ export const PROJECT_TYPES = [
     icon: "/icons/blue-carbon.png",
     description: "Mangrove and coastal ecosystem protection.",
   },
+  {
+    id: "aquaculture",
+    sector: "blue_economy",
+    title: "Aquaculture",
+    pilotEnabled: false,
+    icon: "/icons/blue-carbon.png",
+    description: "Sustainable aquaculture and fisheries management.",
+  },
+  {
+    id: "fisheries",
+    sector: "blue_economy",
+    title: "Fisheries",
+    pilotEnabled: false,
+    icon: "/icons/blue-carbon.png",
+    description: "Sustainable marine and inland fisheries.",
+  },
+  {
+    id: "agricultural_land_management",
+    sector: "green_economy",
+    title: "Agricultural Land Management",
+    pilotEnabled: false,
+    icon: "/icons/3d-leaf.png",
+    description: "Integrated land use planning and stewardship.",
+  },
+  {
+    id: "other",
+    sector: "green_economy",
+    title: "Other",
+    pilotEnabled: false,
+    icon: "/icons/3d-leaf.png",
+    description: "Have a different project in mind? Describe it below.",
+  },
 ] as const;
-
-// ─── Practice tags by project type ────────────────────────────────────────────
-
-export const PRACTICES_BY_TYPE: Record<string, string[]> = {
-  regenerative_agriculture: [
-    "Agroforestry",
-    "Cover Cropping",
-    "Rotational Grazing",
-    "Composting / Organic Amendments",
-    "No-Till / Minimum Tillage",
-    "Intercropping",
-    "Silvopasture",
-    "Riparian Buffers",
-  ],
-  renewable_energy: [
-    "Solar PV",
-    "Wind Energy",
-    "Small-Scale Hydro",
-    "Biogas / Biomass",
-    "Off-Grid Electrification",
-    "Clean Cooking Fuel",
-  ],
-};
 
 // ─── Document slots ────────────────────────────────────────────────────────────
 
@@ -174,12 +204,16 @@ export const SDGS = [
 // CountryDropdown component stores (e.g. "GHA" for Ghana).
 // The project service maps this value straight to the backend which now
 // accepts min(2).max(3).
+//
+// This schema covers ONLY Step 0 (Project Profile). Module answers are saved
+// incrementally via the assessment endpoints, not in one giant payload.
 
 export const createProjectInputSchema = z
   .object({
-    // Step 1 — Project Profile
+    // Step 0 — Project Profile
     projectType: z.string().min(1, "Select a project type"),
     sector: z.string().min(1, "Sector is required"),
+    customProjectTypeLabel: z.string().optional(),
     name: z.string().min(1, "Project name is required").max(255),
     country: z.string().min(2, "Select a country").max(3),
     region: z.string().min(1, "Region / area is required"),
@@ -204,8 +238,18 @@ export const createProjectInputSchema = z
         return date >= today;
       }, "End date must be today or in the future"),
     totalAreaHectares: z.coerce
-      .number()
-      .positive("Land area must be greater than 0"),
+      .number({
+        error: () => ({ message: "Enter the project area in hectares" }),
+      })
+      .positive("Area must be greater than 0"),
+
+    // Project metadata (still part of createProject payload — modules can refine later)
+    description: z
+      .string()
+      .min(20, "Project description is required (min 20 characters)")
+      .max(1000, "Project description must be under 1000 characters"),
+    projectTags: z.array(z.string()).default([]),
+    sdgs: z.array(z.string()).default([]),
     currency: z.object({
       code: z.string().min(3, "Select a currency").max(3),
       name: z.string().min(1, "Select a currency"),
@@ -218,16 +262,10 @@ export const createProjectInputSchema = z
       .or(z.literal("")),
     assignedAdminId: z.string().optional(),
 
-    // Step 2 — Practices & Context
+    // Step 1..N — Module answers are NOT part of this schema.
+    // They are saved incrementally via PUT /projects/:id/assessments/:moduleKey
 
-    projectTags: z.array(z.string()).default([]),
-    description: z
-      .string()
-      .min(20, "Please describe your project (at least 20 characters)")
-      .max(1000),
-    sdgs: z.array(z.string()).default([]),
-
-    // Step 3 — Documents (tracked client-side, uploaded separately)
+    // Step N+1 — Documents (tracked client-side, uploaded separately)
     documents: z.record(z.string(), z.any().nullable()).default({}),
   })
   .superRefine((data, ctx) => {
@@ -238,6 +276,14 @@ export const createProjectInputSchema = z
         path: ["endDate"],
       });
     }
+    // Require customProjectTypeLabel when projectType = 'other'
+    if (data.projectType === "other" && !data.customProjectTypeLabel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please describe your project type",
+        path: ["customProjectTypeLabel"],
+      });
+    }
   });
 
 export type TCreateProject = z.infer<typeof createProjectInputSchema>;
@@ -245,18 +291,19 @@ export type TCreateProject = z.infer<typeof createProjectInputSchema>;
 export const createProjectDefaultValues: TCreateProject = {
   projectType: "",
   sector: "green_economy",
+  customProjectTypeLabel: "",
   name: "",
-  country: "GHA", // alpha3 for Ghana — matches CountryDropdown default
+  country: "GHA",
   region: "",
   gpsCoordinates: "",
   startDate: new Date(),
   endDate: undefined,
-  totalAreaHectares: 0,
+  totalAreaHectares: undefined,
   currency: { code: "", name: "" },
+  description: "",
+  projectTags: [],
+  sdgs: [],
   projectOwnerId: "",
   assignedAdminId: "",
-  projectTags: [],
-  description: "",
-  sdgs: [],
   documents: {},
 };

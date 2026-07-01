@@ -92,7 +92,7 @@ export function CinematicScrollPitch({
   return (
     <section
       ref={containerRef}
-      className="relative h-[350vh] bg-slate-950 border-t border-slate-900"
+      className="relative h-[350vh] bg-foreground border-t border-slate-900"
     >
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
         {/* ═══════════════════════════════════════════
@@ -151,7 +151,7 @@ export function CinematicScrollPitch({
         >
           <video
             key={getOptimizedVideoUrl("vid1.1_vn20nv.mp4")}
-            className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity opacity-60"
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
             src={getOptimizedVideoUrl("vid1.1_vn20nv.mp4")}
             autoPlay
             muted
@@ -162,7 +162,7 @@ export function CinematicScrollPitch({
           {/* Darkening overlay */}
           <motion.div
             style={{ opacity: overlayOpacity }}
-            className="absolute inset-0 bg-slate-950 will-change-opacity"
+            className="absolute inset-0 bg-foreground/70 will-change-opacity"
           />
 
           {/* ═══════════════════════════════════════════
@@ -208,7 +208,7 @@ export function CinematicScrollPitch({
               >
                 We connect audited climate projects with committed corporations.
                 <br className="hidden md:block" />
-                <strong className="text-white">For originators:</strong> access
+                <strong className="text-white">For Developers:</strong> access
                 premium demand.
                 <br className="hidden md:block" />
                 <strong className="text-white">For buyers:</strong> verifiable
@@ -279,7 +279,7 @@ function StaticPitchFallback() {
 
         <p className="text-lg text-slate-300 mb-12 max-w-2xl mx-auto">
           We connect audited climate projects with committed corporations. For
-          originators: access premium demand. For buyers: verifiable impact. For
+          developers: access premium demand. For buyers: verifiable impact. For
           auditors: full lifecycle transparency.
         </p>
 

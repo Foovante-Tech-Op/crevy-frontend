@@ -8,8 +8,12 @@ import {
   DollarSign,
   Layers,
   Leaf,
+  Mail,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
+import { type Column, DataTable } from "@/components/DataTable";
+import { useWaitlistRegistrations } from "@/hooks/use-waitlist";
 import {
   AlertStrip,
   MrvPipelineStepper,
@@ -17,15 +21,113 @@ import {
   StatCard,
 } from "./Shared";
 
+// ─── Waitlist row type (matches backend response shape) ─────────────────────
+interface WaitlistRow {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  organizationName: string;
+  roleDescription: string;
+  country: string;
+  status: string;
+  createdAt: string;
+}
+
+const STATUS_BADGE: Record<string, { label: string; classes: string }> = {
+  pending: {
+    label: "Pending",
+    classes:
+      "border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-bold uppercase tracking-widest px-2 py-1",
+  },
+  approved: {
+    label: "Approved",
+    classes:
+      "border border-emerald-200 bg-emerald-50 text-emerald-700 text-[9px] font-bold uppercase tracking-widest px-2 py-1",
+  },
+  rejected: {
+    label: "Rejected",
+    classes:
+      "border border-rose-200 bg-rose-50 text-rose-700 text-[9px] font-bold uppercase tracking-widest px-2 py-1",
+  },
+};
+
+const WAITLIST_COLUMNS: Column<WaitlistRow>[] = [
+  {
+    header: "Applicant",
+    render: (row) => (
+      <span className="font-semibold text-slate-900">
+        {row.firstName} {row.lastName}
+      </span>
+    ),
+  },
+  {
+    header: "Email",
+    render: (row) => (
+      <span className="font-mono text-xs text-slate-600">{row.email}</span>
+    ),
+  },
+  {
+    header: "Organization",
+    render: (row) => (
+      <span className="text-slate-700">{row.organizationName}</span>
+    ),
+  },
+  {
+    header: "Role",
+    render: (row) => (
+      <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
+        {row.roleDescription}
+      </span>
+    ),
+  },
+  {
+    header: "Country",
+    render: (row) => <span className="text-slate-600">{row.country}</span>,
+  },
+  {
+    header: "Status",
+    render: (row) => {
+      const badge = STATUS_BADGE[row.status] ?? STATUS_BADGE.pending;
+      return <span className={badge.classes}>{badge.label}</span>;
+    },
+  },
+  {
+    header: "Registered",
+    align: "right",
+    render: (row) => (
+      <span className="font-mono text-[10px] text-slate-400 tabular-nums">
+        {new Date(row.createdAt).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}
+      </span>
+    ),
+  },
+];
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function SuperAdminDashboard({
   userName,
 }: {
   userName: string;
 }) {
-  // MOCK DATA - To be replaced by APIs
+  // Fetch the 10 most recent waitlist registrations for the dashboard snapshot
+  const { data: waitlistResponse, isLoading: waitlistLoading } =
+    useWaitlistRegistrations({ limit: 10 });
+
+  const waitlistRows: WaitlistRow[] = waitlistResponse?.data ?? [];
+  const pendingWaitlistCount = waitlistRows.filter(
+    (r) => r.status === "pending",
+  ).length;
+
+  // MOCK DATA – to be replaced by real API queries per KPI
   const pendingProjectsCount = 4;
   const pendingUsersCount = 12;
-  const totalPending = pendingProjectsCount + pendingUsersCount;
+  const totalPending =
+    pendingProjectsCount + pendingUsersCount + pendingWaitlistCount;
 
   return (
     <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10 font-sans selection:bg-slate-900 selection:text-white bg-slate-50 min-h-screen">
@@ -68,6 +170,10 @@ export default function SuperAdminDashboard({
                 <span className="text-emerald-500">→</span> {pendingUsersCount}{" "}
                 KYC audits pending
               </li>
+              <li className="flex items-center gap-3">
+                <span className="text-amber-400">→</span> {pendingWaitlistCount}{" "}
+                waitlist applications unreviewed
+              </li>
               <li className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-800 text-slate-500">
                 <span className="w-2 h-2 bg-emerald-500 rounded-none shrink-0 animate-pulse" />{" "}
                 All services operational
@@ -80,7 +186,7 @@ export default function SuperAdminDashboard({
       {/* ── 2. Alert Strip ── */}
       <AlertStrip
         count={totalPending}
-        message={`${pendingProjectsCount} asset submissions and ${pendingUsersCount} identity registrations require immediate governance review.`}
+        message={`${pendingProjectsCount} asset submissions, ${pendingUsersCount} identity registrations, and ${pendingWaitlistCount} waitlist applications require governance review.`}
         delay={0.1}
       />
 
@@ -127,7 +233,79 @@ export default function SuperAdminDashboard({
         </div>
       </div>
 
-      {/* ── 4. Financial Overview ── */}
+      {/* ── 4. Waitlist KPI + Mini-Table ── */}
+      <div className="mb-16">
+        <SectionLabel
+          label="Waitlist Intelligence"
+          delay={0.38}
+          action={{ label: "View Full Waitlist", href: "/user-management" }}
+        />
+
+        {/* Waitlist KPI row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200 mb-6">
+          <StatCard
+            label="Total Applicants"
+            value={
+              waitlistLoading
+                ? "—"
+                : (waitlistResponse?.total ?? waitlistRows.length).toString()
+            }
+            unit="Registered"
+            icon={Users}
+            delay={0.4}
+          />
+          <StatCard
+            label="Pending Review"
+            value={waitlistLoading ? "—" : pendingWaitlistCount.toString()}
+            unit="Applications"
+            icon={Mail}
+            delay={0.42}
+          />
+          <StatCard
+            label="Approved"
+            value={
+              waitlistLoading
+                ? "—"
+                : waitlistRows
+                    .filter((r) => r.status === "approved")
+                    .length.toString()
+            }
+            unit="This batch"
+            icon={Leaf}
+            delay={0.44}
+          />
+          <StatCard
+            label="Conversion Rate"
+            value={
+              waitlistLoading || waitlistRows.length === 0
+                ? "—"
+                : `${Math.round(
+                    (waitlistRows.filter((r) => r.status === "approved")
+                      .length /
+                      waitlistRows.length) *
+                      100,
+                  )}%`
+            }
+            unit="Approved"
+            icon={Activity}
+            delay={0.46}
+          />
+        </div>
+
+        {/* DataTable — recent 10 waitlist registrations */}
+        <DataTable<WaitlistRow>
+          columns={WAITLIST_COLUMNS}
+          data={waitlistRows}
+          isLoading={waitlistLoading}
+          loadingMessage="Fetching waitlist registrations..."
+          emptyMessage="No waitlist registrations found."
+          currentPage={1}
+          totalPages={1}
+          onPageChange={() => {}}
+        />
+      </div>
+
+      {/* ── 5. Financial Overview ── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -190,7 +368,7 @@ export default function SuperAdminDashboard({
         </div>
       </motion.div>
 
-      {/* ── 5. Analytics Terminal ── */}
+      {/* ── 6. MRV Pipeline + System ── */}
       <div className="mb-16">
         <SectionLabel label="Market Telemetry" delay={0.45} />
         <div className="grid lg:grid-cols-5 gap-8">
@@ -249,189 +427,67 @@ export default function SuperAdminDashboard({
                     {pendingUsersCount} Items
                   </span>
                 </li>
+                <li className="flex justify-between border-b border-slate-800 pb-2">
+                  <span>Waitlist Queue</span>
+                  <span className="text-amber-400">
+                    {pendingWaitlistCount} Pending
+                  </span>
+                </li>
               </ul>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── 6. Data Tables ── */}
+      {/* ── 7. Activity Feed ── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="space-y-16"
       >
-        {/* Project Vetting Queue */}
-        <div>
-          <SectionLabel
-            label="Project Vetting Ledger"
-            action={{ label: "View All Projects", href: "/projects" }}
-          />
-          <div className="bg-white border border-slate-200 overflow-x-auto">
-            <table className="w-full text-left min-w-[800px]">
-              <thead className="bg-slate-50 border-b-2 border-slate-900">
-                <tr>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Project Reference
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Originator
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Methodology
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Priority
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-sm text-slate-900">
-                    PRJ-GH-2026-081
-                  </td>
-                  <td className="px-6 py-4 font-serif text-sm">Kwame Ofori</td>
-                  <td className="px-6 py-4 text-[10px] font-mono uppercase tracking-widest text-slate-500">
-                    Agroforestry
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest border border-rose-200 bg-rose-50 text-rose-700">
-                      High
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button
-                      type="button"
-                      className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white transition-colors"
-                    >
-                      Review
-                    </button>
-                    <button
-                      type="button"
-                      className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-800 transition-colors"
-                    >
-                      Approve
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* User Vetting Queue */}
-        <div>
-          <SectionLabel
-            label="Identity Verification Ledger"
-            action={{ label: "Manage Directory", href: "/user-management" }}
-          />
-          <div className="bg-white border border-slate-200 overflow-x-auto">
-            <table className="w-full text-left min-w-[800px]">
-              <thead className="bg-slate-50 border-b-2 border-slate-900">
-                <tr>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Identity Reference
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Entity Name
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Role Request
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    KYC Status
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-sm text-slate-900">
-                    USR-GH-9921
-                  </td>
-                  <td className="px-6 py-4 font-serif text-sm">
-                    EcoFarm Consortium
-                  </td>
-                  <td className="px-6 py-4 text-[10px] font-mono uppercase tracking-widest text-slate-500">
-                    Project Owner
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest border border-amber-200 bg-amber-50 text-amber-700">
-                      Pending
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button
-                      type="button"
-                      className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-900 hover:text-white transition-colors"
-                    >
-                      Audit
-                    </button>
-                    <button
-                      type="button"
-                      className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-800 transition-colors"
-                    >
-                      Verify
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Activity Feed */}
-        <div>
-          <SectionLabel label="System Ledger Feed" />
-          <div className="bg-white border border-slate-200 p-6">
-            <ul className="space-y-4">
-              <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
-                <div className="p-2 bg-emerald-50 text-emerald-700 shrink-0">
-                  <Leaf size={16} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    1,200 tCO₂e Issued to PRJ-GH-2026-001
-                  </p>
-                  <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
-                    Today, 14:32 UTC
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
-                <div className="p-2 bg-blue-50 text-blue-700 shrink-0">
-                  <DollarSign size={16} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    Payout $14,200 executed for EcoLogic Systems
-                  </p>
-                  <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
-                    Today, 11:15 UTC
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="p-2 bg-slate-100 text-slate-700 shrink-0">
-                  <Activity size={16} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    System maintenance completed successfully
-                  </p>
-                  <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
-                    Yesterday, 02:00 UTC
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
+        <SectionLabel label="System Ledger Feed" />
+        <div className="bg-white border border-slate-200 p-6">
+          <ul className="space-y-4">
+            <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
+              <div className="p-2 bg-emerald-50 text-emerald-700 shrink-0">
+                <Leaf size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  1,200 tCO₂e Issued to PRJ-GH-2026-001
+                </p>
+                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+                  Today, 14:32 UTC
+                </p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
+              <div className="p-2 bg-blue-50 text-blue-700 shrink-0">
+                <DollarSign size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  Payout $14,200 executed for EcoLogic Systems
+                </p>
+                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+                  Today, 11:15 UTC
+                </p>
+              </div>
+            </li>
+            <li className="flex items-start gap-4">
+              <div className="p-2 bg-slate-100 text-slate-700 shrink-0">
+                <Activity size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  System maintenance completed successfully
+                </p>
+                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+                  Yesterday, 02:00 UTC
+                </p>
+              </div>
+            </li>
+          </ul>
         </div>
       </motion.div>
     </div>

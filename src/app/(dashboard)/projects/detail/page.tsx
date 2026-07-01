@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   UserCheck,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -141,7 +142,7 @@ function ProjectDetailContent() {
         {/* Left: Spatial Overview / Image */}
         <div className="relative border-r border-slate-200 bg-slate-950 flex items-center justify-center overflow-hidden min-h-[40vh]">
           {project.coverImageUrl ? (
-            <img
+            <Image
               src={project.coverImageUrl}
               alt={project.name}
               className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity"
@@ -176,7 +177,7 @@ function ProjectDetailContent() {
             </h1>
             <p className="text-slate-500 font-light leading-relaxed max-w-lg">
               {project.description ||
-                "No thesis description provided by the originator."}
+                "No thesis description provided by the developer."}
             </p>
           </div>
 
@@ -229,7 +230,7 @@ function ProjectDetailContent() {
       {/* ── 2. IDENTITY & KYC DOSSIER ────────────────────────────────────────── */}
       <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 border-b border-slate-200">
         <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 border-b-2 border-slate-900 pb-3 mb-8">
-          Originator Identity Profile
+          Developer Identity Profile
         </h2>
 
         {owner ? (
@@ -273,7 +274,7 @@ function ProjectDetailContent() {
           <div className="bg-amber-50 border border-amber-200 p-6 flex items-center gap-4">
             <ShieldAlert className="text-amber-600" size={20} />
             <span className="font-mono text-xs uppercase tracking-widest text-amber-900">
-              Warning: Asset Originator Data Corrupted or Missing
+              Warning: Asset Developer Data Corrupted or Missing
             </span>
           </div>
         )}

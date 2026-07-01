@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, ShieldCheck } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,7 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
       );
       reset();
       onClose();
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to send invitation");
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Landmark, Smartphone } from "lucide-react";
+import { Building2, Smartphone } from "lucide-react";
 
 export function PayoutSection({ isCorporate }: { isCorporate: boolean }) {
   return (

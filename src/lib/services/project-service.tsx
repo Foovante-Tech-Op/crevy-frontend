@@ -21,9 +21,9 @@ export const ProjectService = {
       endDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
       totalAreaHectares: data.totalAreaHectares,
       currency: data.currency, // Pass the {code, name} object
-      projectTags: data.projectTags,
-      description: data.description,
-      sdgs: data.sdgs,
+      projectTags: data.projectTags ?? [],
+      description: data.description || "",
+      sdgs: data.sdgs ?? [],
       projectOwnerId: data.projectOwnerId || undefined,
       assignedAdminId: data.assignedAdminId || undefined,
     };
@@ -146,6 +146,54 @@ export const ProjectService = {
 
   simulateMrv: async (projectId: string) => {
     const response = await axiosClient.post(`/mrv/simulate/${projectId}`);
+    return response.data;
+  },
+
+  // ─── Assessment Modules (Onboarding Redesign v2) ───────────────────────────
+
+  getAssessmentManifest: async () => {
+    const response = await axiosClient.get("/projects/assessment-manifest");
+    return response.data;
+  },
+
+  listAssessments: async (projectId: string) => {
+    const response = await axiosClient.get(
+      `/projects/${projectId}/assessments`,
+    );
+    return response.data;
+  },
+
+  getAssessment: async (projectId: string, moduleKey: string) => {
+    const response = await axiosClient.get(
+      `/projects/${projectId}/assessments/${moduleKey}`,
+    );
+    return response.data;
+  },
+
+  upsertAssessment: async (
+    projectId: string,
+    moduleKey: string,
+    body: Record<string, unknown>,
+    status: "in_progress" | "submitted" = "in_progress",
+  ) => {
+    const response = await axiosClient.put(
+      `/projects/${projectId}/assessments/${moduleKey}?status=${status}`,
+      body,
+    );
+    return response.data;
+  },
+
+  getLatestScore: async (projectId: string) => {
+    const response = await axiosClient.get(
+      `/projects/${projectId}/assessment-score`,
+    );
+    return response.data;
+  },
+
+  recalculateScore: async (projectId: string) => {
+    const response = await axiosClient.post(
+      `/projects/${projectId}/assessment-score/recalculate`,
+    );
     return response.data;
   },
 };

@@ -1,14 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  Activity,
-  ArrowRight,
-  ArrowUpRight,
-  Globe2,
-  History,
-  LucideLayoutDashboard,
-} from "lucide-react";
+import { Activity, Globe2, History, LucideLayoutDashboard } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";

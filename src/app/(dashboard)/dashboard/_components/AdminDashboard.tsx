@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SectionLabel, StatCard } from "./Shared";
@@ -60,7 +59,7 @@ export default function AdminDashboard({
             <span className="italic text-slate-500">Operations.</span>
           </h1>
           <p className="text-slate-500 font-light leading-relaxed">
-            Manage your designated operational domain, review originators, and
+            Manage your designated operational domain, review developers, and
             enforce registry protocols.
           </p>
         </div>
@@ -105,7 +104,7 @@ export default function AdminDashboard({
               <SectionLabel label="Project Vetting Overview" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200">
                 <StatCard
-                  label="Assigned Originators"
+                  label="Assigned Developers"
                   value="14"
                   icon={Users}
                   trend="Active Entities"
@@ -135,7 +134,7 @@ export default function AdminDashboard({
             <div className="bg-white border border-slate-200 overflow-x-auto">
               <div className="p-6 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                 <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                  Assigned Originators
+                  Assigned Developers
                 </h3>
               </div>
               <table className="w-full text-left min-w-[800px]">

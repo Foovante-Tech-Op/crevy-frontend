@@ -48,7 +48,7 @@ const CustomInput = <T extends FieldValues>({
             placeholder={placeholder}
             {...field}
             disabled={disabled}
-            className={className}
+            className={cn("font-sans!", className)}
             readOnly={false}
           />
         );
@@ -58,7 +58,7 @@ const CustomInput = <T extends FieldValues>({
             placeholder={placeholder}
             {...field}
             disabled={disabled}
-            className={cn("overflow-y-scroll h-42", className)}
+            className={cn("overflow-y-scroll h-42 font-sans!", className)}
             readOnly={false}
           />
         );

@@ -106,7 +106,7 @@ export default function ProjectOwnersPage() {
   const { user } = useUser();
   const isSuperAdmin = user?.role === "super_admin";
 
-  const PAGE_SIZE = 12;
+  const _PAGE_SIZE = 12;
 
   // ── State ──
   const [viewType, setViewType] = useState<"list" | "grid">("list");
@@ -177,7 +177,7 @@ export default function ProjectOwnersPage() {
                 Project <span className="italic text-slate-500">Owners.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
-                Institutional directory of verified originators and land
+                Institutional directory of verified developers and land
                 stewards. Manage KYC documentation, review payment pipelines,
                 and oversee active operations.
               </p>

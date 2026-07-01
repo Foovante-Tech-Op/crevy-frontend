@@ -1,19 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  ArrowUpRight,
-  Award,
-  Building2,
-  Calendar,
-  FileText,
-  Globe2,
-  LockKeyhole,
-  Search,
-} from "lucide-react";
+import { Award, Building2, Globe2, LockKeyhole, Search } from "lucide-react";
 
 export default function PublicRegistryPage() {
-  const records = [
+  const _records = [
     {
       id: "CRV-82401",
       beneficiary: "Apex Financial Group",

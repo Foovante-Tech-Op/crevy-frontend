@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import {
   AlertCircleIcon,
-  ArrowRight,
   Bell,
   Cookie,
   Database,
@@ -15,7 +14,6 @@ import {
   Trash2,
   UserCheck,
 } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -183,8 +181,8 @@ function PrivacyContent({
               >
                 <p>
                   This Privacy Policy applies to all systemic actors
-                  (Originators, Corporate Entities, Auditors) utilizing the
-                  Crevy platform infrastructure, accessible at{" "}
+                  (Developers, Corporate Entities, Auditors) utilizing the Crevy
+                  platform infrastructure, accessible at{" "}
                   <span className="font-mono text-emerald-700">crevy.app</span>.
                 </p>
                 <p>
@@ -254,7 +252,7 @@ function PrivacyContent({
                     and financial fraud in compliance with AML/CFT regulations.
                   </li>
                   <li>
-                    To route corporate liquidity to local project originators
+                    To route corporate liquidity to local project developers
                     seamlessly.
                   </li>
                   <li>

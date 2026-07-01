@@ -10,7 +10,6 @@ import {
   QrCode,
   ShieldCheck,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";

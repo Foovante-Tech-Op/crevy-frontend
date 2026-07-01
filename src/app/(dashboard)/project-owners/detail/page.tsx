@@ -42,7 +42,7 @@ const getInitials = (first?: string, last?: string) =>
   `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "PO";
 
 // Editorial Mono-spaced Info Row
-function InfoRow({
+function _InfoRow({
   label,
   value,
   mono = false,

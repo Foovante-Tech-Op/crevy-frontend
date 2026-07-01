@@ -28,7 +28,7 @@ function CrevyTransitionLoader() {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[9999] bg-foreground flex flex-col items-center justify-center overflow-hidden"
       exit={shouldReduceMotion ? { opacity: 0 } : { y: "-100%" }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -48,7 +48,7 @@ function CrevyTransitionLoader() {
             ? { duration: 0.2 }
             : { type: "spring", damping: 28, stiffness: 90 }
         }
-        className="font-serif text-5xl md:text-7xl text-white tracking-tight relative z-10"
+        className="font-sans text-5xl md:text-7xl text-white tracking-tight relative z-10"
       >
         Crevy
       </motion.h1>
@@ -73,12 +73,12 @@ function CrevyTransitionLoader() {
       >
         <div className="w-full h-px bg-slate-800 relative overflow-hidden">
           <motion.div
-            className="absolute inset-y-0 left-0 bg-emerald-500"
+            className="absolute inset-y-0 left-0 bg-brand"
             style={{ width: `${progress}%` }}
           />
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-emerald-500" />
+          <div className="w-1.5 h-1.5 bg-brand" />
           <span className="font-mono text-[10px] text-slate-400 tracking-[0.3em] uppercase tabular-nums">
             {progress}%
           </span>

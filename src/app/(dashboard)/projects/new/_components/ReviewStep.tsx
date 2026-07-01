@@ -1,54 +1,43 @@
-//@ts-nocheck
+// src/app/(dashboard)/projects/new/_components/ReviewStep.tsx
 "use client";
 
-import { format } from "date-fns";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import type { TCreateProject } from "@/constants/new-project";
-import { PROJECT_TYPES, SDGS } from "@/constants/new-project";
-import { useRegenerativePractices } from "@/hooks/use-regenerative-practices";
+import type { ModuleStep } from "./SidebarProgress";
 
-type ReviewStepProps = {
+interface ReviewStepProps {
   onPrev: () => void;
   onSubmit: () => void;
   isSubmitting: boolean;
-};
+  projectName: string;
+  projectType: string;
+  modules: ModuleStep[];
+  score?: {
+    carbonReadinessScore?: number | null;
+    primaryMethodology?: string | null;
+  } | null;
+}
 
-const ReviewStep = ({ onPrev, onSubmit, isSubmitting }: ReviewStepProps) => {
-  const { getValues } = useFormContext<TCreateProject>();
-  const formData = getValues();
-  const { data: practices } = useRegenerativePractices();
-
-  const projectType = PROJECT_TYPES.find(
-    (type) => type.id === formData.projectType,
-  );
-
-  const practiceNames = formData.regenerativePractices
-    ?.map((id) => {
-      const practice = practices?.find((p: any) => p.id === id);
-      return practice ? practice.name : id;
-    })
-    .join(", ");
-
-  const sdgNames = formData.sdgs
-    ?.map((id) => {
-      const sdg = SDGS.find((s) => s.id === id);
-      return sdg ? sdg.title : id;
-    })
-    .join(", ");
-
-  console.log("isSubmitting: ", isSubmitting);
+const ReviewStep = ({
+  onPrev,
+  onSubmit,
+  isSubmitting,
+  projectName,
+  projectType,
+  modules,
+  score,
+}: ReviewStepProps) => {
+  const submittedCount = modules.filter((m) => m.status === "submitted").length;
+  const totalCount = modules.length;
 
   const InfoRow = ({
     label,
     value,
   }: {
     label: string;
-    value: string | number | boolean | undefined;
+    value: string | number | boolean | undefined | null;
   }) => {
     if (value === undefined || value === "" || value === null) return null;
-
     return (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-3 border-b border-slate-100">
         <dt className="text-sm font-medium text-slate-500">{label}</dt>
@@ -64,7 +53,7 @@ const ReviewStep = ({ onPrev, onSubmit, isSubmitting }: ReviewStepProps) => {
       <div>
         <h2 className="text-2xl md:text-3xl font-bold mb-2">Review & Submit</h2>
         <p className="text-slate-400 text-sm md:text-base">
-          Please review your project details before submitting.
+          Review your project assessment before final submission.
         </p>
       </div>
 
@@ -76,167 +65,82 @@ const ReviewStep = ({ onPrev, onSubmit, isSubmitting }: ReviewStepProps) => {
               Almost there!
             </h3>
             <p className="text-emerald-700 text-xs md:text-sm mt-1">
-              Review your information carefully. You can go back to edit any
-              section if needed.
+              {submittedCount} of {totalCount} modules complete. You can submit
+              now or return to complete remaining modules.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Project Type Section */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-semibold mb-4 text-slate-900">
-          Project Type
-        </h3>
-        <dl className="divide-y divide-slate-100">
-          <InfoRow
-            label="Category"
-            value={projectType?.title || formData.projectType}
-          />
-        </dl>
-      </div>
-
-      {/* Project Overview Section */}
+      {/* Project Overview */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 md:p-6">
         <h3 className="text-base md:text-lg font-semibold mb-4 text-slate-900">
           Project Overview
         </h3>
         <dl className="divide-y divide-slate-100">
-          <InfoRow label="Project Name" value={formData.name} />
+          <InfoRow label="Project Name" value={projectName} />
+          <InfoRow label="Category" value={projectType.replace(/_/g, " ")} />
           <InfoRow
-            label="Start Date"
-            value={
-              formData.startDate
-                ? format(new Date(formData.startDate), "PPP")
-                : ""
-            }
+            label="Assessment Completion"
+            value={`${submittedCount} / ${totalCount}`}
           />
-          <InfoRow
-            label="Duration"
-            value={`${formData.durationMonths} months`}
-          />
-          <InfoRow label="Location" value={formData.location} />
-          <InfoRow label="GPS Coordinates" value={formData.gpsCoordinates} />
-          <InfoRow
-            label="Total Area"
-            value={`${formData.totalAreaHectares} hectares`}
-          />
-          <InfoRow label="Current Status" value={formData.currentStatus} />
+          {score?.carbonReadinessScore !== undefined &&
+            score?.carbonReadinessScore !== null && (
+              <InfoRow
+                label="Carbon Readiness Score"
+                value={`${score.carbonReadinessScore} / 100`}
+              />
+            )}
+          {score?.primaryMethodology && (
+            <InfoRow
+              label="Suggested Methodology"
+              value={score.primaryMethodology}
+            />
+          )}
         </dl>
       </div>
 
-      {/* Supporting Documents Section */}
+      {/* Module Summary */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 md:p-6">
         <h3 className="text-base md:text-lg font-semibold mb-4 text-slate-900">
-          Supporting Documents ({formData.documents?.length || 0})
+          Assessment Modules
         </h3>
-        {formData.documents && formData.documents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {formData.documents.map((file) => (
-              <div
-                key={file.name}
-                className="flex items-center gap-3 p-3 border border-slate-100 rounded-lg bg-slate-50/50"
-              >
-                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-xs font-medium text-slate-700 truncate">
-                  {file.name}
-                </span>
-                <span className="text-[10px] text-slate-400 ml-auto whitespace-nowrap">
-                  {file.size}
-                </span>
+        <div className="space-y-3">
+          {modules.map((mod) => (
+            <div
+              key={mod.moduleKey}
+              className="flex items-center justify-between p-3 border border-slate-100 rounded-lg"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "w-2 h-2 rounded-full",
+                    mod.status === "submitted"
+                      ? "bg-emerald-500"
+                      : mod.status === "in_progress"
+                        ? "bg-amber-500"
+                        : "bg-slate-300",
+                  )}
+                />
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    {mod.title}
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    {mod.status === "submitted"
+                      ? "Submitted"
+                      : mod.status === "in_progress"
+                        ? "In progress"
+                        : "Not started"}
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-slate-400 italic">
-            No documents uploaded.
-          </p>
-        )}
-      </div>
-
-      {/* Project Details Section */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-semibold mb-4 text-slate-900">
-          Project Details
-        </h3>
-        <dl className="divide-y divide-slate-100">
-          <div className="py-3 border-b border-slate-100">
-            <dt className="text-sm font-medium text-slate-500 mb-2">
-              Description
-            </dt>
-            <dd className="text-sm text-slate-900 whitespace-pre-wrap">
-              {formData.description}
-            </dd>
-          </div>
-
-          {formData.implementationPlan && (
-            <div className="py-3 border-b border-slate-100">
-              <dt className="text-sm font-medium text-slate-500 mb-2">
-                Implementation Plan
-              </dt>
-              <dd className="text-sm text-slate-900 whitespace-pre-wrap">
-                {formData.implementationPlan}
-              </dd>
+              {mod.status === "submitted" && (
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+              )}
             </div>
-          )}
-
-          {formData.expectedOutcomes && (
-            <div className="py-3 border-b border-slate-100">
-              <dt className="text-sm font-medium text-slate-500 mb-2">
-                Expected Outcomes
-              </dt>
-              <dd className="text-sm text-slate-900 whitespace-pre-wrap">
-                {formData.expectedOutcomes}
-              </dd>
-            </div>
-          )}
-
-          <InfoRow label="Baseline Land Use" value={formData.baselineLandUse} />
-          <InfoRow label="Soil Type" value={formData.soilType} />
-          <InfoRow
-            label="Initial Soil Carbon Content"
-            value={
-              formData.initialSoilCarbonContent
-                ? `${formData.initialSoilCarbonContent}%`
-                : undefined
-            }
-          />
-          <InfoRow label="Regenerative Practices" value={practiceNames} />
-          <InfoRow
-            label="Crop/Livestock Types"
-            value={formData.cropLivestockTypes}
-          />
-          <InfoRow
-            label="Organic Amendments"
-            value={formData.organicAmendments}
-          />
-        </dl>
-      </div>
-
-      {/* Project Characteristics */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-semibold mb-4 text-slate-900">
-          Project Characteristics
-        </h3>
-        <dl className="divide-y divide-slate-100">
-          <InfoRow
-            label="Uses Synthetic Fertilizers"
-            value={formData.usesSyntheticFertilizers}
-          />
-          <InfoRow
-            label="Uses Synthetic Pesticides"
-            value={formData.usesSyntheticPesticides}
-          />
-          <InfoRow
-            label="Supports Biodiversity Conservation"
-            value={formData.supportsBiodiversityConservation}
-          />
-          <InfoRow
-            label="Supports Water Management"
-            value={formData.supportsWaterManagement}
-          />
-          <InfoRow label="SDGs" value={sdgNames} />
-        </dl>
+          ))}
+        </div>
       </div>
 
       <div className="mt-8 md:mt-12 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
@@ -264,5 +168,9 @@ const ReviewStep = ({ onPrev, onSubmit, isSubmitting }: ReviewStepProps) => {
     </div>
   );
 };
+
+function cn(...classes: (string | false | null | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export default ReviewStep;

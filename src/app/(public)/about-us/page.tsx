@@ -63,7 +63,7 @@ const CORE_VALUES = [
     icon: Users,
     title: "Equitable Market Access",
     description:
-      "We dismantle systemic barriers, ensuring African originators and land stewards receive fair-market liquidity for their sequestration assets.",
+      "We dismantle systemic barriers, ensuring African Developers and land stewards receive fair-market liquidity for their sequestration assets.",
   },
   {
     icon: Lightbulb,
@@ -71,13 +71,6 @@ const CORE_VALUES = [
     description:
       "Full audit trails, real-time dMRV telemetry, and open methodologies. Counterparties operate with complete informational symmetry.",
   },
-];
-
-const IMPACT_STATS = [
-  { value: "200+", label: "Verified Assets" },
-  { value: "50K+", label: "tCO₂e Sequestered" },
-  { value: "80+", label: "Institutional Partners" },
-  { value: "6", label: "Asset Methodologies" },
 ];
 
 const MILESTONES = [
@@ -197,7 +190,7 @@ function StorySection() {
               Crevy was engineered as the antidote. We recognized that to unlock
               Africa’s ecological value, we had to rebuild the trust layer from
               the ground up. By integrating rigorous digital Measurement,
-              Reporting, and Verification (dMRV) with direct-to-originator
+              Reporting, and Verification (dMRV) with direct-to-developer
               payment routing, we remove the friction that has historically
               suppressed African participation in global ESG markets.
             </p>

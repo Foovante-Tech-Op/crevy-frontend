@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sprout } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
@@ -29,8 +29,7 @@ import {
 import { useCreateWaitlistRegistration } from "@/hooks/use-waitlist";
 import { cn } from "@/lib/utils";
 
-// ─── Shared field primitives (kept local — purpose-built for this form's
-// editorial style; not generic enough to warrant a shared component yet) ──
+// ─── Shared field primitives (Editorial / Telemetry Style Alignment) ──
 
 function FieldLabel({
   children,
@@ -40,9 +39,9 @@ function FieldLabel({
   required?: boolean;
 }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 select-none">
       {children}
-      {required && <span className="text-emerald-600 ml-1">*</span>}
+      {required && <span className="text-slate-900 ml-1">*</span>}
     </div>
   );
 }
@@ -81,7 +80,7 @@ function TextField({
           <input
             type={type}
             placeholder={placeholder}
-            className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+            className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-sans text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
             {...field}
             value={field.value as string}
           />
@@ -115,7 +114,7 @@ function TextareaField({
           <textarea
             placeholder={placeholder}
             rows={4}
-            className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none resize-none"
+            className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none resize-none"
             {...field}
             value={field.value as string}
           />
@@ -152,9 +151,9 @@ function SingleSelectField({
             <SelectTrigger className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 h-auto font-serif text-sm text-slate-900 focus:ring-0 data-[state=open]:border-slate-900">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-none">
               {options.map((opt) => (
-                <SelectItem key={opt} value={opt}>
+                <SelectItem key={opt} value={opt} className="rounded-none">
                   {opt}
                 </SelectItem>
               ))}
@@ -167,7 +166,6 @@ function SingleSelectField({
   );
 }
 
-/** Chip-grid multi-select — used for climateSectors and useCases. */
 function MultiSelectChips({
   control,
   name,
@@ -210,7 +208,7 @@ function MultiSelectChips({
                     type="button"
                     onClick={() => toggle(option)}
                     className={cn(
-                      "px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border transition-colors",
+                      "px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border rounded-none transition-colors",
                       isActive
                         ? "bg-slate-900 border-slate-900 text-white"
                         : "bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-900",
@@ -229,7 +227,6 @@ function MultiSelectChips({
   );
 }
 
-/** Selectable card group — used for managesProjects (binary fork). */
 function SelectableCardGroup({
   control,
   name,
@@ -256,7 +253,7 @@ function SelectableCardGroup({
                   type="button"
                   onClick={() => field.onChange(option)}
                   className={cn(
-                    "text-left p-6 border transition-colors",
+                    "text-left p-6 border rounded-none transition-colors",
                     isActive
                       ? "bg-slate-900 border-slate-900 text-white"
                       : "bg-slate-50 border-slate-200 text-slate-900 hover:border-slate-400",
@@ -274,7 +271,7 @@ function SelectableCardGroup({
   );
 }
 
-// ─── Main Form ────────────────────────────────────────────────────────────────
+// ─── Main Form Component ──────────────────────────────────────────────────────
 
 export default function RegisterInterestForm({
   className,
@@ -313,221 +310,232 @@ export default function RegisterInterestForm({
   const onInvalid = (errors: any) => {
     const entries = Object.entries(errors);
     if (entries.length > 0) {
-      const [field, error]: [string, any] = entries[0];
-      toast.error(`${field}: ${error?.message || "Invalid input"}`);
+      const [field, error]: [string, unknown][] = entries;
+      toast.error(`${field}: ${(error as any)?.message || "Invalid input"}`);
     }
   };
 
   return (
-    <div className={cn("w-full max-w-2xl mx-auto", className)} {...props}>
-      <div className="mb-12">
-        <div className="inline-flex items-center gap-2 mb-4 text-emerald-700">
-          <Sprout className="w-4 h-4" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">
-            Crevy Early Access
-          </span>
+    <div
+      className={cn(
+        "w-full max-w-4xl bg-background border border-slate-200 rounded-none shadow-2xl transition-all max-h-[95vh] flex flex-col overflow-hidden",
+        className,
+      )}
+      {...props}
+    >
+      <div
+        className="overflow-y-auto p-6 sm:p-10 md:p-16 custom-scrollbar"
+        data-lenis-prevent="true"
+      >
+        <div className="mb-12">
+          {/* <div className="inline-flex items-center gap-2 mb-4 text-slate-900">
+            <Sprout className="w-4 h-4 text-slate-900" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em]">
+              Crevy Early Access
+            </span>
+          </div> */}
+          <h1 className="font-sans font-bold text-4xl md:text-5xl text-slate-900 tracking-tight leading-none mb-4">
+            Register Your <span className="italic text-brand">Interest.</span>
+          </h1>
+          <p className="text-slate-600 text-sm md:text-base leading-relaxed max-w-2xl">
+            Tell us about yourself and how you'd like to engage with the carbon
+            markets. A member of our team will personally follow up to discuss
+            next steps.
+          </p>
         </div>
-        <h1 className="font-serif text-4xl md:text-5xl text-slate-900 tracking-tight leading-none mb-4">
-          Register Your <span className="italic text-slate-500">Interest.</span>
-        </h1>
-        <p className="text-slate-500 text-sm leading-relaxed max-w-lg">
-          Tell us about yourself and how you'd like to engage with the carbon
-          markets. A member of our team will personally follow up to discuss
-          next steps.
-        </p>
-      </div>
 
-      <FormProvider {...methods}>
-        <form
-          onSubmit={handleSubmit(onSubmit, onInvalid)}
-          noValidate
-          className="space-y-14"
-        >
-          {/* ── Identity ── */}
-          <section className="space-y-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
-              01 — Identity
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <TextField
-                control={control}
-                name="firstName"
-                label="First Name"
-                required
-              />
-              <TextField
-                control={control}
-                name="lastName"
-                label="Last Name"
-                required
-              />
-            </div>
-            <TextField
-              control={control}
-              name="middleName"
-              label="Middle Name (Optional)"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <TextField
-                control={control}
-                name="email"
-                label="Email Address"
-                type="email"
-                required
-              />
-              <TextField
-                control={control}
-                name="phoneNumber"
-                label="Phone Number (Optional)"
-                type="tel"
-              />
-            </div>
-          </section>
-
-          {/* ── Organization ── */}
-          <section className="space-y-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
-              02 — Organization
-            </p>
-            <TextField
-              control={control}
-              name="organizationName"
-              label="Organization Name"
-              required
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <TextField
-                control={control}
-                name="jobTitle"
-                label="Job Title"
-                required
-              />
-              <div data-lenis-prevent="true">
-                <CountryDropdown
+        <FormProvider {...methods}>
+          <form
+            onSubmit={handleSubmit(onSubmit, onInvalid)}
+            noValidate
+            className="space-y-14"
+          >
+            {/* ── Identity ── */}
+            <section className="space-y-6">
+              <p className="font-mono text-sm uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200 underline underline-offset-6">
+                01 — Identity
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <TextField
                   control={control}
-                  name="country"
-                  label="Country*"
-                  placeholder="Select country"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* ── Profile ── */}
-          <section className="space-y-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
-              03 — Profile
-            </p>
-            <SingleSelectField
-              control={control}
-              name="roleDescription"
-              label="Which best describes you?"
-              options={ROLE_DESCRIPTION_OPTIONS}
-              required
-            />
-            <MultiSelectChips
-              control={control}
-              name="climateSectors"
-              label="Which climate sectors are you interested in?"
-              options={CLIMATE_SECTOR_OPTIONS}
-              required
-            />
-            <MultiSelectChips
-              control={control}
-              name="useCases"
-              label="What would you like to use Crevy for?"
-              options={USE_CASE_OPTIONS}
-              required
-            />
-          </section>
-
-          {/* ── Engagement (conditional) ── */}
-          <section className="space-y-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
-              04 — Engagement
-            </p>
-            <div className="space-y-3">
-              <FieldLabel required>Which applies to you?</FieldLabel>
-              <SelectableCardGroup
-                control={control}
-                name="managesProjects"
-                options={MANAGES_PROJECTS_OPTIONS}
-                required
-              />
-            </div>
-
-            {isManager && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 animate-in fade-in duration-300">
-                <SingleSelectField
-                  control={control}
-                  name="projectCount"
-                  label="How many projects do you manage?"
-                  options={PROJECT_COUNT_OPTIONS}
+                  name="firstName"
+                  label="First Name"
                   required
                 />
                 <TextField
                   control={control}
-                  name="hectaresManaged"
-                  label="Total Hectares Managed (Optional)"
-                  placeholder="e.g. 250"
-                />
-              </div>
-            )}
-
-            {isInvestor && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 animate-in fade-in duration-300">
-                <SingleSelectField
-                  control={control}
-                  name="primaryInterest"
-                  label="Primary Interest"
-                  options={PRIMARY_INTEREST_OPTIONS}
-                  required
-                />
-                <SingleSelectField
-                  control={control}
-                  name="investmentBudget"
-                  label="Investment Budget"
-                  options={INVESTMENT_BUDGET_OPTIONS}
+                  name="lastName"
+                  label="Last Name"
                   required
                 />
               </div>
-            )}
-          </section>
+              <TextField
+                control={control}
+                name="middleName"
+                label="Middle Name (Optional)"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <TextField
+                  control={control}
+                  name="email"
+                  label="Email Address"
+                  type="email"
+                  required
+                />
+                <TextField
+                  control={control}
+                  name="phoneNumber"
+                  label="Phone Number (Optional)"
+                  type="tel"
+                />
+              </div>
+            </section>
 
-          {/* ── Feedback ── */}
-          <section className="space-y-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
-              05 — Feedback
-            </p>
-            <TextareaField
-              control={control}
-              name="biggestChallenge"
-              label="What's your biggest challenge in this space today?"
-              required
-            />
-            <TextareaField
-              control={control}
-              name="platformValueExpectation"
-              label="What would you want a platform like Crevy to do for you?"
-              required
-            />
-          </section>
+            {/* ── Organization ── */}
+            <section className="space-y-6">
+              <p className="font-mono text-sm uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200 underline underline-offset-6">
+                02 — Organization
+              </p>
+              <TextField
+                control={control}
+                name="organizationName"
+                label="Organization Name"
+                required
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <TextField
+                  control={control}
+                  name="jobTitle"
+                  label="Job Title"
+                  required
+                />
+                <div data-lenis-prevent="true">
+                  <CountryDropdown
+                    control={control}
+                    name="country"
+                    label="Country*"
+                    placeholder="Select country"
+                  />
+                </div>
+              </div>
+            </section>
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-emerald-700 hover:bg-emerald-900 text-white font-bold uppercase tracking-widest text-[10px] py-6 mt-4 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="animate-spin h-4 w-4" /> Submitting...
-              </>
-            ) : (
-              "Join the Waitlist"
-            )}
-          </button>
-        </form>
-      </FormProvider>
+            {/* ── Profile ── */}
+            <section className="space-y-6">
+              <p className="font-mono text-sm uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200 underline underline-offset-6">
+                03 — Profile
+              </p>
+              <SingleSelectField
+                control={control}
+                name="roleDescription"
+                label="Which best describes you?"
+                options={ROLE_DESCRIPTION_OPTIONS}
+                required
+              />
+              <MultiSelectChips
+                control={control}
+                name="climateSectors"
+                label="Which climate sectors are you interested in?"
+                options={CLIMATE_SECTOR_OPTIONS}
+                required
+              />
+              <MultiSelectChips
+                control={control}
+                name="useCases"
+                label="What would you like to use Crevy for?"
+                options={USE_CASE_OPTIONS}
+                required
+              />
+            </section>
+
+            {/* ── Engagement (conditional) ── */}
+            <section className="space-y-6">
+              <p className="font-mono text-sm uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200 underline underline-offset-6">
+                04 — Engagement
+              </p>
+              <div className="space-y-3">
+                <FieldLabel required>Which applies to you?</FieldLabel>
+                <SelectableCardGroup
+                  control={control}
+                  name="managesProjects"
+                  options={MANAGES_PROJECTS_OPTIONS}
+                  required
+                />
+              </div>
+
+              {isManager && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 animate-in fade-in duration-300">
+                  <SingleSelectField
+                    control={control}
+                    name="projectCount"
+                    label="How many projects do you manage?"
+                    options={PROJECT_COUNT_OPTIONS}
+                    required
+                  />
+                  <TextField
+                    control={control}
+                    name="hectaresManaged"
+                    label="Total Hectares Managed (Optional)"
+                    placeholder="e.g. 250"
+                  />
+                </div>
+              )}
+
+              {isInvestor && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 animate-in fade-in duration-300">
+                  <SingleSelectField
+                    control={control}
+                    name="primaryInterest"
+                    label="Primary Interest"
+                    options={PRIMARY_INTEREST_OPTIONS}
+                    required
+                  />
+                  <SingleSelectField
+                    control={control}
+                    name="investmentBudget"
+                    label="Investment Budget"
+                    options={INVESTMENT_BUDGET_OPTIONS}
+                    required
+                  />
+                </div>
+              )}
+            </section>
+
+            {/* ── Feedback ── */}
+            <section className="space-y-6">
+              <p className="font-mono text-sm uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200 underline underline-offset-6">
+                05 — Feedback
+              </p>
+              <TextareaField
+                control={control}
+                name="biggestChallenge"
+                label="What's your biggest challenge in this space today?"
+                required
+              />
+              <TextareaField
+                control={control}
+                name="platformValueExpectation"
+                label="What would you want a platform like Crevy to do for you?"
+                required
+              />
+            </section>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-brand text-slate-900 rounded-none px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="animate-spin h-4 w-4" /> Submitting...
+                </>
+              ) : (
+                "Join the Waitlist"
+              )}
+            </button>
+          </form>
+        </FormProvider>
+      </div>
     </div>
   );
 }

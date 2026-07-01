@@ -1,18 +1,18 @@
 "use client";
 
-import { ArrowLeft, Building2, Flame, Loader2 } from "lucide-react";
+import { ArrowLeft, Building2, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 // ─── Data & Configuration ─────────────────────────────────────────────────────
 
-const scopeData = [
+const _scopeData = [
   { name: "Scope 1", value: 45, fill: "#047857" }, // emerald-700
   { name: "Scope 2", value: 25, fill: "#0f172a" }, // slate-900
   { name: "Scope 3", value: 30, fill: "#94a3b8" }, // slate-400
 ];
 
-const members = [
+const _members = [
   {
     id: "USR-001",
     name: "Sarah Jenkins",
@@ -40,7 +40,7 @@ function OrganizationDetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const [isMounted, setIsMounted] = useState(false);
+  const [_isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);

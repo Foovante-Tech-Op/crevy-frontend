@@ -5,15 +5,7 @@ import Link from "next/link";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import GalleryBackground from "@/components/GalleryBackground";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
@@ -22,88 +14,111 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
+
+    // Simulate API identity validation
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
-      toast.success("Reset link sent to your email");
+      toast.success("Reset link dispatched to authorized email payload.");
     }, 1500);
   };
 
-  if (submitted) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center p-6">
-        <Card className="w-full max-w-md shadow-2xl border-none text-center p-8">
-          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600">
-            <Mail size={40} />
-          </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2">
-            Check your email
-          </h2>
-          <p className="text-slate-500 mb-8 font-medium">
-            We have sent a password reset link to your email address.
-          </p>
-          <Link
-            href="/login"
-            className="text-emerald-600 font-black uppercase tracking-widest text-xs hover:underline"
-          >
-            Back to Login
-          </Link>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-6">
-      <Card className="w-full max-w-md shadow-2xl border-none">
-        <CardHeader className="space-y-4">
-          <Link
-            href="/login"
-            className="text-slate-400 hover:text-emerald-600 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors"
-          >
-            <ArrowLeft size={14} /> Back to Login
-          </Link>
-          <CardTitle className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">
-            Forgot Password?
-          </CardTitle>
-          <CardDescription className="text-slate-500 font-medium">
-            No worries, it happens. Enter your email and we&apos;ll send you a
-            recovery link.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="text-[10px] font-black uppercase tracking-widest text-slate-400"
-              >
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                <Input
-                  type="email"
-                  placeholder="name@company.com"
-                  className="pl-12 h-14 rounded-2xl border-slate-200"
-                  required
-                />
+    <div className="relative h-screen w-screen overflow-hidden font-sans selection:bg-brand selection:text-slate-900">
+      {/* Fixed masonry background from registration interest paradigm */}
+      <GalleryBackground parallax={false} dim={true} />
+
+      {/* Cinematic dark overlay to elevate content isolation */}
+      <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs pointer-events-none z-0" />
+
+      {/* Fixed Top Left Logo Identifier */}
+      <div className="fixed top-6 left-6 sm:top-8 sm:left-10 z-30">
+        <Link
+          href="/"
+          className="font-bold text-3xl tracking-tight text-white hover:text-brand transition-colors"
+        >
+          Crevy<span className="text-brand">.</span>
+        </Link>
+      </div>
+
+      {/* Centered stationary container matching the structural workflow layout */}
+      <div className="relative z-10 flex items-center justify-center h-full w-full px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-xl bg-white p-8 md:p-12 border border-slate-200 rounded-none shadow-none relative">
+          {submitted ? (
+            <div className="text-center py-4 animate-in fade-in duration-300">
+              <div className="w-12 h-12 bg-slate-950 border border-slate-900 rounded-none flex items-center justify-center mx-auto mb-6 text-brand">
+                <Mail size={20} strokeWidth={1.5} />
               </div>
+              <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
+                Check your email<span className="text-brand">.</span>
+              </h2>
+              <p className="text-sm text-slate-500 font-light leading-relaxed mb-8">
+                An authentication recovery link has been compiled and dispatched
+                to your registered vector.
+              </p>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <ArrowLeft size={12} className="text-brand" /> Return to Login
+              </Link>
             </div>
-            <Button
-              className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="animate-spin mr-2" />
-              ) : (
-                "Send Reset Link"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          ) : (
+            <div className="space-y-8">
+              <div>
+                {/* Core Navigation Back Button */}
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-colors mb-6"
+                >
+                  <ArrowLeft size={12} className="text-brand" /> Back to Login
+                </Link>
+
+                <h1 className="text-4xl font-bold text-slate-900 tracking-tight leading-none mb-3">
+                  Reset Token<span className="text-brand">.</span>
+                </h1>
+                <p className="text-sm text-slate-500 font-light leading-relaxed">
+                  Provide your registered organizational email matrix to
+                  initialize a cryptographic security overwrite cycle.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <label
+                    htmlFor="email"
+                    className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
+                  >
+                    Work Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    placeholder="operative@institution.com"
+                    required
+                    disabled={loading}
+                    className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none disabled:opacity-50"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-brand text-foreground rounded-none px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin h-4 w-4" /> Submitting...
+                    </>
+                  ) : (
+                    "Initialize Recovery Protocol"
+                  )}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

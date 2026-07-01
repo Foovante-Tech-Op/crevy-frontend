@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   ExternalLink,
-  Filter,
   Globe,
   MoreHorizontal,
   Plus,

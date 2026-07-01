@@ -5,12 +5,10 @@ import {
   ArrowLeft,
   Building2,
   CheckCircle2,
-  CreditCard,
   Flame,
   Globe2,
   Loader2,
   ShieldAlert,
-  Wallet,
   XCircle,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -24,7 +22,7 @@ function CreditRetirementContent() {
   const batchId = searchParams.get("batchId");
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<
+  const [_paymentMethod, _setPaymentMethod] = useState<
     "card" | "mobile_money" | "wire"
   >("card");
   const [formData, setFormData] = useState({

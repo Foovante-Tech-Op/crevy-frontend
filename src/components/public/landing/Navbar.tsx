@@ -9,6 +9,7 @@ import {
   AccessDashboardButton,
   AccessDashboardMobileButton,
 } from "@/components/DashboardTransitionLink";
+import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -74,7 +75,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
     >
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 flex items-center justify-between">
         {/* ── Brand Identifier ── */}
-        <Link
+        <NavLink
           href="/"
           className={cn(
             "font-bold text-3xl tracking-tight transition-colors",
@@ -83,12 +84,12 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
           )}
         >
           Crevy.
-        </Link>
+        </NavLink>
 
         {/* ── Desktop Navigation ── */}
         <div className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
-            <Link
+            <NavLink
               key={link.name}
               href={link.href}
               className={cn(
@@ -106,7 +107,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                   isNavSolid ? "bg-slate-900" : "bg-white",
                 )}
               ></span>
-            </Link>
+            </NavLink>
           ))}
         </div>
 
@@ -230,7 +231,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
 
             <nav className="flex flex-col space-y-0 text-left border-t border-slate-800">
               {navLinks.map((link) => (
-                <Link
+                <NavLink
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -240,7 +241,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                   <span className="text-slate-700 font-mono text-[10px]">
                     +
                   </span>
-                </Link>
+                </NavLink>
               ))}
             </nav>
 

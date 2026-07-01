@@ -1,199 +1,190 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Filter, Search, ShieldCheck } from "lucide-react";
+import {
+  Activity,
+  ChevronDown,
+  Filter,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import { useState } from "react";
-
+import { type Column, DataTable } from "@/components/DataTable";
 import { CreditService } from "@/lib/services/credit-service";
 import { cn } from "@/lib/utils";
 
 export default function PlatformCreditsLedgerPage() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 15;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["platform-credits-ledger", statusFilter],
+    queryKey: ["platform-credits-ledger", statusFilter, currentPage],
     queryFn: () =>
       CreditService.getCarbonCredits({
         creditStatus:
           statusFilter === "all" ? undefined : (statusFilter as any),
-        limit: 100,
+        limit: itemsPerPage,
+        // If your service supports page-based offsets, pass pagination details here:
+        // page: currentPage,
       }),
   });
 
   const credits = data?.data || [];
 
-  return (
-    <div className="min-h-screen bg-white font-sans selection:bg-slate-900 selection:text-white">
-      {/* Editorial Header */}
-      <div className="bg-white pt-20 pb-12 border-b border-slate-200">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-8 h-[1px] bg-slate-900"></div>
-            <span className="text-emerald-600 text-[10px] font-bold uppercase tracking-[0.3em]">
-              Global Supply Oversight
-            </span>
-            <div className="w-8 h-[1px] bg-slate-900"></div>
+  // Local simulated pagination calculation if the underlying API setup doesn't deliver a total count meta wrapper
+  const totalPages = Math.max(1, Math.ceil(credits.length / itemsPerPage) || 1);
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val);
+    setCurrentPage(1); // Reset back to the initial viewport page
+  };
+
+  // Define Table Column Structural Configurations
+  const columns: Column<any>[] = [
+    {
+      header: "Serial Number",
+      render: (item) => (
+        <div className="font-mono text-xs font-bold text-slate-900 tracking-tight bg-slate-100 px-2.5 py-1.5 inline-block rounded-none border border-slate-200">
+          {item.serialNumber || `SN-${item.id.slice(0, 12).toUpperCase()}`}
+        </div>
+      ),
+    },
+    {
+      header: "Project Details",
+      render: (item) => (
+        <>
+          <div className="font-bold text-slate-900 text-sm tracking-tight">
+            {item.project?.name || "Global Program Allocation"}
           </div>
-          <h1 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight mb-4 leading-none">
-            Platform <span className="italic text-slate-500">Ledger.</span>
+          <div className="font-mono text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1.5 flex items-center gap-2">
+            <span className="w-1 h-1 bg-slate-300 rounded-none" />
+            {item.project?.code || item.mrv_batch_id?.slice(0, 8).toUpperCase()}
+          </div>
+        </>
+      ),
+    },
+    {
+      header: "Vintage",
+      render: (item) => (
+        <div className="font-mono text-xs font-bold text-slate-800 tracking-wider">
+          [{item.creditVintage}]
+        </div>
+      ),
+    },
+    {
+      header: "Volume (tCO₂e)",
+      align: "right",
+      render: (item) => (
+        <div className="font-mono text-base font-bold text-slate-900 tabular-nums">
+          {parseFloat(item.availableAmount).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+          })}
+        </div>
+      ),
+    },
+    {
+      header: "Status",
+      align: "right",
+      render: (item) => (
+        <div className="inline-flex items-center justify-end">
+          <span
+            className={cn(
+              "inline-flex items-center gap-2 border px-3 py-1.5 text-[9px] font-mono font-bold uppercase tracking-[0.15em] rounded-none select-none",
+              item.creditStatus === "available"
+                ? "border-slate-900 bg-slate-950 text-white"
+                : "border-slate-200 bg-slate-50 text-slate-400",
+            )}
+          >
+            {item.creditStatus === "available" ? (
+              <Activity size={11} className="text-brand animate-pulse" />
+            ) : (
+              <ShieldCheck size={11} className="text-slate-400" />
+            )}
+            {item.creditStatus === "available" ? "Available" : "Retired"}
+          </span>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background font-sans selection:bg-brand selection:text-slate-900">
+      {/* ── Simplified Editorial Header ── */}
+      <div className="bg-white pt-14 pb-16 border-b border-slate-200">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-2 h-2 bg-brand rounded-none" />
+            <span className="text-slate-900 text-[10px] font-mono font-bold tracking-[0.2em] uppercase">
+              Carbon Credit Directory
+            </span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight mb-6 leading-none">
+            Credit{" "}
+            <span className="italic font-light text-slate-400">Registry.</span>
           </h1>
-          <p className="text-slate-500 text-base max-w-2xl leading-relaxed mt-6 italic">
-            The master administrative record of all carbon credits generated
-            across the Crevy ecosystem. This ledger provides a comprehensive
-            audit trail of every cryptographic serial number, ensuring
-            supply-side integrity and preventing double-counting.
+          <p className="text-slate-500 text-sm max-w-2xl leading-relaxed font-light">
+            View and track the complete directory of verified carbon credits
+            registered on the Crevy platform. This ledger provides real-time
+            information on serial numbers, project origins, vintages, and
+            available volumes to maintain absolute transparency and accuracy
+            across our entire ecological network.
           </p>
         </div>
       </div>
 
       <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10">
-        {/* Controls */}
+        {/* ── Control Panel ── */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+          {/* Search Input Terminal */}
           <div className="w-full md:w-1/2">
             <label
               htmlFor="global-registry-search"
-              className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block"
+              className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-400 mb-3 block select-none"
             >
-              Search Global Registry
+              Search Registry
             </label>
-            <div className="relative border-b-2 border-slate-200 hover:border-slate-900 transition-colors">
-              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-900 w-5 h-5" />
+            <div className="relative border-b-2 border-slate-200 focus-within:border-slate-900 transition-colors">
+              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-900 w-4 h-4" />
               <input
                 id="global-registry-search"
-                placeholder="Query serial numbers, batches, or project codes..."
+                type="text"
+                placeholder="Search by serial number, project name, or identifier..."
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
-                className="w-full pl-8 pr-4 py-3 bg-transparent border-none outline-none font-medium text-lg placeholder:text-slate-300"
+                className="w-full pl-7 pr-4 py-3 bg-transparent border-none outline-none font-mono text-sm text-slate-900 placeholder:text-slate-300"
               />
             </div>
           </div>
 
-          <div className="flex gap-4 w-full md:w-auto">
-            <div className="relative group w-full md:w-48">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-transparent border border-slate-300 text-sm font-medium outline-none hover:border-slate-900 cursor-pointer appearance-none transition-colors"
-              >
-                <option value="all">Total Supply</option>
-                <option value="available">Active Registry</option>
-                <option value="retired">Permanently Retired</option>
-              </select>
-            </div>
+          {/* Filter Dropdown */}
+          <div className="relative w-full md:w-56 rounded-none">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 z-10 pointer-events-none" />
+            <select
+              value={statusFilter}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className="w-full pl-10 pr-10 py-4 bg-white border border-slate-200 text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-700 outline-none hover:border-slate-900 cursor-pointer appearance-none rounded-none transition-colors"
+            >
+              <option value="all">All Carbon Credits</option>
+              <option value="available">Available Credits</option>
+              <option value="retired">Retired Credits</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* The Ledger Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[900px]">
-            <thead>
-              <tr className="border-b-2 border-slate-900">
-                <th className="py-4 pr-6 text-[11px] font-bold uppercase tracking-widest text-slate-900">
-                  Cryptographic Serial
-                </th>
-                <th className="py-4 pr-6 text-[11px] font-bold uppercase tracking-widest text-slate-900">
-                  Project Context
-                </th>
-                <th className="py-4 pr-6 text-[11px] font-bold uppercase tracking-widest text-slate-900">
-                  Vintage
-                </th>
-                <th className="py-4 pr-6 text-[11px] font-bold uppercase tracking-widest text-slate-900 text-right">
-                  Volume (tCO₂e)
-                </th>
-                <th className="py-4 pl-6 text-[11px] font-bold uppercase tracking-widest text-slate-900 text-right">
-                  System Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="py-20 text-center text-slate-400 font-mono text-sm uppercase tracking-widest"
-                  >
-                    Synchronizing Registry Data...
-                  </td>
-                </tr>
-              ) : credits.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="py-20 text-center text-slate-400 font-serif text-lg"
-                  >
-                    No registry records matched your query.
-                  </td>
-                </tr>
-              ) : (
-                credits.map((c: any) => (
-                  <tr
-                    key={c.id}
-                    className="group hover:bg-slate-50 transition-colors"
-                  >
-                    {/* Serial Number */}
-                    <td className="py-6 pr-6 align-top">
-                      <div className="font-mono text-sm font-semibold text-slate-900">
-                        {c.serialNumber || `SN-${c.id.slice(0, 12)}`}
-                      </div>
-                    </td>
-
-                    {/* Project */}
-                    <td className="py-6 pr-6 align-top">
-                      <div className="font-bold text-slate-800 text-sm">
-                        {c.project?.name || "Global Program"}
-                      </div>
-                      <div className="font-mono text-[10px] text-slate-400 uppercase mt-1">
-                        {c.project?.code || c.mrv_batch_id?.slice(0, 8)}
-                      </div>
-                    </td>
-
-                    {/* Vintage */}
-                    <td className="py-6 pr-6 align-top">
-                      <div className="font-mono text-sm text-slate-900">
-                        {c.creditVintage}
-                      </div>
-                    </td>
-
-                    {/* Volume */}
-                    <td className="py-6 pr-6 align-top text-right">
-                      <div className="font-mono text-lg font-bold text-emerald-800">
-                        {parseFloat(c.availableAmount).toLocaleString(
-                          undefined,
-                          { minimumFractionDigits: 2 },
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-6 pl-6 align-top text-right">
-                      <div className="flex flex-col items-end gap-3">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1.5 border px-2 py-1 text-[10px] font-bold uppercase tracking-widest",
-                            c.creditStatus === "available"
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                              : "border-slate-200 bg-white text-slate-500",
-                          )}
-                        >
-                          {c.creditStatus === "available" ? (
-                            <Activity size={10} />
-                          ) : (
-                            <ShieldCheck size={10} />
-                          )}
-                          {c.creditStatus === "available"
-                            ? "Active Registry"
-                            : "Retired Asset"}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* ── Custom Data Table Architecture Integration ── */}
+        <DataTable
+          columns={columns}
+          data={credits}
+          isLoading={isLoading}
+          loadingMessage="Loading credit registry details..."
+          emptyMessage="No structural registry records matched your query parameters."
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
       </div>
     </div>
   );

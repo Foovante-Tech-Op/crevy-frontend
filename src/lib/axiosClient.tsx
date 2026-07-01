@@ -33,7 +33,7 @@ axiosClient.interceptors.request.use(async (config) => {
       // --- CRITICAL FIX: FORWARD THE COOKIE ---
       const cookie = headersList.get("cookie");
       if (cookie) {
-        config.headers["Cookie"] = cookie;
+        config.headers.Cookie = cookie;
       }
 
       // Forward User-Agent

@@ -11,8 +11,6 @@ import {
   Globe,
   HelpCircle,
   Leaf,
-  Lock,
-  Mail,
   Scale,
   ShieldAlert,
   UserCheck,
@@ -30,7 +28,7 @@ const SECTIONS = [
   { id: "platform-use", label: "4. Infrastructure Use", icon: Globe },
   { id: "prohibited", label: "5. Prohibited Vectors", icon: ShieldAlert },
   { id: "carbon-credits", label: "6. Asset Immutability", icon: Leaf },
-  { id: "project-owners", label: "7. Originator Obligations", icon: Briefcase },
+  { id: "project-owners", label: "7. Developer Obligations", icon: Briefcase },
   { id: "corporate-buyers", label: "8. Institutional Buyers", icon: Building2 },
   { id: "payments", label: "9. Settlement & Fees", icon: Wallet },
   { id: "ip", label: "10. Intellectual Property", icon: FileText },
@@ -205,7 +203,7 @@ function TermsContent({
                     telemetry, and AI algorithms to establish asset integrity.
                   </li>
                   <li>
-                    <strong>"Originator"</strong> refers to the individual or
+                    <strong>"Developer"</strong> refers to the individual or
                     entity managing the land or project responsible for the
                     carbon sequestration.
                   </li>
@@ -285,11 +283,11 @@ function TermsContent({
 
               <TermsSection
                 id="project-owners"
-                title="7. Originator Obligations"
+                title="7. Developer Obligations"
               >
                 <p>
-                  Originators warrant that they hold undisputed legal title or
-                  carbon rights to the registered land. Originators must grant
+                  Developers warrant that they hold undisputed legal title or
+                  carbon rights to the registered land. Developers must grant
                   Crevy and authorized third-party auditors (VVBs) physical and
                   digital access to the project site for verification purposes.
                   Discovery of fraudulent land claims will result in immediate
@@ -315,9 +313,8 @@ function TermsContent({
                   gateways and USDC stablecoin infrastructure. We charge a
                   dynamic platform fee on market acquisitions and payouts, which
                   is explicitly displayed prior to transaction execution.
-                  Originator payouts are subject to minimum withdrawal
-                  thresholds and standard banking/Mobile Money settlement
-                  delays.
+                  Developer payouts are subject to minimum withdrawal thresholds
+                  and standard banking/Mobile Money settlement delays.
                 </p>
               </TermsSection>
 
@@ -326,7 +323,7 @@ function TermsContent({
                   The Platform, including its underlying AI models, dMRV
                   algorithms, UI/UX, and source code, remains the exclusive
                   intellectual property of Foovante Global Ltd. Project data
-                  submitted by Originators grants us a perpetual, royalty-free
+                  submitted by Developers grants us a perpetual, royalty-free
                   license to utilize said data for verification, machine
                   learning optimization, and public ledger anchoring.
                 </p>

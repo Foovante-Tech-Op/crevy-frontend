@@ -1,29 +1,20 @@
 "use client";
 
-import {
-  Building2,
-  Mail,
-  MapPin,
-  Phone,
-  Plus,
-  UserCheck,
-  User as UserIcon,
-} from "lucide-react";
+import { Building2, Mail, MapPin, Phone, User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 
 interface ProfileHeaderProps {
   user: any;
 }
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
-  const router = useRouter();
+  const _router = useRouter();
   if (!user) return null;
 
   const initials =
     `${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase() ||
     "ID";
-  const isSuperAdmin = user.role === "super_admin";
+  const _isSuperAdmin = user.role === "super_admin";
 
   return (
     <div className="bg-slate-900 border border-slate-900 text-white relative overflow-hidden group">

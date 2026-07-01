@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth";
-import type { TBetterAuthUser, TRole } from "@/types/user.types";
+import type { TBetterAuthUser } from "@/types/user.types";
 import AdminDashboard from "./_components/AdminDashboard";
 import OrgAdminDashboard from "./_components/OrgAdminDashboard";
 import ProjectOwnerDashboard from "./_components/ProjectOwnerDashboard";

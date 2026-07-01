@@ -23,7 +23,7 @@ export default function SettingsPage() {
     "org_auditor",
   ].includes(role);
   const isSuperAdmin = role === "super_admin";
-  const isStaffAdmin = [
+  const _isStaffAdmin = [
     "project_manager",
     "mrv_admin",
     "financial_admin",

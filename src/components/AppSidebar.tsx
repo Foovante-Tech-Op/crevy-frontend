@@ -37,35 +37,59 @@ export function AppSidebar({
   const role = user.role || "project_owner";
   const sidebarConfig = getSidebarConfig(role);
 
-  const getSidebarTheme = (r: string) => {
-    if (r === "super_admin" || r === "admin") return "bg-slate-950";
-    if (
-      r.startsWith("org_") ||
-      r === "sustainability_manager" ||
-      r === "financial_admin" ||
-      r === "mrv_admin"
-    )
-      return "bg-[#064e3b]";
-    return "bg-[#022c22]";
+  // Dynamic Theme Matrix based on Tier Clearance
+  const getSidebarStyles = (r: string) => {
+    if (r === "super_admin") {
+      return {
+        bg: "bg-foreground",
+        active: "bg-background text-foreground font-medium",
+        inactive:
+          "border-transparent text-slate-400 hover:bg-white/5 hover:text-white",
+        label: "text-slate-500",
+        dot: "text-white",
+      };
+    }
+
+    if (r === "admin") {
+      return {
+        bg: "bg-foreground/80",
+        active:
+          "bg-brand/70 text-foreground font-bold border-brand/70 hover:bg-brand hover:text-foreground",
+        inactive:
+          "border-transparent text-slate-400 hover:bg-brand/5 hover:text-brand",
+        label: "text-slate-500",
+        dot: "text-brand",
+      };
+    }
+
+    // Buyers / Climate Asset Allocators (Low-contrast brand-infused dark palette)
+    return {
+      bg: "bg-brand/85",
+      active:
+        "bg-foreground/90 text-white border-foreground font-bold hover:bg-foreground hover:text-background/50",
+      inactive:
+        "border-transparent text-foreground hover:bg-foreground/50 hover:text-white",
+      label: "text-background font-mono tracking-[0.25em]",
+      dot: "text-foreground",
+    };
   };
 
-  const themeClass = getSidebarTheme(role);
+  const currentStyle = getSidebarStyles(role);
 
   return (
     <Sidebar
       {...props}
-      className={`border-r-0 h-full ${themeClass}`}
+      className={`border-r-0 h-full ${currentStyle.bg} selection:bg-brand selection:text-slate-900`}
       collapsible="icon"
     >
       <SidebarHeader className="pt-6 pb-4 shrink-0">
-        {/* ... header content stays exactly the same ... */}
         <div className="flex items-center justify-between px-4">
           <div className="flex items-center gap-3 overflow-hidden">
             <Link
               href="/"
-              className="text-2xl font-serif text-white tracking-tight group-data-[collapsible=icon]:hidden"
+              className="text-2xl font-bold text-white tracking-tight group-data-[collapsible=icon]:hidden"
             >
-              Crevy.
+              Crevy<span className={currentStyle.dot}>.</span>
             </Link>
           </div>
 
@@ -73,7 +97,7 @@ export function AppSidebar({
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="hidden md:flex text-white/50 hover:text-white hover:bg-white/10 shrink-0"
+            className="hidden md:flex text-white/50 hover:text-white hover:bg-white/10 rounded-none shrink-0"
           >
             {state === "expanded" ? (
               <PanelLeftClose size={18} />
@@ -87,7 +111,7 @@ export function AppSidebar({
               variant="ghost"
               size="icon"
               onClick={() => setOpenMobile(false)}
-              className="text-white hover:bg-white/10 shrink-0"
+              className="text-white hover:bg-white/10 rounded-none shrink-0"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -97,13 +121,13 @@ export function AppSidebar({
         <div className="px-5 mt-4 group-data-[collapsible=icon]:hidden">
           <Separator
             orientation="horizontal"
-            className="border-b border-white/20"
+            className="border-b border-white/10"
           />
         </div>
       </SidebarHeader>
 
-      {/* KEY FIXES: overflow-y-auto + data-lenis-prevent */}
       <SidebarContent className="px-3 overflow-y-auto" data-lenis-prevent>
+        {/* ── Top Primary Items ── */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -116,22 +140,18 @@ export function AppSidebar({
                       tooltip={item.title}
                       className={`
                         flex items-center gap-4 px-3 py-5 rounded-none transition-all border-l-2
-                        ${
-                          isActive
-                            ? "bg-white/10 text-white border-white font-medium"
-                            : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
-                        }
+                        ${isActive ? currentStyle.active : currentStyle.inactive}
                       `}
                     >
                       <Link href={item.url}>
                         <HugeiconsIcon
                           icon={item.icon}
-                          size={26}
+                          size={24}
                           color="currentColor"
                           strokeWidth={1.5}
                           className="shrink-0"
                         />
-                        <span className="text-xs font-mono tracking-widest uppercase group-data-[collapsible=icon]:hidden">
+                        <span className="text-xs font-mono tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
                           {item.title}
                         </span>
                       </Link>
@@ -143,10 +163,13 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* ── Section Group Closures ── */}
         {sidebarConfig.sections?.map((section, sectionIndex) => (
           <SidebarGroup key={section.title || sectionIndex} className="mt-4">
             {section.title && (
-              <SidebarGroupLabel className="px-4 text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70 mb-2 group-data-[collapsible=icon]:hidden">
+              <SidebarGroupLabel
+                className={`px-4 text-[9px] font-bold uppercase tracking-[0.2em] mb-2 group-data-[collapsible=icon]:hidden ${currentStyle.label}`}
+              >
                 {section.title}
               </SidebarGroupLabel>
             )}
@@ -161,22 +184,18 @@ export function AppSidebar({
                         tooltip={item.title}
                         className={`
                           flex items-center gap-4 px-3 py-5 rounded-none transition-all border-l-2
-                          ${
-                            isActive
-                              ? "bg-white/10 text-white border-white font-medium"
-                              : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
-                          }
+                          ${isActive ? currentStyle.active : currentStyle.inactive}
                         `}
                       >
                         <Link href={item.url}>
                           <HugeiconsIcon
                             icon={item.icon}
-                            size={26}
+                            size={24}
                             color="currentColor"
                             strokeWidth={1.5}
                             className="shrink-0"
                           />
-                          <span className="text-xs font-mono tracking-widest uppercase group-data-[collapsible=icon]:hidden">
+                          <span className="text-xs font-mono tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
                             {item.title}
                           </span>
                         </Link>
@@ -190,7 +209,7 @@ export function AppSidebar({
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto p-4 border-t border-white/10 shrink-0">
+      <SidebarFooter className="mt-auto p-4 border-t border-white/5 shrink-0 rounded-none">
         <NavUser user={user} />
       </SidebarFooter>
 

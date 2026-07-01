@@ -4,11 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Activity,
-  ArrowRight,
-  Banknote,
   Database,
   Leaf,
-  Loader2,
   Plus,
   ScanSearch,
   TreePine,
@@ -74,7 +71,7 @@ export default function ProjectOwnerDashboard({
 
   return (
     <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10 font-sans selection:bg-slate-900 selection:text-white bg-slate-50 min-h-screen">
-      {/* ── 1. Originator Dossier (Hero) ── */}
+      {/* ── 1. Developer Dossier (Hero) ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,7 +80,7 @@ export default function ProjectOwnerDashboard({
       >
         <div className="md:col-span-8 bg-white p-10 md:p-14">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-4">
-            Originator Terminal · Asset Portfolio
+            Developer Terminal · Asset Portfolio
           </p>
           <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-6">
             Environmental Asset{" "}
@@ -104,7 +101,7 @@ export default function ProjectOwnerDashboard({
         <div className="md:col-span-4 bg-slate-950 p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden">
           <div className="relative z-10">
             <p className="font-serif text-2xl mb-8">
-              Originator: {userName.split(" ")[0]}
+              Developer: {userName.split(" ")[0]}
             </p>
             <ul className="space-y-4 font-mono text-xs text-slate-400">
               <li className="flex items-center gap-3">
@@ -117,7 +114,7 @@ export default function ProjectOwnerDashboard({
               </li>
               <li className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-800 text-slate-500">
                 <span className="w-2 h-2 bg-emerald-500 rounded-none shrink-0 animate-pulse" />{" "}
-                Originator ID:{" "}
+                Developer ID:{" "}
                 {userId?.substring(0, 8).toUpperCase() || "PENDING"}
               </li>
             </ul>
@@ -321,7 +318,7 @@ export default function ProjectOwnerDashboard({
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-900">
-                  Originator profile activated successfully.
+                  Developer profile activated successfully.
                 </p>
                 <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
                   System ✦ Awaiting first asset

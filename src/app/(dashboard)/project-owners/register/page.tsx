@@ -39,7 +39,7 @@ export default function ProjectOwnerRegisterPage() {
                 Onboard <span className="italic text-slate-500">Entity.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
-                Systematically register new originators, configure payout
+                Systematically register new developers, configure payout
                 vectors, and map primary spatial assets to initiate the KYC
                 verification lifecycle.
               </p>

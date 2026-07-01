@@ -25,7 +25,7 @@ import { ProjectService } from "@/lib/services/project-service";
 export default function MarketplaceProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
+  const [_isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,7 +33,7 @@ export default function MarketplaceProjectDetailPage() {
 
   const { data: projectRes, isLoading } = useQuery({
     queryKey: ["marketplace-project", slug],
-    queryFn: () => ProjectService.getProjectBySlug(slug!),
+    queryFn: () => ProjectService.getProjectBySlug(slug),
     enabled: !!slug,
   });
 
@@ -272,14 +272,14 @@ export default function MarketplaceProjectDetailPage() {
               </div>
             </div>
 
-            {/* Anonymized Originator */}
+            {/* Anonymized Developer */}
             <div className="mt-6 p-6 border border-slate-800 bg-slate-900 flex items-center justify-between rounded-none">
               <div>
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">
-                  Asset Originator
+                  Asset Developer
                 </p>
                 <p className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                  Originator {project.code?.split("-")[1] || "GH"}-
+                  Developer {project.code?.split("-")[1] || "GH"}-
                   {project.id.slice(0, 4).toUpperCase()}
                 </p>
               </div>

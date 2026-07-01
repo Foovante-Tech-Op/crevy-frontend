@@ -1,10 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   Download,
   ExternalLink,
-  FileSignature,
   Filter,
   Plus,
   ShieldCheck,

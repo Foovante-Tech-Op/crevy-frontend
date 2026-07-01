@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Download,
-  Filter,
-  Landmark,
-  MoreVertical,
-  Search,
-  Wallet,
-} from "lucide-react";
+import { Download, Landmark, Search } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -85,7 +78,7 @@ export default function PayoutsPage() {
               <p className="text-slate-500 text-sm font-light leading-relaxed">
                 Immutable tracking of all capital disbursements mapped to
                 verified credit sales. Oversee mobile money and bank transfers
-                to originators.
+                to developers.
               </p>
             </div>
 

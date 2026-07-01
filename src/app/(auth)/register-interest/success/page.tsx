@@ -2,32 +2,56 @@
 
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import GalleryBackground from "@/components/GalleryBackground";
 
 export default function RegisterInterestSuccessPage() {
   return (
-    <main className="min-h-screen w-full bg-white flex items-center justify-center px-4 sm:px-6">
-      <div className="max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-50 border border-emerald-200 mb-8">
-          <CheckCircle2
-            className="w-7 h-7 text-emerald-700"
-            strokeWidth={1.5}
-          />
-        </div>
-        <h1 className="font-serif text-3xl md:text-4xl text-slate-900 tracking-tight leading-none mb-4">
-          You're on the <span className="italic text-slate-500">list.</span>
-        </h1>
-        <p className="text-slate-500 text-sm leading-relaxed mb-10">
-          Thank you for registering your interest. A member of our team will
-          review your submission and reach out by email or phone to discuss next
-          steps.
-        </p>
+    <div className="relative h-screen w-screen overflow-hidden font-sans selection:bg-brand selection:text-slate-900">
+      {/* Fixed masonry background matching the submission screen */}
+      <GalleryBackground parallax={false} dim={true} />
+
+      {/* Cinematic dark overlay */}
+      <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs pointer-events-none z-0" />
+
+      {/* Fixed Top Left Logo Identifier */}
+      <div className="fixed top-6 left-6 sm:top-8 sm:left-10 z-30">
         <Link
           href="/"
-          className="inline-flex items-center justify-center bg-slate-900 hover:bg-emerald-900 text-white font-bold uppercase tracking-widest text-[10px] px-8 py-4 transition-colors"
+          className="font-bold text-3xl tracking-tight text-white hover:text-brand transition-colors"
         >
-          Return Home
+          Crevy<span className="text-brand">.</span>
         </Link>
       </div>
-    </main>
+
+      {/* Centered card for success state */}
+      <div className="relative z-10 flex items-center justify-center h-full w-full px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-md 3xl:max-w-xl bg-white p-8 md:p-12 border border-slate-200 rounded-none text-center shadow-none relative">
+          {/* Institutional Success Indicator */}
+          <div className="w-12 h-12 bg-slate-950 border border-slate-900 rounded-none flex items-center justify-center mx-auto mb-6 text-brand">
+            <CheckCircle2 size={20} strokeWidth={1.5} />
+          </div>
+
+          {/* Clean, Simple Typography */}
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
+            Application Received<span className="text-brand">.</span>
+          </h1>
+
+          <p className="text-sm text-foreground/70 font-light leading-relaxed mb-8">
+            Thank you for your interest in Crevy. We have successfully received
+            your request to join the waitlist. Our team will review your
+            submission details and reach out to you via email regarding the next
+            steps.
+          </p>
+
+          {/* Action Button matching institutional style guide */}
+          <Link
+            href="/"
+            className="inline-flex w-full bg-brand text-foreground rounded-none px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-foreground hover:text-white transition-colors items-center justify-center"
+          >
+            Return to Homepage
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

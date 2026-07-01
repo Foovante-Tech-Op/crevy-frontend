@@ -74,7 +74,7 @@ export function GovernanceSection({ isSuperAdmin }: { isSuperAdmin: boolean }) {
             </div>
             <p className="text-xs text-amber-800 leading-relaxed font-light mb-6 font-mono">
               Modifying systemic parameters alters verification logic for all
-              originators currently in the `registry_pending` state. Actions are
+              developers currently in the `registry_pending` state. Actions are
               irrevocably logged.
             </p>
           </div>

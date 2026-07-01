@@ -5,17 +5,13 @@ import { ArrowUpRight, Check } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function ThePitchSection({
-  shouldReduceMotion,
-}: {
-  shouldReduceMotion?: boolean;
-}) {
+export function ThePitchSection() {
   return (
     <section className="py-24 bg-slate-50">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10 space-y-24">
         {/* ── 1. PROJECT OWNERS (Supply) ── */}
         <PitchBlock
-          tag="For Project Originators (Supply)"
+          tag="For Project Developers (Supply)"
           headline="Smart Carbon, Real Value."
           painPoint="Complex verification hurdles, delayed issuances, and fragmented buyer networks."
           bullets={[
