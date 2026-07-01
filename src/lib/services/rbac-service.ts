@@ -68,4 +68,10 @@ export const RBACService = {
     );
     return response.data;
   },
+
+  // Invitations
+  inviteUser: async (data: { email: string; roleName: string }) => {
+    const response = await axiosClient.post("/auth/invite", data);
+    return response.data;
+  },
 };

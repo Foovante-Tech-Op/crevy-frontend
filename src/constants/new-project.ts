@@ -298,7 +298,7 @@ export const createProjectDefaultValues: TCreateProject = {
   gpsCoordinates: "",
   startDate: new Date(),
   endDate: undefined,
-  totalAreaHectares: undefined,
+  totalAreaHectares: 0,
   currency: { code: "", name: "" },
   description: "",
   projectTags: [],
