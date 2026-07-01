@@ -21,7 +21,7 @@ export default function LandingPage() {
     <div className="animate-in fade-in duration-700 bg-slate-50 selection:bg-slate-900 selection:text-white">
       <HeroSection shouldReduceMotion={shouldReduceMotion} />
       <TrustLayerSection shouldReduceMotion={shouldReduceMotion} />
-      <ThePitchSection shouldReduceMotion={shouldReduceMotion} />
+      <ThePitchSection />
       <CinematicScrollPitch shouldReduceMotion={shouldReduceMotion} />
       <ProjectTypesSection shouldReduceMotion={shouldReduceMotion} />
       <ScrollingMarquee />

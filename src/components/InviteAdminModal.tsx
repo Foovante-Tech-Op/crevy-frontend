@@ -51,7 +51,7 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
   });
 
   const filteredRoles = useMemo(() => {
-    const roles = rolesRes?.data || [];
+    const roles = rolesRes || [];
 
     // ── Role Filtering Logic ──
     if (isSuperAdmin) return roles;
@@ -70,7 +70,7 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
           r.name,
         ),
     );
-  }, [rolesRes?.data, isSuperAdmin, isOrgAdmin]);
+  }, [rolesRes, isSuperAdmin, isOrgAdmin]);
 
   const onSubmit = async (data: any) => {
     setLoading(true);
