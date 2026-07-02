@@ -1,3 +1,4 @@
+// src/components/GalleryBackground.tsx
 "use client";
 
 import { easeInOut, motion, useScroll, useTransform } from "framer-motion";
@@ -11,8 +12,8 @@ const COLUMNS = [
       "https://picsum.photos/800/1200?random=3",
     ],
     topOffset: "-45%",
-    parallaxMaxY: "80vh", // how far it moves with scroll
-    autoRange: ["-5vh", "5vh"], // range for auto-float
+    parallaxMaxY: "80vh",
+    autoRange: ["-5vh", "5vh"],
     autoDuration: 4,
   },
   {
@@ -51,15 +52,15 @@ const COLUMNS = [
 ];
 
 interface GalleryBackgroundProps {
-  parallax?: boolean; // default: true (scroll-based parallax)
-  dim?: boolean; // default: false
+  parallax?: boolean;
+  dim?: boolean;
 }
 
 export default function GalleryBackground({
   parallax = true,
   dim = false,
 }: GalleryBackgroundProps) {
-  const { scrollYProgress } = useScroll(); // entire page scroll
+  const { scrollYProgress } = useScroll();
 
   return (
     <div
@@ -88,7 +89,7 @@ interface GalleryColumnProps {
   topOffset: string;
   parallax: boolean;
   parallaxMaxY: string;
-  scrollYProgress: any; // MotionValue<number>
+  scrollYProgress: any;
   autoRange: any;
   autoDuration: number;
   dim: boolean;
@@ -104,10 +105,8 @@ function GalleryColumn({
   autoDuration,
   dim,
 }: GalleryColumnProps) {
-  // Parallax: map scroll [0,1] → translateY [0, parallaxMaxY]
   const y = useTransform(scrollYProgress, [0, 1], ["0vh", parallaxMaxY]);
 
-  // Auto‑move: continuous floating animation
   const autoAnimate = {
     y: autoRange,
     transition: {
@@ -138,8 +137,10 @@ function GalleryColumn({
           <Image
             src={src}
             alt=""
+            fill
+            sizes="(max-width: 768px) 250px, 25vw"
             className="absolute inset-0 w-full h-full object-cover"
-            loading="lazy"
+            loading="eager"
           />
         </div>
       ))}

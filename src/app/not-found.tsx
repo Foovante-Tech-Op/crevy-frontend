@@ -35,10 +35,10 @@ export default function NotFound() {
 
           {/* Main Typography Display */}
           <div className="space-y-3">
-            <h1 className="font-serif text-7xl font-light tracking-tighter text-foreground leading-none">
+            <h1 className="font-sans text-7xl font-light tracking-tighter text-foreground leading-none">
               404<span className="text-brand font-sans font-bold">.</span>
             </h1>
-            <h2 className="font-serif text-2xl text-foreground tracking-tight italic">
+            <h2 className="font-sans text-2xl text-foreground tracking-tight italic">
               The asset or coordinate path does not exist.
             </h2>
             <p className="text-slate-500 text-xs font-light max-w-md leading-relaxed">
