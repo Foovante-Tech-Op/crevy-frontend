@@ -54,7 +54,7 @@ export default function OrganizationsListPage() {
                   Global Corporate Registry
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Institutional{" "}
                 <span className="italic text-slate-500">Entities.</span>
               </h1>
@@ -66,7 +66,7 @@ export default function OrganizationsListPage() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <Button className="rounded-none bg-slate-900 hover:bg-emerald-900 text-[10px] font-bold uppercase tracking-widest transition-colors h-12 px-8">
+              <Button className="rounded-none bg-slate-900 hover:bg-brand-900 text-[10px] font-bold uppercase tracking-widest transition-colors h-12 px-8">
                 <Plus className="h-4 w-4 mr-2" /> Onboard Organization
               </Button>
             </div>
@@ -83,7 +83,7 @@ export default function OrganizationsListPage() {
               placeholder="Query by organization name or registry ID..."
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full bg-transparent border-none border-b-2 border-slate-200 pl-7 pr-4 py-2 text-sm font-serif text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors rounded-none"
+              className="w-full bg-transparent border-none border-b-2 border-slate-200 pl-7 pr-4 py-2 text-sm font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors rounded-none"
             />
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function OrganizationsListPage() {
                     key={org.id}
                     className="hover:bg-slate-50 transition-colors border-b border-slate-100"
                   >
-                    <TableCell className="px-8 py-5 align-middle font-serif text-lg text-slate-900 text-left">
+                    <TableCell className="px-8 py-5 align-middle font-sans text-lg text-slate-900 text-left">
                       {org.name}
                     </TableCell>
                     <TableCell className="px-8 py-5 align-middle text-[10px] font-mono text-slate-500 uppercase tracking-widest text-left">
@@ -148,7 +148,7 @@ export default function OrganizationsListPage() {
                     <TableCell className="px-8 py-5 align-middle text-right text-sm font-mono font-bold text-slate-900">
                       {org.memberCount}
                     </TableCell>
-                    <TableCell className="px-8 py-5 align-middle text-right text-sm font-mono font-bold text-emerald-700">
+                    <TableCell className="px-8 py-5 align-middle text-right text-sm font-mono font-bold text-brand-700">
                       {org.totalAcquired}
                     </TableCell>
                     <TableCell className="px-8 py-5 align-middle text-left">
@@ -156,7 +156,7 @@ export default function OrganizationsListPage() {
                         className={cn(
                           "rounded-none px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border-none",
                           org.status === "active"
-                            ? "bg-emerald-50 text-emerald-700"
+                            ? "bg-brand-50 text-brand-700"
                             : "bg-slate-100 text-slate-500",
                         )}
                       >

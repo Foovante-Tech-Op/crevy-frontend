@@ -26,9 +26,9 @@ const verificationConfig: Record<
   },
   verified: {
     label: "Verified Entity",
-    className: "text-emerald-800",
-    bg: "bg-emerald-50 border-emerald-200",
-    dot: "bg-emerald-500",
+    className: "text-brand-800",
+    bg: "bg-brand-50 border-brand-200",
+    dot: "bg-brand-500",
   },
   rejected: {
     label: "KYC Failed",
@@ -99,7 +99,7 @@ function ProjectOwnerDetailContent() {
     return (
       <div className="min-h-screen pt-40 flex flex-col items-center text-center">
         <XCircle className="h-10 w-10 text-red-500 mb-4" />
-        <p className="font-serif text-xl text-slate-900 mb-2">
+        <p className="font-sans text-xl text-slate-900 mb-2">
           Dossier Retrieval Failed
         </p>
         <Link
@@ -130,11 +130,11 @@ function ProjectOwnerDetailContent() {
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-slate-900 text-white flex items-center justify-center text-2xl font-serif">
+              <div className="w-20 h-20 bg-slate-900 text-white flex items-center justify-center text-2xl font-sans">
                 {getInitials(owner.firstName, owner.lastName)}
               </div>
               <div>
-                <h1 className="text-4xl font-serif text-slate-900 tracking-tight leading-none mb-3">
+                <h1 className="text-4xl font-sans text-slate-900 tracking-tight leading-none mb-3">
                   {owner.firstName} {owner.lastName}
                 </h1>
                 <div className="flex items-center gap-4">

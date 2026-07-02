@@ -6,7 +6,7 @@ export function ProfileSection({ isCorporate }: { isCorporate: boolean }) {
   return (
     <div className="space-y-12 animate-in fade-in duration-500">
       <div className="border-b border-slate-200 pb-8">
-        <h2 className="text-3xl font-serif text-slate-900 mb-2">
+        <h2 className="text-3xl font-sans text-slate-900 mb-2">
           {isCorporate ? "Entity Profile." : "Identity Dossier."}
         </h2>
         <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">
@@ -22,7 +22,7 @@ export function ProfileSection({ isCorporate }: { isCorporate: boolean }) {
             </div>
             <input
               defaultValue={isCorporate ? "EcoLogic Systems SA" : "Kwame Ofori"}
-              className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-serif text-lg font-bold text-slate-900 focus:ring-0 focus:border-slate-900"
+              className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-sans text-lg font-bold text-slate-900 focus:ring-0 focus:border-slate-900"
             />
           </div>
 
@@ -50,7 +50,7 @@ export function ProfileSection({ isCorporate }: { isCorporate: boolean }) {
       <div className="pt-8 border-t border-slate-200 flex justify-end">
         <button
           type="button"
-          className="bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-900 transition-colors flex items-center gap-3"
+          className="bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-900 transition-colors flex items-center gap-3"
         >
           Anchor Profile Edits <Save size={14} />
         </button>

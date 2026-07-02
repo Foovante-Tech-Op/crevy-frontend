@@ -55,7 +55,7 @@ const ProjectTypeStep = ({
             key={type.id}
             onClick={() => handleTypeSelect(type.id)}
             className={`cursor-pointer p-4 md:p-6 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center min-h-[180px] md:min-h-[200px]
-              ${selected === type.id ? "border-emerald-500 bg-emerald-50/50" : "border-slate-100 hover:border-emerald-200"}`}
+              ${selected === type.id ? "border-brand-500 bg-brand-50/50" : "border-slate-100 hover:border-brand-200"}`}
           >
             <Image
               src={type.icon}
@@ -67,7 +67,7 @@ const ProjectTypeStep = ({
             <h4 className="font-bold text-slate-800 text-sm md:text-base mt-2">
               {type.title}
             </h4>
-            <p className="text-emerald-500 text-xs font-semibold mt-1">
+            <p className="text-brand-500 text-xs font-semibold mt-1">
               Starting Up
             </p>
             <p className="text-slate-500 text-xs leading-relaxed max-w-[200px] mt-1">
@@ -89,7 +89,7 @@ const ProjectTypeStep = ({
           type="text"
           placeholder="Enter a descriptive name for your project"
           onChange={handleCustomNameChange}
-          className="w-full p-3 md:p-4 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm md:text-base"
+          className="w-full p-3 md:p-4 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20 text-sm md:text-base"
         />
       </div>
 

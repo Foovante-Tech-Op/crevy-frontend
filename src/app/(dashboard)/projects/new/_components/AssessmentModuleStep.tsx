@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ProjectService } from "@/lib/services/project-service";
+import { StorageService } from "@/lib/services/storage-service";
 
 // ─── Types from manifest ───────────────────────────────────────────────────
 
@@ -106,15 +107,80 @@ const AssessmentModuleStep = ({
     setMissingFields((prev) => prev.filter((f) => f !== fieldKey));
   };
 
+  /**
+   * Scans answers for File objects (file / file_multi fields), uploads them
+   * to the object store via presigned URL, and returns a deep-cloned answers
+   * object where every File has been replaced by its storage object key.
+   */
+  const prepareAnswersWithUploadedFiles = async (): Promise<
+    Record<string, any>
+  > => {
+    const payload: Record<string, any> = { ...answers };
+
+    for (const [fieldKey, value] of Object.entries(payload)) {
+      const def = manifest?.fields?.[fieldKey];
+      if (!def) continue;
+
+      if (def.inputType === "file" && value instanceof File) {
+        const path = `project_assessment/${projectId}/${moduleKey}/`;
+        const objectKey = await StorageService.uploadFile(value, path);
+        payload[fieldKey] = objectKey;
+      }
+
+      if (def.inputType === "file_multi" && Array.isArray(value)) {
+        const uploadedPaths: string[] = [];
+        for (const item of value) {
+          if (item instanceof File) {
+            const path = `project_assessment/${projectId}/${moduleKey}/`;
+            const objectKey = await StorageService.uploadFile(item, path);
+            uploadedPaths.push(objectKey);
+          } else if (typeof item === "string") {
+            // Already-uploaded file path — keep it
+            uploadedPaths.push(item);
+          }
+        }
+        payload[fieldKey] = uploadedPaths;
+      }
+    }
+
+    // Final safety net: no File/Blob should survive to this point for ANY
+    // field, not just ones the manifest currently tags as file/file_multi.
+    // If one does (stale manifest, a field whose inputType got typoed, a
+    // network hiccup that left an upload half-applied, etc.), axios's JSON
+    // serializer silently turns it into `{}` and the backend rejects it
+    // with an opaque "expected string, received object" — the failure mode
+    // that prompted this guard. Fail loudly here instead, with the actual
+    // field name, so it's fixable in seconds rather than re-diagnosed from
+    // a generic 400.
+    const stillBinary = Object.entries(payload).filter(([, value]) => {
+      if (value instanceof File || value instanceof Blob) return true;
+      if (Array.isArray(value)) {
+        return value.some((v) => v instanceof File || v instanceof Blob);
+      }
+      return false;
+    });
+    if (stillBinary.length > 0) {
+      const fieldNames = stillBinary.map(([key]) => key).join(", ");
+      throw new Error(
+        `Upload didn't complete for: ${fieldNames}. Please retry before saving.`,
+      );
+    }
+
+    return payload;
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const payload = await prepareAnswersWithUploadedFiles();
       await ProjectService.upsertAssessment(
         projectId,
         moduleKey,
-        answers,
+        payload,
         "in_progress",
       );
+      // Replace File objects with their paths in local state so we don't re-upload
+      setAnswers(payload);
       setStatus("in_progress");
       toast.success("Module saved");
       onSave();
@@ -128,13 +194,15 @@ const AssessmentModuleStep = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const payload = await prepareAnswersWithUploadedFiles();
       const res = await ProjectService.upsertAssessment(
         projectId,
         moduleKey,
-        answers,
+        payload,
         "submitted",
       );
       if (res.success) {
+        setAnswers(payload);
         setStatus("submitted");
         setMissingFields([]);
         toast.success(`Module "${moduleDef?.title}" submitted`);
@@ -143,7 +211,6 @@ const AssessmentModuleStep = ({
     } catch (error: any) {
       const msg = error?.response?.data?.message ?? "";
       if (msg.includes("missing required fields")) {
-        // Extract missing field names from error message
         const match = msg.match(/missing required fields: (.+)/i);
         if (match) {
           const missing = match[1].split(", ").map((s: string) => s.trim());
@@ -183,7 +250,7 @@ const AssessmentModuleStep = ({
         <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] mb-2">
           {status === "submitted" ? "Submitted" : "In Progress"}
         </p>
-        <h2 className="text-2xl font-serif text-slate-900 tracking-tight">
+        <h2 className="text-2xl font-sans text-slate-900 tracking-tight">
           {moduleDef.title}
         </h2>
         <p className="text-xs text-slate-500 font-light mt-1">
@@ -204,9 +271,7 @@ const AssessmentModuleStep = ({
                 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900"
               >
                 {def.label}
-                {def.required && (
-                  <span className="text-emerald-600 ml-1">*</span>
-                )}
+                {def.required && <span className="text-brand ml-1">*</span>}
                 {def.unit && (
                   <span className="text-slate-400 font-normal ml-1 normal-case tracking-normal">
                     ({def.unit})
@@ -260,7 +325,7 @@ const AssessmentModuleStep = ({
           type="button"
           onClick={handleSubmit}
           disabled={isSaving || isSubmitting}
-          className="w-full sm:flex-1 bg-slate-900 hover:bg-emerald-700 text-white py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full sm:flex-1 bg-foreground hover:bg-brand text-white py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
@@ -442,16 +507,14 @@ function FieldRenderer({
                 onChange={(e) =>
                   onChange({ ...split, [k]: e.target.valueAsNumber })
                 }
-                className="w-24 rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none focus:ring-0"
+                className="w-24 rounded-none border border-slate-300 px-3 py-2 text-sm text-foreground focus:border-slate-900 focus:outline-none focus:ring-0"
               />
               <span className="text-xs text-slate-400">%</span>
             </div>
           ))}
           <div
             className={`text-[10px] font-mono uppercase tracking-widest ${
-              Math.abs(total - 100) < 0.01
-                ? "text-emerald-600"
-                : "text-rose-600"
+              Math.abs(total - 100) < 0.01 ? "text-brand" : "text-rose-600"
             }`}
           >
             Total: {total.toFixed(1)}%{" "}
@@ -463,7 +526,11 @@ function FieldRenderer({
 
     case "file":
     case "file_multi": {
-      const files: File[] = Array.isArray(value) ? value : value ? [value] : [];
+      const files: (File | string)[] = Array.isArray(value)
+        ? value
+        : value
+          ? [value]
+          : [];
       return (
         <div className="space-y-3">
           <input
@@ -471,24 +538,55 @@ function FieldRenderer({
             multiple={def.inputType === "file_multi"}
             onChange={(e) => {
               const selected = Array.from(e.target.files || []);
-              onChange(
-                def.inputType === "file_multi"
-                  ? selected
-                  : (selected[0] ?? null),
-              );
+              if (def.inputType === "file_multi") {
+                // Append new files to existing array (allows multi-select or repeated single picks)
+                onChange([...files, ...selected]);
+              } else {
+                onChange(selected[0] ?? null);
+              }
+              // Reset the input so the same file can be re-selected if needed
+              e.target.value = "";
             }}
-            className="w-full text-sm text-slate-500 file:mr-4 file:rounded-none file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:text-white hover:file:bg-emerald-700"
+            className="w-full text-sm text-slate-500 file:mr-4 file:rounded-none file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:text-white hover:file:bg-brand"
           />
           {files.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {files.map((f: File, i: number) => (
-                <span
-                  key={i}
-                  className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-1 border border-slate-200"
-                >
-                  {f.name}
-                </span>
-              ))}
+            <div className="space-y-2">
+              {files.map((f: File | string, i: number) => {
+                const isFile = f instanceof File;
+                const displayName = isFile ? f.name : f.split("/").pop() || f;
+                const displayKey = isFile
+                  ? `file-${f.name}-${i}`
+                  : `path-${f}-${i}`;
+                return (
+                  <div
+                    key={displayKey}
+                    className="flex items-center justify-between p-2 bg-slate-50 border border-slate-200"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.5 shrink-0">
+                        {isFile ? "File" : "Stored"}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-600 truncate">
+                        {displayName}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = files.filter((_, idx) => idx !== i);
+                        onChange(
+                          def.inputType === "file_multi"
+                            ? next
+                            : (next[0] ?? null),
+                        );
+                      }}
+                      className="text-[10px] font-bold uppercase tracking-widest text-rose-600 hover:text-rose-800 px-2 shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

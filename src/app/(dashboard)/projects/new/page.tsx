@@ -191,11 +191,12 @@ const NewProject = () => {
     }
   }, [currentStep, modules.length, refreshModules]);
 
-  const onSubmit = async (data: TCreateProject) => {
+  const handleFinalSubmit = async () => {
     if (!projectId) return;
     setIsSubmitting(true);
     try {
-      const documentEntries = Object.entries(data.documents ?? {}).filter(
+      const documents = methods.getValues("documents") ?? {};
+      const documentEntries = Object.entries(documents).filter(
         ([, file]) => file != null,
       );
       if (documentEntries.length > 0) {
@@ -322,7 +323,7 @@ const NewProject = () => {
               {projectId ? "Save & Exit" : "Abort Registration"}
             </button>
 
-            <h1 className="font-serif text-3xl md:text-4xl text-foreground leading-tight mb-8">
+            <h1 className="font-sans text-3xl md:text-4xl text-foreground leading-tight mb-8">
               Asset <br className="hidden lg:block" />
               <span className="italic text-slate-500">Ingestion.</span>
             </h1>
@@ -346,7 +347,7 @@ const NewProject = () => {
               </p>
               <button
                 type="button"
-                className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 border-b border-emerald-700 hover:text-foreground hover:border-foreground transition-all"
+                className="text-[10px] font-bold uppercase tracking-widest text-brand-700 border-b border-brand-700 hover:text-foreground hover:border-foreground transition-all"
                 onClick={() => router.push("/support")}
               >
                 Contact Directory
@@ -371,7 +372,7 @@ const NewProject = () => {
                 Phase 0{currentStep + 1} /{" "}
                 {totalSteps.toString().padStart(2, "0")}
               </p>
-              <h2 className="text-xl font-serif text-foreground tracking-tight mt-1">
+              <h2 className="text-xl font-sans text-foreground tracking-tight mt-1">
                 {currentStep === 0
                   ? "Asset Telemetry"
                   : currentStep <= modules.length
@@ -384,10 +385,7 @@ const NewProject = () => {
           )}
 
           <FormProvider {...methods}>
-            <form
-              onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
-              noValidate
-            >
+            <form onSubmit={(e) => e.preventDefault()} noValidate>
               {currentStep === 0 && (
                 <Step1_ProjectProfile
                   onNext={nextStep}
@@ -413,14 +411,14 @@ const NewProject = () => {
                 <Step3_Documents
                   onPrev={prevStep}
                   isSubmitting={isSubmitting}
-                  onSubmit={() => methods.handleSubmit(onSubmit, onInvalid)()}
+                  onSubmit={handleFinalSubmit}
                 />
               )}
 
               {currentStep === modules.length + 2 && projectId && (
                 <ReviewStep
                   onPrev={prevStep}
-                  onSubmit={() => methods.handleSubmit(onSubmit, onInvalid)()}
+                  onSubmit={handleFinalSubmit}
                   isSubmitting={isSubmitting}
                   projectName={projectName}
                   projectType={selectedType}

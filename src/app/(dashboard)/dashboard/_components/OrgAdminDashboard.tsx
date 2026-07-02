@@ -69,7 +69,7 @@ export default function OrgAdminDashboard({
               ? "Compliance Auditor · Read Only"
               : "Institutional ESG Centre"}
           </p>
-          <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+          <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
             Corporate Carbon{" "}
             <span className="italic text-slate-500">Portfolio.</span>
           </h1>
@@ -82,7 +82,7 @@ export default function OrgAdminDashboard({
         {!isAuditor && (
           <Link
             href="/marketplace"
-            className="shrink-0 bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-900 transition-colors"
+            className="shrink-0 bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-900 transition-colors"
           >
             Acquire Verified Yield
           </Link>
@@ -159,7 +159,7 @@ export default function OrgAdminDashboard({
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">
               Scope 3 Liability
             </h3>
-            <p className="font-serif text-4xl text-slate-900 mb-2">
+            <p className="font-sans text-4xl text-slate-900 mb-2">
               1,200 <span className="text-xl text-slate-400">tCO₂e</span>
             </p>
             <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
@@ -170,7 +170,7 @@ export default function OrgAdminDashboard({
           <div className="flex flex-col gap-4">
             <Link
               href="/marketplace"
-              className="flex-1 bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-900 transition-colors"
+              className="flex-1 bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold uppercase tracking-widest hover:bg-brand-900 transition-colors"
             >
               Explore Spot Market
             </Link>

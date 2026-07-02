@@ -279,7 +279,7 @@ export const createProjectInputSchema = z
     // Require customProjectTypeLabel when projectType = 'other'
     if (data.projectType === "other" && !data.customProjectTypeLabel) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please describe your project type",
         path: ["customProjectTypeLabel"],
       });

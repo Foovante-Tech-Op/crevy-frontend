@@ -59,7 +59,7 @@ export default function OnboardingFlow() {
           </p>
         </div>
         <div className="flex gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-[#178a74]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-[#178a74]">
             <CheckCircle2 className="h-2.5 w-2.5" /> 84% Efficiency
           </span>
         </div>

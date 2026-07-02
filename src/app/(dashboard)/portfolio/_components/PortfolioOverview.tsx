@@ -80,13 +80,13 @@ export default function PortfolioOverview() {
               <div className="inline-flex items-center gap-3 mb-6">
                 <div className="w-8 h-[1px] bg-slate-900"></div>
                 <span className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-emerald-700" />
+                  <ShieldCheck size={14} className="text-brand-700" />
                   Private Institutional Assets
                 </span>
                 <div className="w-8 h-[1px] bg-slate-900"></div>
               </div>
 
-              <h1 className="text-5xl md:text-7xl font-serif text-slate-900 tracking-tight leading-[1.05] mb-6">
+              <h1 className="text-5xl md:text-7xl font-sans text-slate-900 tracking-tight leading-[1.05] mb-6">
                 Institutional{" "}
                 <span className="italic text-slate-500">Registry.</span>
               </h1>
@@ -102,10 +102,10 @@ export default function PortfolioOverview() {
             {/* Financial Value Metric Box */}
             <div className="w-full md:w-auto bg-slate-900 p-8 min-w-[320px] shadow-2xl shrink-0">
               <div className="flex items-center justify-between mb-8 border-b border-slate-800 pb-4">
-                <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
+                <p className="text-brand-400 text-[10px] font-bold uppercase tracking-widest">
                   Net Portfolio Value
                 </p>
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
               </div>
 
               <div className="flex items-baseline gap-2 mb-2">
@@ -121,7 +121,7 @@ export default function PortfolioOverview() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-brand-400">
                 <TrendingUp size={12} /> +8.2% Market Yield
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function PortfolioOverview() {
                     className="text-slate-300 mb-4"
                     strokeWidth={1}
                   />
-                  <p className="text-slate-500 font-serif text-lg">
+                  <p className="text-slate-500 font-sans text-lg">
                     No active assets in registry.
                   </p>
                   <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mt-2">
@@ -172,12 +172,12 @@ export default function PortfolioOverview() {
                     >
                       {/* Asset Info */}
                       <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                        <div className="w-12 h-12 bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-700 shrink-0">
                           <BadgeCheck size={20} />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-serif text-xl text-slate-900 leading-none">
+                            <h4 className="font-sans text-xl text-slate-900 leading-none">
                               Verified Carbon Unit
                             </h4>
                           </div>
@@ -197,7 +197,7 @@ export default function PortfolioOverview() {
                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                             Liquid Volume
                           </p>
-                          <p className="text-xl font-mono font-bold text-emerald-800">
+                          <p className="text-xl font-mono font-bold text-brand-800">
                             {parseFloat(
                               credit.availableAmount,
                             ).toLocaleString()}{" "}
@@ -242,7 +242,7 @@ export default function PortfolioOverview() {
             <div className="bg-white border border-slate-200 p-8">
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-6 flex items-center justify-between">
                 Performance Index
-                <span className="text-emerald-600 flex items-center gap-1">
+                <span className="text-brand-600 flex items-center gap-1">
                   <TrendingUp size={12} /> Live
                 </span>
               </h3>
@@ -308,11 +308,11 @@ export default function PortfolioOverview() {
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                     Index Alpha
                   </p>
-                  <p className="text-xl font-serif text-slate-900 leading-none">
+                  <p className="text-xl font-sans text-slate-900 leading-none">
                     1.24×
                   </p>
                 </div>
-                <p className="text-[10px] font-mono text-emerald-700 uppercase tracking-widest">
+                <p className="text-[10px] font-mono text-brand-700 uppercase tracking-widest">
                   Outperforming
                 </p>
               </div>

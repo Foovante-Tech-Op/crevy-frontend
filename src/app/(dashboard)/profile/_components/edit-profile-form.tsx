@@ -253,7 +253,7 @@ export function EditProfileForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-none bg-slate-900 hover:bg-emerald-900 text-white font-bold uppercase tracking-widest text-[10px] h-12 px-8 transition-colors w-full md:w-auto"
+              className="rounded-none bg-slate-900 hover:bg-brand-900 text-white font-bold uppercase tracking-widest text-[10px] h-12 px-8 transition-colors w-full md:w-auto"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

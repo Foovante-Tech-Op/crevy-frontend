@@ -93,7 +93,7 @@ function ProjectDetailContent() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-center px-6">
         <ShieldAlert size={32} className="text-slate-900 mb-4" />
-        <h1 className="font-serif text-3xl text-slate-900 mb-2">
+        <h1 className="font-sans text-3xl text-slate-900 mb-2">
           Asset Not Found
         </h1>
         <p className="font-mono text-xs text-slate-500 uppercase tracking-widest mb-6">
@@ -130,8 +130,8 @@ function ProjectDetailContent() {
           <ArrowLeft size={14} /> Back to Directory
         </Link>
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-emerald-600">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse" />{" "}
+          <span className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-brand-600">
+            <span className="w-1.5 h-1.5 bg-brand-500 rounded-none animate-pulse" />{" "}
             Live Telemetry
           </span>
         </div>
@@ -157,7 +157,7 @@ function ProjectDetailContent() {
           )}
           <div className="absolute bottom-6 left-6 flex gap-2">
             <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700 px-3 py-1.5 text-white font-mono text-[10px] uppercase tracking-widest flex items-center gap-2">
-              <MapPin size={12} className="text-emerald-500" />{" "}
+              <MapPin size={12} className="text-brand-500" />{" "}
               {project.gpsCoordinates || "N/A"}
             </div>
           </div>
@@ -172,7 +172,7 @@ function ProjectDetailContent() {
                 {project.code || id}
               </span>
             </p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-slate-900 tracking-tight leading-none mb-6">
+            <h1 className="font-sans text-4xl md:text-5xl lg:text-6xl text-slate-900 tracking-tight leading-none mb-6">
               {project.name}
             </h1>
             <p className="text-slate-500 font-light leading-relaxed max-w-lg">
@@ -216,7 +216,7 @@ function ProjectDetailContent() {
                 className={cn(
                   "font-mono text-sm font-bold",
                   project.projectStatus === "active"
-                    ? "text-emerald-600"
+                    ? "text-brand-600"
                     : "text-amber-600",
                 )}
               >
@@ -240,7 +240,7 @@ function ProjectDetailContent() {
               <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
                 Entity Name
               </span>
-              <span className="font-serif text-2xl text-slate-900">
+              <span className="font-sans text-2xl text-slate-900">
                 {owner.name || "UNREGISTERED"}
               </span>
             </div>
@@ -253,7 +253,7 @@ function ProjectDetailContent() {
                 className={cn(
                   "font-mono text-lg font-bold",
                   owner.verificationStatus === "verified"
-                    ? "text-emerald-600"
+                    ? "text-brand-600"
                     : "text-amber-600",
                 )}
               >

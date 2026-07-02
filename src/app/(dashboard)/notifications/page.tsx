@@ -24,7 +24,7 @@ export default function NotificationsPage() {
       time: "2 mins ago",
       read: false,
       icon: Zap,
-      color: "text-emerald-500 bg-emerald-50",
+      color: "text-brand-500 bg-brand-50",
     },
     {
       id: 2,
@@ -54,7 +54,7 @@ export default function NotificationsPage() {
     <div className="max-w-4xl mx-auto py-12 px-6 space-y-12 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-slate-200 pb-12">
         <div className="max-w-2xl">
-          <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+          <p className="text-brand-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <Bell size={14} /> Institutional Alert Registry
           </p>
           <h1 className="text-5xl font-black text-slate-900 leading-[1.1] tracking-tighter uppercase italic">
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           </div>
           <Button
             variant="ghost"
-            className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600"
+            className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-600"
           >
             Mark all as read
           </Button>
@@ -96,7 +96,7 @@ export default function NotificationsPage() {
               className={`group p-8 rounded-[2rem] border transition-all flex gap-8 items-start cursor-pointer hover:shadow-xl ${
                 n.read
                   ? "bg-white border-slate-100"
-                  : "bg-white border-emerald-200 shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100"
+                  : "bg-white border-brand-200 shadow-lg shadow-brand-900/5 ring-1 ring-brand-100"
               }`}
             >
               <div
@@ -113,7 +113,7 @@ export default function NotificationsPage() {
                     {n.title}
                   </h3>
                   {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <span className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                   )}
                 </div>
                 <p className="text-slate-500 font-medium leading-relaxed">

@@ -28,7 +28,7 @@ export default function OrganizationPage() {
     <div className="max-w-6xl mx-auto py-12 px-6 space-y-12 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-slate-200 pb-12">
         <div className="max-w-2xl">
-          <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+          <p className="text-brand-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <Building2 size={14} /> Corporate Identity & Compliance
           </p>
           <h1 className="text-5xl font-black text-slate-900 leading-[1.1] tracking-tighter uppercase italic">
@@ -64,7 +64,7 @@ export default function OrganizationPage() {
                     Registry Residency
                   </p>
                   <p className="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <Globe size={16} className="text-emerald-500" />{" "}
+                    <Globe size={16} className="text-brand-500" />{" "}
                     {orgData.residency}
                   </p>
                 </div>
@@ -114,19 +114,19 @@ export default function OrganizationPage() {
 
           <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-10 opacity-10 rotate-12">
-              <ShieldCheck size={160} className="text-emerald-400" />
+              <ShieldCheck size={160} className="text-brand-400" />
             </div>
             <div className="relative z-10 space-y-8">
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
-                  <p className="text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+                  <p className="text-brand-400 text-[9px] font-black uppercase tracking-widest">
                     Active Subscription
                   </p>
                   <h3 className="text-3xl font-black italic uppercase tracking-tighter">
                     {orgData.plan}
                   </h3>
                 </div>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-none font-black text-[10px] px-4 py-1 uppercase tracking-widest">
+                <Badge className="bg-brand-500/20 text-brand-400 border-none font-black text-[10px] px-4 py-1 uppercase tracking-widest">
                   Institutional Verified
                 </Badge>
               </div>
@@ -169,7 +169,7 @@ export default function OrganizationPage() {
                 },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 items-start group">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
                     <item.icon size={18} />
                   </div>
                   <div>

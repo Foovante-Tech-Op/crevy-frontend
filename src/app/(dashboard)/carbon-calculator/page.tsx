@@ -47,15 +47,13 @@ export default function CarbonCalculator() {
         <div className="container mx-auto px-6 relative z-20 max-w-7xl">
           <div className="max-w-2xl space-y-6">
             <nav className="flex items-center gap-2 text-sm font-medium text-slate-500">
-              <span className="hover:text-emerald-600 cursor-pointer">
-                Home
-              </span>
+              <span className="hover:text-brand-600 cursor-pointer">Home</span>
               <span>/</span>
               <span className="text-slate-900">Carbon Calculator</span>
             </nav>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
               Know Your <br />
-              <span className="text-emerald-500">Carbon Footprint</span>
+              <span className="text-brand-500">Carbon Footprint</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-lg">
               See how your daily choices impact the planet — from travel to
@@ -118,7 +116,7 @@ export default function CarbonCalculator() {
                             id="electricity-usage" // Matches htmlFor
                             type="number"
                             placeholder="36"
-                            className="h-14 rounded-xl border-slate-200 focus:ring-emerald-500/20"
+                            className="h-14 rounded-xl border-slate-200 focus:ring-brand-500/20"
                           />
                           <Select defaultValue="monthly">
                             <SelectTrigger className="w-[140px] h-14 rounded-xl border-slate-200">
@@ -145,7 +143,7 @@ export default function CarbonCalculator() {
                             id="natural-gas" // Matches htmlFor
                             type="number"
                             placeholder="1.5"
-                            className="h-14 rounded-xl border-slate-200 focus:ring-emerald-500/20"
+                            className="h-14 rounded-xl border-slate-200 focus:ring-brand-500/20"
                           />
                           <Select defaultValue="daily">
                             <SelectTrigger className="w-[140px] h-14 rounded-xl border-slate-200">
@@ -220,7 +218,7 @@ export default function CarbonCalculator() {
         <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
             <div className="space-y-4">
-              <span className="text-emerald-600 font-bold uppercase tracking-[0.2em] text-sm flex items-center gap-2">
+              <span className="text-brand-600 font-bold uppercase tracking-[0.2em] text-sm flex items-center gap-2">
                 <Leaf className="w-4 h-4" /> Eco Solutions
               </span>
               <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
@@ -253,8 +251,8 @@ export default function CarbonCalculator() {
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
                 </div>
                 <div className="p-6 space-y-4">
-                  <div className="p-3 bg-emerald-50 rounded-2xl w-fit">
-                    <Sun className="w-6 h-6 text-emerald-600" />
+                  <div className="p-3 bg-brand-50 rounded-2xl w-fit">
+                    <Sun className="w-6 h-6 text-brand-600" />
                   </div>
                   <h4 className="text-xl font-bold">Solar Solutions</h4>
                   <p className="text-slate-500 text-sm leading-relaxed">
@@ -263,7 +261,7 @@ export default function CarbonCalculator() {
                   </p>
                   <Button
                     variant="link"
-                    className="p-0 h-auto text-emerald-600 font-bold group"
+                    className="p-0 h-auto text-brand-600 font-bold group"
                   >
                     Learn More{" "}
                     <ArrowRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -294,7 +292,7 @@ export default function CarbonCalculator() {
                   </p>
                   <Button
                     variant="link"
-                    className="p-0 h-auto text-emerald-600 font-bold group"
+                    className="p-0 h-auto text-brand-600 font-bold group"
                   >
                     Learn More{" "}
                     <ArrowRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -337,7 +335,7 @@ export default function CarbonCalculator() {
             <Card className="border-none shadow-xl rounded-3xl bg-slate-900 text-white overflow-hidden relative">
               <div className="p-8 space-y-6 flex flex-col h-full justify-between">
                 <div className="space-y-2">
-                  <BarChart3 className="w-10 h-10 text-emerald-400 mb-4" />
+                  <BarChart3 className="w-10 h-10 text-brand-400 mb-4" />
                   <h4 className="text-2xl font-bold">
                     Track Your Monthly Progress
                   </h4>
@@ -346,12 +344,12 @@ export default function CarbonCalculator() {
                     reduce costs.
                   </p>
                 </div>
-                <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl">
+                <Button className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold h-12 rounded-xl">
                   Open Dashboard
                 </Button>
               </div>
               {/* Decorative Gradient */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[80px] rounded-full" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 blur-[80px] rounded-full" />
             </Card>
           </div>
         </div>
@@ -360,18 +358,18 @@ export default function CarbonCalculator() {
       {/* Impact Statement */}
       <section className="py-24 px-6 overflow-hidden">
         <div className="container mx-auto max-w-7xl">
-          <div className="bg-emerald-950 rounded-[48px] p-8 md:p-20 relative overflow-hidden">
+          <div className="bg-brand-950 rounded-[48px] p-8 md:p-20 relative overflow-hidden">
             <div className="max-w-2xl relative z-10 space-y-8">
               <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">
                 Smaller Footprint, <br />
-                <span className="text-emerald-400">Brighter Future.</span>
+                <span className="text-brand-400">Brighter Future.</span>
               </h2>
-              <p className="text-emerald-100/70 text-lg md:text-xl leading-relaxed">
+              <p className="text-brand-100/70 text-lg md:text-xl leading-relaxed">
                 Join over 10,000 users who have reduced their carbon output by
                 an average of 24% in the first year using our smart tools.
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
-                <Button className="h-16 px-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-transform hover:scale-105">
+                <Button className="h-16 px-10 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold transition-transform hover:scale-105">
                   Get Started Now
                 </Button>
                 <Button
@@ -384,8 +382,8 @@ export default function CarbonCalculator() {
             </div>
 
             {/* Decorative Background Element */}
-            <div className="absolute -right-20 -bottom-20 w-[500px] h-[500px] border-[40px] border-emerald-500/10 rounded-full" />
-            <div className="absolute -right-40 -top-40 w-[400px] h-[400px] bg-emerald-500/20 blur-[120px] rounded-full" />
+            <div className="absolute -right-20 -bottom-20 w-[500px] h-[500px] border-[40px] border-brand-500/10 rounded-full" />
+            <div className="absolute -right-40 -top-40 w-[400px] h-[400px] bg-brand-500/20 blur-[120px] rounded-full" />
           </div>
         </div>
       </section>

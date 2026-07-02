@@ -73,10 +73,10 @@ export default function ContractsPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
             <div className="max-w-2xl">
               <p className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                <ShieldCheck size={14} className="text-emerald-700" /> Legal
+                <ShieldCheck size={14} className="text-brand-700" /> Legal
                 Artifact Registry
               </p>
-              <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Contract{" "}
                 <span className="italic text-slate-500">Management.</span>
               </h1>
@@ -88,7 +88,7 @@ export default function ContractsPage() {
             </div>
             <button
               type="button"
-              className="shrink-0 bg-slate-900 hover:bg-emerald-900 text-white px-6 py-3 font-bold uppercase tracking-widest text-[10px] transition-colors flex items-center gap-2"
+              className="shrink-0 bg-slate-900 hover:bg-brand-900 text-white px-6 py-3 font-bold uppercase tracking-widest text-[10px] transition-colors flex items-center gap-2"
             >
               <Plus size={14} /> Initialize Agreement
             </button>
@@ -100,7 +100,7 @@ export default function ContractsPage() {
         {/* ── Visual Insights ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-1 bg-slate-900 text-white p-8 border border-slate-800 flex flex-col justify-center">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-400 mb-2">
               Committed Inventory
             </p>
             <h2 className="text-5xl font-mono font-bold tracking-tight mb-2">
@@ -213,7 +213,7 @@ export default function ContractsPage() {
                     <td className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                       {con.type.replace("_", " ")}
                     </td>
-                    <td className="px-6 py-4 font-serif text-sm text-slate-900">
+                    <td className="px-6 py-4 font-sans text-sm text-slate-900">
                       {con.party}
                     </td>
                     <td className="px-6 py-4 text-[11px] font-mono text-slate-500 uppercase tracking-widest">
@@ -224,7 +224,7 @@ export default function ContractsPage() {
                         className={cn(
                           "px-2 py-1 text-[9px] font-bold uppercase tracking-widest border",
                           con.status === "active"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-brand-50 text-brand-700 border-brand-200"
                             : con.status === "completed"
                               ? "bg-slate-100 text-slate-700 border-slate-300"
                               : "bg-amber-50 text-amber-700 border-amber-200",

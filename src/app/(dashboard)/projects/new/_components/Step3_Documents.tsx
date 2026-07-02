@@ -67,14 +67,14 @@ const Step3_Documents = ({
         className={cn(
           "p-4 md:p-6 border transition-all",
           hasFile
-            ? "border-emerald-500 bg-emerald-50/20"
+            ? "border-brand-500 bg-brand-50/20"
             : "border-dashed border-slate-300 bg-white",
         )}
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <p className="font-serif font-bold text-slate-900">{doc.label}</p>
+              <p className="font-sans font-bold text-slate-900">{doc.label}</p>
               {doc.required ? (
                 <span className="text-[9px] font-bold uppercase tracking-widest text-rose-600 bg-rose-50 px-2 py-0.5 border border-rose-100">
                   Required
@@ -109,9 +109,9 @@ const Step3_Documents = ({
             />
 
             {hasFile ? (
-              <div className="flex items-center justify-between w-full lg:w-auto gap-3 bg-white border border-emerald-200 px-3 py-2">
+              <div className="flex items-center justify-between w-full lg:w-auto gap-3 bg-white border border-brand-200 px-3 py-2">
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <Check size={14} className="text-emerald-500 shrink-0" />
+                  <Check size={14} className="text-brand-500 shrink-0" />
                   <span className="font-mono text-[10px] md:text-xs text-slate-900 max-w-[120px] md:max-w-[200px] truncate">
                     {fileName}
                   </span>
@@ -141,7 +141,7 @@ const Step3_Documents = ({
                   href={doc.templateUrl as string}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[9px] font-mono text-emerald-600 hover:underline uppercase tracking-widest flex items-center gap-1 self-start lg:self-end"
+                  className="text-[9px] font-mono text-brand-600 hover:underline uppercase tracking-widest flex items-center gap-1 self-start lg:self-end"
                 >
                   <Download size={10} /> Fetch Template
                 </a>
@@ -158,7 +158,7 @@ const Step3_Documents = ({
         <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] mb-2">
           Phase 03 / 03
         </p>
-        <h2 className="text-2xl font-serif text-slate-900 tracking-tight">
+        <h2 className="text-2xl font-sans text-slate-900 tracking-tight">
           Cryptographic Documentation
         </h2>
         <p className="text-[10px] font-mono text-slate-500 mt-2">
@@ -206,7 +206,7 @@ const Step3_Documents = ({
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting || !allRequiredFilled}
-          className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full sm:flex-1 bg-brand hover:bg-brand/80 text-white py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>

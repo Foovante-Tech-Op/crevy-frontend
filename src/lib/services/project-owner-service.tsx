@@ -27,11 +27,10 @@ export type ProjectOwnerRecord = {
   createdAt: string;
   updatedAt: string;
   // Joined from user table
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string | null;
   contactNumber: string | null;
-  countryOfOperation: string | null;
+  entityType: string | null;
 };
 
 export type ProjectOwnerListResponse = {

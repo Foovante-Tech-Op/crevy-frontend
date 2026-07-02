@@ -51,10 +51,10 @@ export default function AdminDashboard({
         className="bg-white border border-slate-200 p-10 md:p-14 mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-8"
       >
         <div className="max-w-2xl">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-700 mb-4">
             Authorized Personnel · {role.replace(/_/g, " ")}
           </p>
-          <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+          <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
             Institutional{" "}
             <span className="italic text-slate-500">Operations.</span>
           </h1>
@@ -64,7 +64,7 @@ export default function AdminDashboard({
           </p>
         </div>
         <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200">
-          <span className="w-2 h-2 bg-emerald-500 animate-pulse"></span>
+          <span className="w-2 h-2 bg-brand-500 animate-pulse"></span>
           <span className="font-mono text-[10px] uppercase tracking-widest text-slate-900">
             Operative: {userName}
           </span>
@@ -156,7 +156,7 @@ export default function AdminDashboard({
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   <tr className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-serif text-sm font-bold text-slate-900">
+                    <td className="px-6 py-4 font-sans text-sm font-bold text-slate-900">
                       Kwame Mensah
                     </td>
                     <td className="px-6 py-4 font-mono text-[10px] text-slate-500 uppercase">
@@ -170,7 +170,7 @@ export default function AdminDashboard({
                     <td className="px-6 py-4 text-right">
                       <button
                         type="button"
-                        className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 hover:text-slate-900 border-b border-transparent hover:border-slate-900 transition-all"
+                        className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-slate-900 border-b border-transparent hover:border-slate-900 transition-all"
                       >
                         Audit Dossier
                       </button>

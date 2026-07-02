@@ -24,7 +24,7 @@ export function GovernanceSection({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   return (
     <div className="animate-in fade-in duration-500 space-y-12">
       <div className="border-b border-slate-200 pb-8">
-        <h2 className="text-3xl font-serif text-slate-900 mb-2">
+        <h2 className="text-3xl font-sans text-slate-900 mb-2">
           Registry Governance.
         </h2>
         <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">
@@ -94,7 +94,7 @@ export function GovernanceSection({ isSuperAdmin }: { isSuperAdmin: boolean }) {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest flex items-center gap-3 hover:bg-emerald-900 transition-colors disabled:opacity-70"
+            className="bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest flex items-center gap-3 hover:bg-brand-900 transition-colors disabled:opacity-70"
           >
             {isSaving ? "Anchoring Protocol..." : "Anchor Configuration"}
             {!isSaving && <Save size={14} />}

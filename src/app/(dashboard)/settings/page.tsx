@@ -61,7 +61,7 @@ export default function SettingsPage() {
             System Control Center
           </span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+        <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
           Configuration <span className="italic text-slate-500">Matrix.</span>
         </h1>
         <p className="text-slate-500 text-sm max-w-xl leading-relaxed font-light">
@@ -69,7 +69,7 @@ export default function SettingsPage() {
           operational thresholds across the Crevy registry.
         </p>
         <div className="mt-6 inline-flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1">
-          <span className="w-2 h-2 bg-emerald-500 rounded-none"></span>
+          <span className="w-2 h-2 bg-brand-500 rounded-none"></span>
           <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-700">
             Active Clearance: {role.replace(/_/g, " ")}
           </span>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
             >
               <tab.icon
                 size={14}
-                className={activeTab === tab.id ? "text-emerald-700" : ""}
+                className={activeTab === tab.id ? "text-brand-700" : ""}
               />
               {tab.label}
             </button>

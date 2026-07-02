@@ -283,7 +283,7 @@ export default function RolesManagementPage() {
         <div className="flex-1 space-y-8">
           <div className="flex items-center justify-between border-b border-slate-200 pb-6">
             <div>
-              <h1 className="text-3xl font-serif text-slate-950 tracking-tight leading-none mb-2">
+              <h1 className="text-3xl font-sans text-slate-950 tracking-tight leading-none mb-2">
                 System Strategy Matrix.
               </h1>
               <p className="text-xs text-slate-400 font-light font-mono uppercase tracking-wider">
@@ -313,7 +313,7 @@ export default function RolesManagementPage() {
                   >
                     <div className="p-6 space-y-6">
                       <DialogHeader>
-                        <DialogTitle className="font-serif text-xl tracking-tight text-slate-950">
+                        <DialogTitle className="font-sans text-xl tracking-tight text-slate-950">
                           Initialize Security Role Record
                         </DialogTitle>
                         <DialogDescription className="text-xs text-slate-400 font-light font-mono uppercase tracking-wider">
@@ -393,7 +393,7 @@ export default function RolesManagementPage() {
                   >
                     <div className="p-6 space-y-6">
                       <DialogHeader>
-                        <DialogTitle className="font-serif text-xl tracking-tight text-slate-950">
+                        <DialogTitle className="font-sans text-xl tracking-tight text-slate-950">
                           Initialize Capability Rule
                         </DialogTitle>
                         <DialogDescription className="text-xs text-slate-400 font-light font-mono uppercase tracking-wider">
@@ -519,7 +519,7 @@ export default function RolesManagementPage() {
                     <Key size={10} className="text-slate-950" /> Selected
                     Authority Scope
                   </div>
-                  <h2 className="text-2xl font-serif font-bold text-slate-950 tracking-tight leading-none uppercase">
+                  <h2 className="text-2xl font-sans font-bold text-slate-950 tracking-tight leading-none uppercase">
                     {selectedRole.name}
                   </h2>
                   {selectedRole.description && (

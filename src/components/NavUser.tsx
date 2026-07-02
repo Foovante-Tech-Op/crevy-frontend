@@ -76,12 +76,12 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
                       alt={user?.name}
                       className="object-cover"
                     />
-                    <AvatarFallback className="rounded-none bg-emerald-900 text-emerald-400 font-mono text-[10px]">
+                    <AvatarFallback className="rounded-none bg-foreground text-white font-mono text-[10px]">
                       {getInitials(user?.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400/80">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-white">
                       {user?.role?.replace("_", " ")}
                     </span>
                     <span className="truncate font-serif text-white text-base">

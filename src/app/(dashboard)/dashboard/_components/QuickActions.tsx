@@ -31,7 +31,7 @@ const QuickActions = ({ role }: QuickActionsProps) => {
             title: "Impact Analytics",
             description: "View detailed environmental impact reports",
             icon: <BarChart3 className="h-6 w-6 stroke-white" />,
-            color: "bg-emerald-500",
+            color: "bg-brand-500",
             href: "/analytics",
           },
           {
@@ -57,7 +57,7 @@ const QuickActions = ({ role }: QuickActionsProps) => {
             title: "Log Site Visit",
             description: "Submit geolocated evidence on-site",
             icon: <MapPin className="h-6 w-6 stroke-white" />,
-            color: "bg-emerald-500",
+            color: "bg-brand-500",
             href: "/site-visits",
           },
           {
@@ -81,7 +81,7 @@ const QuickActions = ({ role }: QuickActionsProps) => {
             title: "Carbon Calculator",
             description: "Estimate potential CO₂ savings",
             icon: <Calculator className="h-6 w-6 stroke-white" />,
-            color: "bg-emerald-500",
+            color: "bg-brand-500",
             href: "/carbon-calculator",
           },
           {
@@ -107,14 +107,14 @@ const QuickActions = ({ role }: QuickActionsProps) => {
           <Link
             key={action.href}
             href={action.href}
-            className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md"
+            className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-brand-200 hover:shadow-md"
           >
             <div
               className={`mb-4 flex h-12 w-12 items-center justify-center rounded-lg ${action.color} transition-transform group-hover:scale-110`}
             >
               {action.icon}
             </div>
-            <h4 className="mb-2 font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">
+            <h4 className="mb-2 font-semibold text-gray-900 group-hover:text-brand-600 transition-colors">
               {action.title}
             </h4>
             <p className="text-sm text-gray-600">{action.description}</p>

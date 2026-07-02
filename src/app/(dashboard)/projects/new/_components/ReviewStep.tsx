@@ -57,14 +57,14 @@ const ReviewStep = ({
         </p>
       </div>
 
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 md:p-6">
+      <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 md:p-6">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-brand-600 mt-0.5 shrink-0" />
           <div>
-            <h3 className="font-semibold text-emerald-900 text-sm md:text-base">
+            <h3 className="font-semibold text-brand-900 text-sm md:text-base">
               Almost there!
             </h3>
-            <p className="text-emerald-700 text-xs md:text-sm mt-1">
+            <p className="text-brand-700 text-xs md:text-sm mt-1">
               {submittedCount} of {totalCount} modules complete. You can submit
               now or return to complete remaining modules.
             </p>
@@ -116,7 +116,7 @@ const ReviewStep = ({
                   className={cn(
                     "w-2 h-2 rounded-full",
                     mod.status === "submitted"
-                      ? "bg-emerald-500"
+                      ? "bg-brand-500"
                       : mod.status === "in_progress"
                         ? "bg-amber-500"
                         : "bg-slate-300",
@@ -136,7 +136,7 @@ const ReviewStep = ({
                 </div>
               </div>
               {mod.status === "submitted" && (
-                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-brand-500 shrink-0" />
               )}
             </div>
           ))}

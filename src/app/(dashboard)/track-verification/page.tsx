@@ -46,7 +46,7 @@ const PIPELINE = [
 
 const statusStyles: Record<string, string> = {
   draft: "text-slate-400 border-slate-200",
-  active: "text-emerald-700 border-emerald-700",
+  active: "text-brand-700 border-brand-700",
   suspended: "text-red-700 border-red-700",
   closed: "text-slate-900 border-slate-900",
 };
@@ -83,7 +83,7 @@ export default function TrackVerificationPage() {
             </span>
             <div className="w-8 h-[1px] bg-slate-900"></div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight mb-4">
+          <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight mb-4">
             Pipeline <span className="italic text-slate-500">Oversight.</span>
           </h1>
           <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
@@ -112,7 +112,7 @@ export default function TrackVerificationPage() {
               className="h-12 w-12 text-slate-300 mb-6"
               strokeWidth={1}
             />
-            <p className="font-serif text-2xl text-slate-900 mb-2">
+            <p className="font-sans text-2xl text-slate-900 mb-2">
               The matrix is empty.
             </p>
             <p className="text-slate-500 text-sm mb-8 max-w-sm">
@@ -121,7 +121,7 @@ export default function TrackVerificationPage() {
             </p>
             <Link
               href="/new-project"
-              className="inline-flex items-center justify-center px-8 py-3 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-800 transition-colors"
+              className="inline-flex items-center justify-center px-8 py-3 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-brand-800 transition-colors"
             >
               Initialize Project
             </Link>
@@ -192,7 +192,7 @@ export default function TrackVerificationPage() {
                             </span>
                           </div>
 
-                          <h3 className="font-serif text-lg text-slate-900 leading-tight mb-2 group-hover:text-emerald-800 transition-colors">
+                          <h3 className="font-sans text-lg text-slate-900 leading-tight mb-2 group-hover:text-brand-800 transition-colors">
                             {p.name ?? "Unnamed Initiative"}
                           </h3>
 
@@ -218,13 +218,13 @@ export default function TrackVerificationPage() {
                             {/* Stage-Specific Microcopy */}
                             {stage.key === "verification" && (
                               <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-600">
-                                <Radio className="h-3 w-3 animate-pulse text-emerald-600" />
+                                <Radio className="h-3 w-3 animate-pulse text-brand-600" />
                                 INFERENCE_ACTIVE
                               </div>
                             )}
                             {stage.key === "completed" && (
                               <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-600">
-                                <Network className="h-3 w-3 text-emerald-600" />
+                                <Network className="h-3 w-3 text-brand-600" />
                                 TX_CONFIRMED
                               </div>
                             )}

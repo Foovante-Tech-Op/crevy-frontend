@@ -21,7 +21,7 @@ import { SectionLabel, StatCard } from "./Shared";
 
 const statusStyle: Record<string, string> = {
   draft: "border-slate-200 bg-slate-50 text-slate-500",
-  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  active: "border-brand-200 bg-brand-50 text-brand-700",
   suspended: "border-rose-200 bg-rose-50 text-rose-700",
   closed: "border-slate-300 bg-slate-100 text-slate-600",
 };
@@ -30,7 +30,7 @@ const stageStyle: Record<string, string> = {
   registration: "border-amber-200 bg-amber-50 text-amber-700",
   active: "border-blue-200 bg-blue-50 text-blue-700",
   verification: "border-purple-200 bg-purple-50 text-purple-700",
-  completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  completed: "border-brand-200 bg-brand-50 text-brand-700",
 };
 
 const stagePct: Record<string, number> = {
@@ -79,10 +79,10 @@ export default function ProjectOwnerDashboard({
         className="grid md:grid-cols-12 gap-px bg-slate-200 border border-slate-200 mb-12"
       >
         <div className="md:col-span-8 bg-white p-10 md:p-14">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-700 mb-4">
             Developer Terminal · Asset Portfolio
           </p>
-          <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-6">
+          <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-6">
             Environmental Asset{" "}
             <span className="italic text-slate-500">Command.</span>
           </h1>
@@ -92,7 +92,7 @@ export default function ProjectOwnerDashboard({
           </p>
           <Link
             href="/new-project"
-            className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-900 transition-colors"
+            className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-900 transition-colors"
           >
             <Plus size={14} /> Originate New Asset
           </Link>
@@ -100,20 +100,20 @@ export default function ProjectOwnerDashboard({
 
         <div className="md:col-span-4 bg-slate-950 p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden">
           <div className="relative z-10">
-            <p className="font-serif text-2xl mb-8">
+            <p className="font-sans text-2xl mb-8">
               Developer: {userName.split(" ")[0]}
             </p>
             <ul className="space-y-4 font-mono text-xs text-slate-400">
               <li className="flex items-center gap-3">
-                <span className="text-emerald-500">→</span> {activeProjects}{" "}
+                <span className="text-brand-500">→</span> {activeProjects}{" "}
                 Assets active on ledger
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-emerald-500">→</span>{" "}
-                {verificationProjects} Assets awaiting audit
+                <span className="text-brand-500">→</span> {verificationProjects}{" "}
+                Assets awaiting audit
               </li>
               <li className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-800 text-slate-500">
-                <span className="w-2 h-2 bg-emerald-500 rounded-none shrink-0 animate-pulse" />{" "}
+                <span className="w-2 h-2 bg-brand-500 rounded-none shrink-0 animate-pulse" />{" "}
                 Developer ID:{" "}
                 {userId?.substring(0, 8).toUpperCase() || "PENDING"}
               </li>
@@ -212,7 +212,7 @@ export default function ProjectOwnerDashboard({
               <div className="p-4 bg-white border border-slate-200 text-slate-400 mb-4">
                 <Database size={24} />
               </div>
-              <p className="font-serif font-bold text-slate-900 text-xl mb-2">
+              <p className="font-sans font-bold text-slate-900 text-xl mb-2">
                 Ledger Empty
               </p>
               <p className="text-slate-500 font-light text-sm max-w-sm mb-6">
@@ -221,7 +221,7 @@ export default function ProjectOwnerDashboard({
               </p>
               <Link
                 href="/new-project"
-                className="bg-slate-900 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-colors"
+                className="bg-slate-900 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-700 transition-colors"
               >
                 Originate Protocol
               </Link>
@@ -255,7 +255,7 @@ export default function ProjectOwnerDashboard({
                     onClick={() => router.push(`/projects/${p.id}`)}
                   >
                     <td className="px-6 py-4">
-                      <span className="font-serif font-bold text-slate-900 group-hover:text-emerald-700 transition-colors block">
+                      <span className="font-sans font-bold text-slate-900 group-hover:text-brand-700 transition-colors block">
                         {p.name ?? p.code}
                       </span>
                       <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-1 block">

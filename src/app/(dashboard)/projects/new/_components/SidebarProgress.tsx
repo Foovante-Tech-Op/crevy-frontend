@@ -29,7 +29,7 @@ const statusLabel = (status: ModuleStep["status"]) => {
 const _statusColor = (status: ModuleStep["status"]) => {
   switch (status) {
     case "submitted":
-      return "text-emerald-600";
+      return "text-brand-600";
     case "in_progress":
       return "text-amber-600";
     default:
@@ -59,7 +59,7 @@ const SidebarProgress = ({ currentStep, steps }: SidebarProgressProps) => {
                   isActive
                     ? "text-foreground font-bold"
                     : isCompleted
-                      ? "text-emerald-600"
+                      ? "text-brand"
                       : "text-slate-400",
                 )}
               >
@@ -70,9 +70,9 @@ const SidebarProgress = ({ currentStep, steps }: SidebarProgressProps) => {
                 className={cn(
                   "text-sm tracking-wide",
                   isActive
-                    ? "text-foreground font-bold font-serif"
+                    ? "text-foreground font-bold font-sans"
                     : isCompleted
-                      ? "text-slate-700"
+                      ? "text-brand"
                       : "text-slate-400",
                 )}
               >

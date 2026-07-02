@@ -37,7 +37,7 @@ const LandUseStep = ({ onNext, onPrev }: LandUseStepProps) => {
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold mb-1">Land Use & Practices</h2>
-        <p className="text-emerald-500 font-medium mb-4">
+        <p className="text-brand-500 font-medium mb-4">
           {projectType
             .replace(/_/g, " ")
             .replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -47,7 +47,7 @@ const LandUseStep = ({ onNext, onPrev }: LandUseStepProps) => {
           <Progress
             value={20}
             className="h-2 bg-slate-100"
-            indicatorClassName="bg-emerald-500"
+            indicatorClassName="bg-brand-500"
           />
           <span className="text-sm font-medium text-slate-400 whitespace-nowrap">
             20%
@@ -78,7 +78,7 @@ const LandUseStep = ({ onNext, onPrev }: LandUseStepProps) => {
         <div className="space-y-4">
           <Label className="text-slate-500 text-sm">
             Current regenerative practices being applied
-            <span className="block text-emerald-500 text-xs mt-1">
+            <span className="block text-brand-500 text-xs mt-1">
               (Select all that apply):
             </span>
           </Label>
@@ -105,7 +105,7 @@ const LandUseStep = ({ onNext, onPrev }: LandUseStepProps) => {
                     onCheckedChange={(checked) =>
                       togglePractice(option.id, !!checked)
                     }
-                    className="w-5 h-5 border-slate-200 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                    className="w-5 h-5 border-slate-200 data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
                   />
                   <Label
                     htmlFor={option.id}
@@ -135,7 +135,7 @@ const LandUseStep = ({ onNext, onPrev }: LandUseStepProps) => {
           type="button"
           variant="outline"
           onClick={onPrev}
-          className="px-6 md:px-8 py-3 md:py-4 text-emerald-500 border-emerald-500 font-bold text-sm md:text-base"
+          className="px-6 md:px-8 py-3 md:py-4 text-brand-500 border-brand-500 font-bold text-sm md:text-base"
         >
           Previous
         </Button>

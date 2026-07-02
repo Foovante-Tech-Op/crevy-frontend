@@ -23,7 +23,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react"; // Added useCallback
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -63,6 +63,7 @@ interface Project {
   start_date?: string;
   createdAt?: string;
   registryStatus?: string;
+  assessmentCompletion?: string;
 }
 
 // ─── Configuration ───────────────────────────────────────────────────────────
@@ -70,9 +71,9 @@ interface Project {
 const statusConfig: Record<string, { color: string; dot: string; bg: string }> =
   {
     active: {
-      color: "text-emerald-700",
-      dot: "bg-emerald-500",
-      bg: "bg-emerald-500/10",
+      color: "text-brand-700",
+      dot: "bg-brand-500",
+      bg: "bg-brand-500/10",
     },
     draft: {
       color: "text-slate-500",
@@ -117,6 +118,18 @@ export default function AllProjectsPage() {
 
   const isSuperAdmin = user?.role === "super_admin";
 
+  // Wrapped in useCallback to preserve function reference across renders
+  const handleProjectClick = useCallback(
+    (p: Project) => {
+      if (p.assessmentCompletion === "complete") {
+        router.push(`/projects/${p.id}`);
+      } else {
+        router.push(`/projects/new?projectId=${p.id}`);
+      }
+    },
+    [router],
+  );
+
   const { data, isLoading } = useQuery({
     queryKey: ["all-projects", statusFilter, globalFilter, cursor, user?.id],
     queryFn: () =>
@@ -144,13 +157,19 @@ export default function AllProjectsPage() {
             getUnifiedValue(p, "project_status", "projectStatus") || "draft";
           const config =
             statusConfig[status.toLowerCase()] ?? statusConfig.draft;
+          const isIncomplete = p.assessmentCompletion !== "complete";
           return (
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className={cn("w-1.5 h-1.5 rounded-none", config.dot)} />
-                <div className="font-serif text-lg text-slate-900 leading-none">
+                <div className="font-sans text-sm 2xl:text-lg text-foreground leading-none">
                   {p.name}
                 </div>
+                {isIncomplete && (
+                  <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5">
+                    Incomplete
+                  </span>
+                )}
               </div>
               <div className="text-[10px] text-slate-400 font-mono uppercase tracking-[0.2em] ml-3.5">
                 {p.code || `PRJ-${p.id.slice(0, 8)}`}
@@ -195,7 +214,7 @@ export default function AllProjectsPage() {
                 className={cn(
                   "font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 border",
                   isVerified
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    ? "bg-brand-50 text-brand-700 border-brand-200"
                     : "bg-amber-50 text-amber-700 border-amber-200",
                 )}
               >
@@ -255,18 +274,20 @@ export default function AllProjectsPage() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-100" />
               <DropdownMenuItem
-                onClick={() => router.push(`/projects/${row.original.id}`)}
+                onClick={() => handleProjectClick(row.original)}
                 className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none"
               >
                 <ExternalLink className="h-3.5 w-3.5 mr-2 text-slate-400" />{" "}
-                View Dossier
+                {row.original.assessmentCompletion === "complete"
+                  ? "View Dossier"
+                  : "Resume Registration"}
               </DropdownMenuItem>
               <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none">
                 <Activity className="h-3.5 w-3.5 mr-2 text-slate-400" />{" "}
                 Telemetry Data
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-slate-100" />
-              <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest text-emerald-700 focus:bg-emerald-50 focus:text-emerald-800 cursor-pointer py-2.5 rounded-none">
+              <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest text-brand-700 focus:bg-brand-50 focus:text-brand-800 cursor-pointer py-2.5 rounded-none">
                 <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Verify Protocol
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -274,7 +295,7 @@ export default function AllProjectsPage() {
         ),
       },
     ],
-    [router],
+    [handleProjectClick],
   );
 
   const table = useReactTable({
@@ -295,7 +316,7 @@ export default function AllProjectsPage() {
                   {isSuperAdmin ? "Global Registry" : "Managed Portfolio"}
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Asset <span className="italic text-slate-500">Oversight.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
@@ -312,7 +333,7 @@ export default function AllProjectsPage() {
               </Button>
               <Button
                 onClick={() => router.push("/projects/new")}
-                className="rounded-none bg-slate-900 hover:bg-emerald-900 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                className="rounded-none bg-foreground hover:bg-brand text-[10px] font-bold uppercase tracking-widest transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" /> Register Asset
               </Button>
@@ -333,7 +354,7 @@ export default function AllProjectsPage() {
                   setGlobalFilter(e.target.value);
                   setCursor(null);
                 }}
-                className="w-full bg-transparent border-none border-b-2 border-slate-200 pl-7 pr-4 py-2 text-sm font-serif text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors rounded-none"
+                className="w-full bg-transparent border-none border-b-2 border-slate-200 pl-7 pr-4 py-2 text-sm font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors rounded-none"
               />
             </div>
             <select
@@ -391,7 +412,7 @@ export default function AllProjectsPage() {
               className="h-10 w-10 text-slate-300 mb-4"
               strokeWidth={1}
             />
-            <p className="text-xl font-serif text-slate-900 mb-1">
+            <p className="text-xl font-sans text-slate-900 mb-1">
               No Assets Located
             </p>
             <p className="text-xs text-slate-500 max-w-sm text-center">
@@ -462,18 +483,25 @@ export default function AllProjectsPage() {
                       <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
                         {p.code || `PRJ-${p.id.slice(0, 8)}`}
                       </span>
-                      <span
-                        className={cn(
-                          "px-2 py-1 text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5",
-                          config.color,
-                          config.bg,
+                      <div className="flex items-center gap-2">
+                        {p.assessmentCompletion !== "complete" && (
+                          <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1">
+                            Incomplete
+                          </span>
                         )}
-                      >
-                        <span className={cn("w-1.5 h-1.5", config.dot)} />
-                        {status}
-                      </span>
+                        <span
+                          className={cn(
+                            "px-2 py-1 text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5",
+                            config.color,
+                            config.bg,
+                          )}
+                        >
+                          <span className={cn("w-1.5 h-1.5", config.dot)} />
+                          {status}
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="font-serif text-xl text-slate-900 leading-tight mb-2">
+                    <h3 className="font-sans text-xl text-foreground leading-tight mb-2">
                       {p.name}
                     </h3>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-6">
@@ -491,7 +519,7 @@ export default function AllProjectsPage() {
                           className={cn(
                             "font-mono text-[9px] uppercase tracking-widest px-2 py-1 border",
                             isVerified
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              ? "bg-brand-50 text-brand-700 border-brand-200"
                               : "bg-amber-50 text-amber-700 border-amber-200",
                           )}
                         >
@@ -512,14 +540,16 @@ export default function AllProjectsPage() {
                   <div className="border-t border-slate-200 grid grid-cols-2 divide-x divide-slate-200 bg-slate-50">
                     <button
                       type="button"
-                      onClick={() => router.push(`/projects/${p.id}`)}
+                      onClick={() => handleProjectClick(p)}
                       className="py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                     >
-                      Dossier
+                      {p.assessmentCompletion === "complete"
+                        ? "Dossier"
+                        : "Resume"}
                     </button>
                     <button
                       type="button"
-                      className="py-4 text-[10px] font-bold uppercase tracking-widest text-emerald-700 hover:text-white hover:bg-emerald-800 transition-colors"
+                      className="py-4 text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-white hover:bg-brand-800 transition-colors"
                     >
                       Verify
                     </button>

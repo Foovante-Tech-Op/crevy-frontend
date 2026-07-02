@@ -55,7 +55,7 @@ export default function SystemHealth() {
         })}
       </div>
 
-      <div className="mt-6 flex items-center gap-3 rounded-xl bg-emerald-50/50 p-3 border border-emerald-100">
+      <div className="mt-6 flex items-center gap-3 rounded-xl bg-brand-50/50 p-3 border border-brand-100">
         <div className="h-2 w-2 rounded-full bg-[#2cc295]" />
         <p className="text-[11px] font-medium text-[#178a74]">
           All systems operational. No active incidents.

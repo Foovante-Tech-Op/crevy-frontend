@@ -56,7 +56,7 @@ const SubmissionResult = ({ data }: SubmissionResultProps) => {
               },
             ].map(({ step, title, desc }) => (
               <li key={step} className="flex gap-4">
-                <div className="h-8 w-8 rounded-full bg-emerald-100 text-[#178a74] font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">
+                <div className="h-8 w-8 rounded-full bg-brand-100 text-[#178a74] font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">
                   {step}
                 </div>
                 <div>
@@ -90,7 +90,7 @@ const SubmissionResult = ({ data }: SubmissionResultProps) => {
           <Button
             onClick={() => router.push("/marketplace")}
             variant="outline"
-            className="flex-1 h-12 rounded-xl font-bold border-2 border-[#2ebc8d] text-[#2ebc8d] hover:bg-emerald-50"
+            className="flex-1 h-12 rounded-xl font-bold border-2 border-[#2ebc8d] text-[#2ebc8d] hover:bg-brand-50"
           >
             Explore Marketplace
           </Button>

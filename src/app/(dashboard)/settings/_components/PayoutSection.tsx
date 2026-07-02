@@ -6,7 +6,7 @@ export function PayoutSection({ isCorporate }: { isCorporate: boolean }) {
   return (
     <div className="space-y-12 animate-in fade-in duration-500">
       <div className="border-b border-slate-200 pb-8">
-        <h2 className="text-3xl font-serif text-slate-900 mb-2">
+        <h2 className="text-3xl font-sans text-slate-900 mb-2">
           {isCorporate ? "Settlement & Billing." : "Payout Vectors."}
         </h2>
         <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">
@@ -28,7 +28,7 @@ export function PayoutSection({ isCorporate }: { isCorporate: boolean }) {
           </div>
           <button
             type="button"
-            className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 hover:text-emerald-900 transition-colors border-b border-emerald-700 pb-0.5"
+            className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-brand-900 transition-colors border-b border-brand-700 pb-0.5"
           >
             Modify Fiat Vector
           </button>
@@ -45,7 +45,7 @@ export function PayoutSection({ isCorporate }: { isCorporate: boolean }) {
           </div>
           <button
             type="button"
-            className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 hover:text-emerald-900 transition-colors border-b border-emerald-700 pb-0.5"
+            className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-brand-900 transition-colors border-b border-brand-700 pb-0.5"
           >
             Modify Digital Vector
           </button>

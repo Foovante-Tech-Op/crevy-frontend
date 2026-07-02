@@ -112,7 +112,7 @@ function CreditRetirementContent() {
           {/* ── LEFT: The Form & Payment ── */}
           <div className="lg:col-span-7 space-y-10">
             <div>
-              <h1 className="text-3xl font-serif text-slate-900 tracking-tight mb-2">
+              <h1 className="text-3xl font-sans text-slate-900 tracking-tight mb-2">
                 Execution Details
               </h1>
               <p className="text-slate-500 text-sm">
@@ -151,7 +151,7 @@ function CreditRetirementContent() {
                     placeholder="0.00"
                     required
                   />
-                  <span className="absolute right-0 bottom-2 text-xl font-serif text-slate-400">
+                  <span className="absolute right-0 bottom-2 text-xl font-sans text-slate-400">
                     tCO₂e
                   </span>
                 </div>
@@ -237,7 +237,7 @@ function CreditRetirementContent() {
               </div>
 
               <div className="border-y border-slate-200 py-4 mb-8 flex justify-between items-center">
-                <span className="text-sm font-serif text-slate-900">
+                <span className="text-sm font-sans text-slate-900">
                   Total Due Today
                 </span>
                 <span className="text-3xl font-mono font-bold text-slate-900">
@@ -252,7 +252,7 @@ function CreditRetirementContent() {
                     className="text-slate-500 shrink-0 mt-0.5"
                     size={16}
                   />
-                  <p className="text-[10px] text-slate-600 leading-relaxed font-serif italic">
+                  <p className="text-[10px] text-slate-600 leading-relaxed font-sans italic">
                     By confirming this transaction, you authorize the permanent
                     cryptographic burn of these assets. This action is immutable
                     and cannot be reversed. A public ESG certificate will be

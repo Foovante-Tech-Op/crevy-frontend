@@ -28,7 +28,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       </div>
 
       <div className="p-8 md:p-12 relative z-10 flex flex-col md:flex-row items-start md:items-center gap-8">
-        <div className="h-24 w-24 md:h-32 md:w-32 bg-white text-slate-900 flex items-center justify-center font-serif text-4xl md:text-5xl shrink-0">
+        <div className="h-24 w-24 md:h-32 md:w-32 bg-white text-slate-900 flex items-center justify-center font-sans text-4xl md:text-5xl shrink-0">
           {initials}
         </div>
 
@@ -42,7 +42,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
               )}
               {user.role?.replace(/_/g, " ") || "Unassigned Entity"}
             </div>
-            <h1 className="text-4xl md:text-5xl font-serif tracking-tight leading-none mb-2">
+            <h1 className="text-4xl md:text-5xl font-sans tracking-tight leading-none mb-2">
               {user.firstName}{" "}
               <span className="italic text-slate-400">{user.lastName}.</span>
             </h1>
@@ -50,17 +50,17 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
 
           <div className="flex flex-wrap gap-6 text-[11px] font-mono uppercase tracking-widest text-slate-400">
             <span className="flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-emerald-500" /> {user.email}
+              <Mail className="w-3.5 h-3.5 text-brand-500" /> {user.email}
             </span>
             {user.phoneNumber && (
               <span className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-emerald-500" />{" "}
+                <Phone className="w-3.5 h-3.5 text-brand-500" />{" "}
                 {user.phoneNumber}
               </span>
             )}
             {user.countryOfOperation && (
               <span className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-emerald-500" />{" "}
+                <MapPin className="w-3.5 h-3.5 text-brand-500" />{" "}
                 {user.countryOfOperation}
               </span>
             )}

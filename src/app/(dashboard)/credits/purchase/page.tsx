@@ -82,7 +82,7 @@ export default function PurchaseCreditsPage() {
     );
   if (isLoading)
     return (
-      <div className="p-20 text-center animate-pulse uppercase font-black tracking-widest text-emerald-600">
+      <div className="p-20 text-center animate-pulse uppercase font-black tracking-widest text-brand-600">
         Initializing Secure Checkout...
       </div>
     );
@@ -133,7 +133,7 @@ export default function PurchaseCreditsPage() {
                             Math.max(1, parseInt(e.target.value, 10) || 0),
                           )
                         }
-                        className="h-16 text-3xl font-black rounded-2xl border-2 border-slate-100 focus:border-emerald-500 transition-all"
+                        className="h-16 text-3xl font-black rounded-2xl border-2 border-slate-100 focus:border-brand-500 transition-all"
                       />
                       <span className="text-sm font-black text-slate-400 uppercase tracking-widest">
                         Units
@@ -189,18 +189,18 @@ export default function PurchaseCreditsPage() {
                     <button
                       type="button"
                       key={method.id}
-                      className="w-full bg-white border border-slate-200 p-6 rounded-2xl flex items-center justify-between group hover:border-emerald-500 transition-all"
+                      className="w-full bg-white border border-slate-200 p-6 rounded-2xl flex items-center justify-between group hover:border-brand-500 transition-all"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600">
+                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-600">
                           <method.icon size={24} />
                         </div>
                         <span className="font-black text-slate-900 uppercase text-[11px] tracking-widest">
                           {method.name}
                         </span>
                       </div>
-                      <div className="w-6 h-6 rounded-full border-2 border-slate-100 group-hover:border-emerald-500 flex items-center justify-center">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="w-6 h-6 rounded-full border-2 border-slate-100 group-hover:border-brand-500 flex items-center justify-center">
+                        <div className="w-3 h-3 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </button>
                   ))}
@@ -209,7 +209,7 @@ export default function PurchaseCreditsPage() {
                 <Button
                   onClick={handlePurchase}
                   disabled={isProcessing}
-                  className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-900/20"
+                  className="w-full h-16 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-brand-900/20"
                 >
                   {isProcessing
                     ? "Processing Registry Handshake..."
@@ -225,7 +225,7 @@ export default function PurchaseCreditsPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-white border border-slate-200 rounded-[3rem] p-16 text-center space-y-8 shadow-2xl"
               >
-                <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-10">
+                <div className="w-24 h-24 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-10">
                   <CheckCircle2 size={48} />
                 </div>
                 <h2 className="text-4xl font-black text-slate-900 uppercase italic">
@@ -260,9 +260,9 @@ export default function PurchaseCreditsPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
-              <ShieldCheck size={80} className="text-emerald-400" />
+              <ShieldCheck size={80} className="text-brand-400" />
             </div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-8">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-400 mb-8">
               Asset Summary
             </h3>
 
@@ -295,7 +295,7 @@ export default function PurchaseCreditsPage() {
                   <span>$52.00</span>
                 </div>
                 <div className="flex justify-between items-center text-xl font-black uppercase italic tracking-tight">
-                  <span className="text-emerald-400">Total</span>
+                  <span className="text-brand-400">Total</span>
                   <span>${totalAmount.toLocaleString()}</span>
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default function PurchaseCreditsPage() {
 
             <div className="mt-12 bg-white/5 border border-white/10 rounded-2xl p-6">
               <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed flex items-start gap-3">
-                <Info size={16} className="text-emerald-500 flex-shrink-0" />
+                <Info size={16} className="text-brand-500 flex-shrink-0" />
                 Institutional acquisition includes permanent custody tracking
                 and automated ESG reporting data.
               </p>

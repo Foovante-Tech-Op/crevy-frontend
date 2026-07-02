@@ -69,10 +69,10 @@ export default function PayoutsPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
             <div className="max-w-2xl">
               <p className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                <Landmark size={14} className="text-emerald-700" /> Disbursement
+                <Landmark size={14} className="text-brand-700" /> Disbursement
                 Ledger
               </p>
-              <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Payout <span className="italic text-slate-500">History.</span>
               </h1>
               <p className="text-slate-500 text-sm font-light leading-relaxed">
@@ -83,7 +83,7 @@ export default function PayoutsPage() {
             </div>
 
             <div className="bg-slate-900 text-white p-6 border border-slate-800 min-w-[240px] shrink-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-400 mb-2">
                 Total Disbursed (FY26)
               </p>
               <h2 className="text-4xl font-mono font-bold tracking-tight mb-1">
@@ -223,7 +223,7 @@ export default function PayoutsPage() {
                       {pay.ref}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-serif text-sm text-slate-900">
+                      <div className="font-sans text-sm text-slate-900">
                         {pay.entity}
                       </div>
                       <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest mt-1">
@@ -238,7 +238,7 @@ export default function PayoutsPage() {
                         className={cn(
                           "px-2 py-1 text-[9px] font-bold uppercase tracking-widest border",
                           pay.status === "completed"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "bg-brand-50 text-brand-700 border-brand-200"
                             : pay.status === "failed"
                               ? "bg-red-50 text-red-700 border-red-200"
                               : "bg-amber-50 text-amber-700 border-amber-200",

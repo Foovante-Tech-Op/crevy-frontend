@@ -103,11 +103,11 @@ export default function UserManagementPage() {
           const initial = u.firstName.charAt(0).toUpperCase();
           return (
             <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-slate-900 text-white font-serif text-lg">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-slate-900 text-white font-sans text-lg">
                 {initial}
               </div>
               <div>
-                <div className="font-serif font-bold text-slate-900 text-base leading-none mb-1.5">
+                <div className="font-sans font-bold text-slate-900 text-base leading-none mb-1.5">
                   {u.firstName} {u.lastName}
                 </div>
                 <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
@@ -160,7 +160,7 @@ export default function UserManagementPage() {
               <div
                 className={cn(
                   "h-1.5 w-1.5 rounded-none",
-                  active ? "bg-emerald-500" : "bg-red-500",
+                  active ? "bg-brand-500" : "bg-red-500",
                 )}
               />
               <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">
@@ -241,7 +241,7 @@ export default function UserManagementPage() {
                   Administrative Control
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Access &{" "}
                 <span className="italic text-slate-500">Identity.</span>
               </h1>
@@ -275,7 +275,7 @@ export default function UserManagementPage() {
                 placeholder="Query identity ledger..."
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
-                className="w-full bg-transparent border-none border-b-2 border-slate-200 pl-7 pr-4 py-2 text-sm font-serif text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-slate-900 transition-colors rounded-none"
+                className="w-full bg-transparent border-none border-b-2 border-slate-200 pl-7 pr-4 py-2 text-sm font-sans text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-slate-900 transition-colors rounded-none"
               />
             </div>
 
@@ -305,7 +305,7 @@ export default function UserManagementPage() {
             {!isOrgRelated && (
               <Button
                 onClick={() => router.push("/project-owners/register")}
-                className="rounded-none bg-slate-900 hover:bg-emerald-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors"
+                className="rounded-none bg-slate-900 hover:bg-brand-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors"
               >
                 <UserCheck className="h-3.5 w-3.5 mr-2" /> Onboard Project Owner
               </Button>
@@ -381,7 +381,7 @@ export default function UserManagementPage() {
                       className="h-10 w-10 text-slate-300 mb-2"
                       strokeWidth={1}
                     />
-                    <p className="font-serif text-xl text-slate-900">
+                    <p className="font-sans text-xl text-slate-900">
                       No Participants Found.
                     </p>
                     <p className="text-xs text-slate-500 font-light">

@@ -44,7 +44,7 @@ export default function AnalyticsDashboardPage() {
     <div className="max-w-7xl mx-auto py-12 px-6 space-y-12 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-slate-200 pb-12">
         <div className="max-w-2xl">
-          <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+          <p className="text-brand-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <BarChart3 size={14} /> Yield Intelligence & Impact Analytics
           </p>
           <h1 className="text-5xl font-black text-slate-900 leading-[1.1] tracking-tighter uppercase italic">
@@ -72,7 +72,7 @@ export default function AnalyticsDashboardPage() {
                 Yield Performance (tCO2e)
               </h3>
               <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 font-black text-[10px] text-slate-500 uppercase tracking-widest">
-                Net Growth: <span className="text-emerald-600">+24.2%</span>
+                Net Growth: <span className="text-brand-600">+24.2%</span>
               </div>
             </div>
             <div className="h-[350px] w-full">
@@ -130,7 +130,7 @@ export default function AnalyticsDashboardPage() {
                 size={100}
                 className="absolute top-0 right-0 p-8 opacity-10"
               />
-              <p className="text-emerald-400 text-[9px] font-black uppercase tracking-widest mb-4">
+              <p className="text-brand-400 text-[9px] font-black uppercase tracking-widest mb-4">
                 Precision MRV Integrity
               </p>
               <h4 className="text-4xl font-black italic uppercase tracking-tighter">
@@ -140,7 +140,7 @@ export default function AnalyticsDashboardPage() {
                 Sensor Uptime & Trust Score
               </p>
             </div>
-            <div className="bg-emerald-600 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+            <div className="bg-brand-600 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
               <TrendingUp
                 size={100}
                 className="absolute top-0 right-0 p-8 opacity-10"

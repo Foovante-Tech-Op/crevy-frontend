@@ -21,14 +21,14 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
     <div className="space-y-8">
       <div className="relative">
         <button
-          className="absolute top-0 right-0 text-emerald-500 font-bold cursor-pointer hover:underline"
+          className="absolute top-0 right-0 text-brand-500 font-bold cursor-pointer hover:underline"
           type="button"
           onClick={onNext}
         >
           Skip
         </button>
         <h2 className="text-3xl font-bold mb-1">Community & Co-benefits</h2>
-        <p className="text-emerald-500 font-medium mb-1">
+        <p className="text-brand-500 font-medium mb-1">
           {projectType
             .replace(/_/g, " ")
             .replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -41,7 +41,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
           <Progress
             value={80}
             className="h-2 bg-slate-100"
-            indicatorClassName="bg-emerald-500"
+            indicatorClassName="bg-brand-500"
           />
           <span className="text-sm font-medium text-slate-400 whitespace-nowrap">
             80%
@@ -83,7 +83,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
               <RadioGroupItem
                 value="yes"
                 id="bio-yes"
-                className="border-emerald-500 text-emerald-500"
+                className="border-brand-500 text-brand-500"
               />
               <Label
                 htmlFor="bio-yes"
@@ -96,7 +96,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
               <RadioGroupItem
                 value="no"
                 id="bio-no"
-                className="border-emerald-500 text-emerald-500"
+                className="border-brand-500 text-brand-500"
               />
               <Label
                 htmlFor="bio-no"
@@ -124,7 +124,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
               <RadioGroupItem
                 value="yes"
                 id="exp-yes"
-                className="border-emerald-500 text-emerald-500"
+                className="border-brand-500 text-brand-500"
               />
               <Label
                 htmlFor="exp-yes"
@@ -137,7 +137,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
               <RadioGroupItem
                 value="no"
                 id="exp-no"
-                className="border-emerald-500 text-emerald-500"
+                className="border-brand-500 text-brand-500"
               />
               <Label
                 htmlFor="exp-no"
@@ -150,7 +150,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
               <RadioGroupItem
                 value="maybe"
                 id="exp-maybe"
-                className="border-emerald-500 text-emerald-500"
+                className="border-brand-500 text-brand-500"
               />
               <Label
                 htmlFor="exp-maybe"
@@ -181,7 +181,7 @@ const CommunityStep = ({ onNext, onPrev }: CommunityStepProps) => {
           type="button"
           variant="outline"
           onClick={onPrev}
-          className="px-6 md:px-8 py-3 md:py-4 text-emerald-500 border-emerald-500 font-bold text-sm md:text-base"
+          className="px-6 md:px-8 py-3 md:py-4 text-brand-500 border-brand-500 font-bold text-sm md:text-base"
         >
           Previous
         </Button>

@@ -43,7 +43,7 @@ const STATUS_BADGE: Record<string, { label: string; classes: string }> = {
   approved: {
     label: "Approved",
     classes:
-      "border border-emerald-200 bg-emerald-50 text-emerald-700 text-[9px] font-bold uppercase tracking-widest px-2 py-1",
+      "border border-brand-200 bg-brand-50 text-brand-700 text-[9px] font-bold uppercase tracking-widest px-2 py-1",
   },
   rejected: {
     label: "Rejected",
@@ -139,10 +139,10 @@ export default function SuperAdminDashboard({
         className="grid md:grid-cols-12 gap-px bg-slate-200 border border-slate-200 mb-8"
       >
         <div className="md:col-span-8 bg-white p-10 md:p-14">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-700 mb-4">
             Super Admin · Platform Registry
           </p>
-          <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-6">
+          <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-6">
             Carbon Registry{" "}
             <span className="italic text-slate-500">Command Centre.</span>
           </h1>
@@ -152,7 +152,7 @@ export default function SuperAdminDashboard({
           </p>
           <Link
             href="/compliance"
-            className="inline-flex bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-900 transition-colors"
+            className="inline-flex bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-900 transition-colors"
           >
             Audit Ledger
           </Link>
@@ -160,14 +160,14 @@ export default function SuperAdminDashboard({
 
         <div className="md:col-span-4 bg-slate-950 p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden">
           <div className="relative z-10">
-            <p className="font-serif text-2xl mb-8">Operative: {userName}</p>
+            <p className="font-sans text-2xl mb-8">Operative: {userName}</p>
             <ul className="space-y-4 font-mono text-xs text-slate-400">
               <li className="flex items-center gap-3">
-                <span className="text-emerald-500">→</span>{" "}
-                {pendingProjectsCount} Project reviews pending
+                <span className="text-brand-500">→</span> {pendingProjectsCount}{" "}
+                Project reviews pending
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-emerald-500">→</span> {pendingUsersCount}{" "}
+                <span className="text-brand-500">→</span> {pendingUsersCount}{" "}
                 KYC audits pending
               </li>
               <li className="flex items-center gap-3">
@@ -175,7 +175,7 @@ export default function SuperAdminDashboard({
                 waitlist applications unreviewed
               </li>
               <li className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-800 text-slate-500">
-                <span className="w-2 h-2 bg-emerald-500 rounded-none shrink-0 animate-pulse" />{" "}
+                <span className="w-2 h-2 bg-brand-500 rounded-none shrink-0 animate-pulse" />{" "}
                 All services operational
               </li>
             </ul>
@@ -322,7 +322,7 @@ export default function SuperAdminDashboard({
               <h4 className="text-4xl font-mono font-bold text-slate-900 mb-2">
                 $24,600
               </h4>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-600 flex items-center gap-1">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-brand-600 flex items-center gap-1">
                 <ArrowUpRight size={12} /> 18% vs last month
               </p>
             </div>
@@ -344,7 +344,7 @@ export default function SuperAdminDashboard({
             </div>
             <Link
               href="/financials/payouts"
-              className="text-[10px] font-bold uppercase tracking-widest text-slate-900 border-b border-slate-900 self-start mt-6 hover:text-emerald-700 hover:border-emerald-700 transition-colors"
+              className="text-[10px] font-bold uppercase tracking-widest text-slate-900 border-b border-slate-900 self-start mt-6 hover:text-brand-700 hover:border-brand-700 transition-colors"
             >
               Manage Payouts
             </Link>
@@ -411,15 +411,15 @@ export default function SuperAdminDashboard({
               <ul className="space-y-5 font-mono text-xs">
                 <li className="flex justify-between border-b border-slate-800 pb-2">
                   <span>Registry Uptime</span>
-                  <span className="text-emerald-400">99.97%</span>
+                  <span className="text-brand-400">99.97%</span>
                 </li>
                 <li className="flex justify-between border-b border-slate-800 pb-2">
                   <span>Polygon Anchoring</span>
-                  <span className="text-emerald-400">142ms avg</span>
+                  <span className="text-brand-400">142ms avg</span>
                 </li>
                 <li className="flex justify-between border-b border-slate-800 pb-2">
                   <span>Double-Count DB</span>
-                  <span className="text-emerald-400">Clean</span>
+                  <span className="text-brand-400">Clean</span>
                 </li>
                 <li className="flex justify-between border-b border-slate-800 pb-2">
                   <span>Pending KYC</span>
@@ -449,7 +449,7 @@ export default function SuperAdminDashboard({
         <div className="bg-white border border-slate-200 p-6">
           <ul className="space-y-4">
             <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
-              <div className="p-2 bg-emerald-50 text-emerald-700 shrink-0">
+              <div className="p-2 bg-brand-50 text-brand-700 shrink-0">
                 <Leaf size={16} />
               </div>
               <div>

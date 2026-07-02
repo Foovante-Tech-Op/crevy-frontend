@@ -23,13 +23,13 @@ export function SectionLabel({
       className="flex justify-between items-end border-b-2 border-slate-900 pb-3 mb-8"
     >
       <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 flex items-center gap-2">
-        <span className="w-2 h-2 bg-emerald-600 rounded-none shrink-0" />
+        <span className="w-2 h-2 bg-brand-600 rounded-none shrink-0" />
         {label}
       </h2>
       {action && (
         <Link
           href={action.href}
-          className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 hover:text-slate-900 transition-colors flex items-center gap-1"
+          className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-slate-900 transition-colors flex items-center gap-1"
         >
           {action.label} <ArrowRight size={12} />
         </Link>
@@ -152,7 +152,7 @@ export function MrvPipelineStepper({
             <div className="w-12 h-12 border border-slate-900 flex items-center justify-center font-mono font-bold text-slate-900 bg-slate-50 group-hover:bg-slate-900 group-hover:text-white transition-colors mb-4 relative">
               {stage.count}
               {stage.count > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-emerald-500 rounded-none border border-white" />
+                <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-brand-500 rounded-none border border-white" />
               )}
             </div>
             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-slate-900 text-center">

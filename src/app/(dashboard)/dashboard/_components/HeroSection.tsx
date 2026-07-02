@@ -156,7 +156,7 @@ const HeroSection = ({ role, userName }: HeroSectionProps) => {
       cta: { label: "Field Assignments", url: "/site-visits", icon: MapPin },
       badge: {
         text: "Project Manager",
-        color: "bg-emerald-50 text-emerald-700",
+        color: "bg-brand-50 text-brand-700",
       },
       nextSteps: [
         { icon: Clock, text: "Schedule upcoming site visits" },
@@ -187,7 +187,7 @@ const HeroSection = ({ role, userName }: HeroSectionProps) => {
       cta: { label: "View Portfolio", url: "/compliance", icon: TrendingUp },
       badge: {
         text: "Sustainability Manager",
-        color: "bg-emerald-50 text-emerald-700",
+        color: "bg-brand-50 text-brand-700",
       },
       nextSteps: [
         { icon: Clock, text: "Analyze emission scope breakdown" },

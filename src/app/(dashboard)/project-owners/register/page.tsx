@@ -35,7 +35,7 @@ export default function ProjectOwnerRegisterPage() {
                   Registration Protocol
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Onboard <span className="italic text-slate-500">Entity.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">

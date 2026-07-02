@@ -98,7 +98,7 @@ function ComplianceCertificateContent() {
             <div className="w-full bg-slate-50 rounded-[2rem] p-10 mt-12 grid grid-cols-1 md:grid-cols-2 gap-10 text-left">
               <div className="space-y-6">
                 <div className="flex gap-4">
-                  <MapPin className="text-emerald-500 shrink-0" size={20} />
+                  <MapPin className="text-brand-500 shrink-0" size={20} />
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
                       Project Origin
@@ -109,7 +109,7 @@ function ComplianceCertificateContent() {
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <Calendar className="text-emerald-500 shrink-0" size={20} />
+                  <Calendar className="text-brand-500 shrink-0" size={20} />
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
                       Retirement Date
@@ -132,8 +132,8 @@ function ComplianceCertificateContent() {
 
             <div className="pt-12 text-slate-400 font-bold text-[9px] uppercase tracking-[0.2em] flex items-center gap-4">
               <Globe size={14} /> Cryptographically Anchored to Polygon Mainnet
-              <span className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="w-4 h-4 rounded-full bg-brand-500/20 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
               </span>
               Live Verification Active
             </div>

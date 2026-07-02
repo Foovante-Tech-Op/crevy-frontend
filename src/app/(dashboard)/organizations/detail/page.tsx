@@ -7,7 +7,7 @@ import { Suspense, useEffect, useState } from "react";
 // ─── Data & Configuration ─────────────────────────────────────────────────────
 
 const _scopeData = [
-  { name: "Scope 1", value: 45, fill: "#047857" }, // emerald-700
+  { name: "Scope 1", value: 45, fill: "#047857" }, // brand-700
   { name: "Scope 2", value: 25, fill: "#0f172a" }, // slate-900
   { name: "Scope 3", value: 30, fill: "#94a3b8" }, // slate-400
 ];
@@ -63,11 +63,11 @@ function OrganizationDetailContent() {
               <div className="inline-flex items-center gap-3 mb-4">
                 <div className="w-8 h-[1px] bg-slate-900"></div>
                 <span className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Building2 size={14} className="text-emerald-700" />{" "}
+                  <Building2 size={14} className="text-brand-700" />{" "}
                   Institutional Profile
                 </span>
               </div>
-              <h1 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight leading-none mb-4">
+              <h1 className="text-4xl md:text-6xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 EcoLogic <span className="italic text-slate-500">Systems.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed font-light">
