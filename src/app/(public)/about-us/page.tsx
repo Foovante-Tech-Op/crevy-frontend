@@ -108,7 +108,7 @@ const MILESTONES = [
 
 export default function AboutPage() {
   return (
-    <div className="font-sans selection:bg-slate-900 selection:text-white bg-slate-50">
+    <div className="font-sans selection:bg-[#0A2540] selection:text-[#F8F8F9] bg-[#F6F9FC]">
       <AboutHero />
       <StorySection />
       <MissionVisionSection />
@@ -124,7 +124,7 @@ export default function AboutPage() {
 
 function AboutHero() {
   return (
-    <section className="bg-white border-b border-slate-200 pt-32 pb-24 relative overflow-hidden">
+    <section className="bg-[#F8F8F9] border-b border-[#0A2540]/10 pt-32 pb-24 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
         <Globe size={400} />
       </div>
@@ -135,20 +135,20 @@ function AboutHero() {
           transition={{ duration: 0.6 }}
           className="inline-flex items-center gap-3 mb-8"
         >
-          <div className="w-8 h-[1px] bg-slate-900"></div>
-          <span className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em]">
+          <div className="w-8 h-[1px] bg-[#0A2540]"></div>
+          <span className="text-[#0A2540] text-[10px] font-bold uppercase tracking-[0.2em]">
             Corporate Overview
           </span>
         </motion.div>
 
         <motion.h1
-          className="text-5xl md:text-7xl lg:text-8xl font-serif text-slate-900 tracking-tight leading-[1.05] mb-8 max-w-4xl"
+          className="text-5xl md:text-7xl lg:text-8xl font-serif text-[#0A2540] tracking-tight leading-[1.05] mb-8 max-w-4xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           Engineering the{" "}
-          <span className="italic text-slate-500">
+          <span className="italic text-[#F38221]">
             financial infrastructure
           </span>{" "}
           for Africa's climate assets.
@@ -166,17 +166,17 @@ function StorySection() {
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10">
         <div className="grid md:grid-cols-12 gap-12 lg:gap-24">
           <div className="md:col-span-4">
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4 border-t border-slate-900 pt-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#425466] mb-4 border-t border-[#0A2540] pt-4">
               The African Climate Paradox
             </h2>
-            <p className="text-3xl font-serif text-slate-900 leading-tight">
+            <p className="text-3xl font-serif text-[#0A2540] leading-tight">
               Africa generates over 30% of the world's carbon sequestration
               potential, yet receives less than 2% of market revenue.
             </p>
           </div>
-          <div className="md:col-span-8 space-y-8 text-slate-600 text-lg font-light leading-relaxed">
+          <div className="md:col-span-8 space-y-8 text-[#425466] text-lg font-light leading-relaxed">
             <p>
-              <span className="float-left text-7xl font-serif text-slate-900 leading-none pr-4 pt-2">
+              <span className="float-left text-7xl font-serif text-[#0A2540] leading-none pr-4 pt-2">
                 C
               </span>
               revy was engineered as the antidote for African climate projects
@@ -194,7 +194,7 @@ function StorySection() {
               payment routing, we remove the friction that has historically
               suppressed African participation in global ESG markets.
             </p>
-            <p className="font-medium text-slate-900">
+            <p className="font-medium text-[#0A2540]">
               We do not just verify carbon; we are establishing a transparent,
               highly-liquid marketplace that enforces equitable unit economics
               for the communities actively managing our planet's carbon sinks.
@@ -210,38 +210,38 @@ function StorySection() {
 
 function MissionVisionSection() {
   return (
-    <section className="py-24 bg-slate-50 border-b border-slate-200">
+    <section className="py-24 bg-[#F6F9FC] border-b border-[#0A2540]/10">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10">
         <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-white border border-slate-200 p-12 hover:border-slate-900 transition-colors group">
+          <div className="bg-[#F8F8F9] border border-[#0A2540]/10 p-12 hover:border-[#F38221] transition-colors group">
             <Target
               size={24}
-              className="text-slate-400 mb-8 group-hover:text-slate-900 transition-colors"
+              className="text-[#425466] mb-8 group-hover:text-[#F38221] transition-colors"
             />
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#425466] mb-4">
               Core Mission
             </h2>
-            <h3 className="text-3xl font-serif text-slate-900 mb-6 leading-tight">
+            <h3 className="text-3xl font-serif text-[#0A2540] mb-6 leading-tight">
               To engineer radical transparency and liquidity into African
               environmental assets.
             </h3>
-            <p className="text-slate-500 leading-relaxed font-light">
+            <p className="text-[#425466] leading-relaxed font-light">
               We exist to ensure that voluntary carbon markets function as an
               equitable financial mechanism for African communities, delivering
               rigorous, auditable climate impact to global enterprises.
             </p>
           </div>
 
-          <div className="bg-slate-900 border border-slate-900 p-12">
-            <Zap size={24} className="text-emerald-500 mb-8" />
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">
+          <div className="bg-[#0A2540] border border-[#0A2540] p-12">
+            <Zap size={24} className="text-[#F38221] mb-8" />
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#F38221] mb-4">
               Long-Term Vision
             </h2>
-            <h3 className="text-3xl font-serif text-white mb-6 leading-tight">
+            <h3 className="text-3xl font-serif text-[#F8F8F9] mb-6 leading-tight">
               A continent where localized ecological stewardship is recognized
               as a premium, highly-valued global asset class.
             </h3>
-            <p className="text-slate-400 leading-relaxed font-light">
+            <p className="text-[#F8F8F9]/85 leading-relaxed font-light">
               We envision a unified pan-African registry where every verifiable
               green project is instantly bankable, fundamentally shifting the
               continent from climate victims to climate financiers.
@@ -251,17 +251,17 @@ function MissionVisionSection() {
 
         {/* Core Values Matrix */}
         <div className="mt-24">
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 border-b border-slate-200 pb-4 mb-12">
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0A2540] border-b border-[#0A2540]/10 pb-4 mb-12">
             Operational Principles
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
             {CORE_VALUES.map((value, idx) => (
               <div key={idx} className="group">
-                <value.icon className="text-slate-400 mb-4 w-5 h-5 group-hover:text-emerald-700 transition-colors" />
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3">
+                <value.icon className="text-[#425466] mb-4 w-5 h-5 group-hover:text-[#F38221] transition-colors" />
+                <h3 className="text-sm font-bold uppercase tracking-widest text-[#0A2540] mb-3">
                   {value.title}
                 </h3>
-                <p className="text-slate-500 text-sm leading-relaxed font-light">
+                <p className="text-[#425466] text-sm leading-relaxed font-light">
                   {value.description}
                 </p>
               </div>
@@ -306,18 +306,18 @@ function MissionVisionSection() {
 
 function TeamSection() {
   return (
-    <section className="py-24 bg-white border-b border-slate-200">
+    <section className="py-24 bg-[#F8F8F9] border-b border-[#0A2540]/10">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div>
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 border-t border-slate-900 pt-4 mb-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#425466] border-t border-[#0A2540] pt-4 mb-4">
               Executive Directory
             </h2>
-            <h3 className="text-4xl font-serif text-slate-900 tracking-tight">
+            <h3 className="text-4xl font-serif text-[#0A2540] tracking-tight">
               Corporate Governance.
             </h3>
           </div>
-          <p className="text-slate-500 max-w-sm text-sm font-light">
+          <p className="text-[#425466] max-w-sm text-sm font-light">
             Led by veterans in climate policy, software architecture, and
             corporate ESG strategy.
           </p>
@@ -327,24 +327,24 @@ function TeamSection() {
           {TEAM_MEMBERS.map((member, idx) => (
             <div
               key={idx}
-              className="border border-slate-200 bg-slate-50 hover:border-slate-900 transition-colors flex flex-col h-full group"
+              className="border border-[#0A2540]/10 bg-[#F6F9FC] hover:border-[#F38221] transition-colors flex flex-col h-full group"
             >
-              <div className="p-6 border-b border-slate-200 flex justify-between items-start bg-white">
-                <div className="w-12 h-12 bg-slate-900 text-white flex items-center justify-center font-serif text-xl">
+              <div className="p-6 border-b border-[#0A2540]/10 flex justify-between items-start bg-[#F8F8F9]">
+                <div className="w-12 h-12 bg-[#0A2540] text-[#F8F8F9] flex items-center justify-center font-serif text-xl">
                   {member.initials}
                 </div>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 group-hover:text-slate-900 transition-colors">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-[#425466] group-hover:text-[#0A2540] transition-colors">
                   {member.id}
                 </span>
               </div>
-              <div className="p-6 flex-1 bg-white">
-                <h4 className="text-xl font-serif text-slate-900 mb-1">
+              <div className="p-6 flex-1 bg-[#F8F8F9]">
+                <h4 className="text-xl font-serif text-[#0A2540] mb-1">
                   {member.name}
                 </h4>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#F38221] mb-4">
                   {member.role}
                 </p>
-                <p className="text-slate-500 text-sm leading-relaxed font-light">
+                <p className="text-[#425466] text-sm leading-relaxed font-light">
                   {member.bio}
                 </p>
               </div>
@@ -360,36 +360,36 @@ function TeamSection() {
 
 function MilestonesSection() {
   return (
-    <section className="py-24 bg-slate-50 border-b border-slate-200">
+    <section className="py-24 bg-[#F6F9FC] border-b border-[#0A2540]/10">
       <div className="max-w-[1000px] mx-auto px-6 lg:px-10">
-        <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 border-t border-slate-900 pt-4 mb-16">
+        <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#425466] border-t border-[#0A2540] pt-4 mb-16">
           Infrastructure Roadmap
         </h2>
 
-        <div className="space-y-0 border-l border-slate-300 ml-4 md:ml-28">
+        <div className="space-y-0 border-l border-[#0A2540]/20 ml-4 md:ml-28">
           {MILESTONES.map((m, idx) => (
             <div
               key={idx}
               className="relative pl-8 md:pl-16 pb-16 last:pb-0 group"
             >
               {/* Timeline Dot */}
-              <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] bg-slate-300 group-hover:bg-slate-900 transition-colors rounded-none"></div>
+              <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] bg-[#0A2540]/30 group-hover:bg-[#F38221] transition-colors rounded-none"></div>
 
               <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8 mb-3">
                 {/* Milestone ID & Status */}
-                <div className="text-slate-900 font-mono font-bold text-2xl md:absolute md:-left-24 md:top-[-4px] md:text-right md:w-16">
+                <div className="text-[#0A2540] font-mono font-bold text-2xl md:absolute md:-left-24 md:top-[-4px] md:text-right md:w-16">
                   {m.id}
-                  <span className="text-slate-400 text-[9px] uppercase tracking-widest block mt-1">
+                  <span className="text-[#425466] text-[9px] uppercase tracking-widest block mt-1">
                     {m.status}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="font-serif text-2xl text-slate-900 leading-tight">
+                <h3 className="font-serif text-2xl text-[#0A2540] leading-tight">
                   {m.title}
                 </h3>
               </div>
-              <p className="text-slate-500 text-base leading-relaxed font-light max-w-2xl">
+              <p className="text-[#425466] text-base leading-relaxed font-light max-w-2xl">
                 {m.desc}
               </p>
             </div>
@@ -404,20 +404,20 @@ function MilestonesSection() {
 
 function AboutCTA() {
   return (
-    <section className="py-32 bg-white text-center">
+    <section className="py-32 bg-[#F8F8F9] text-center">
       <div className="max-w-3xl mx-auto px-6">
-        <Leaf className="w-8 h-8 mx-auto text-emerald-700 mb-8" />
-        <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight mb-8">
+        <Leaf className="w-8 h-8 mx-auto text-[#F38221] mb-8" />
+        <h2 className="text-4xl md:text-5xl font-serif text-[#0A2540] tracking-tight mb-8">
           Initiate Partnership
         </h2>
-        <p className="text-slate-500 font-light text-lg mb-10 max-w-xl mx-auto">
+        <p className="text-[#425466] font-light text-lg mb-10 max-w-xl mx-auto">
           Join leading enterprises and local developers in scaling Africa's
           verified carbon ecosystem.
         </p>
         <Link href="/register">
           <button
             type="button"
-            className="bg-slate-900 text-white hover:bg-emerald-900 px-8 py-4 text-[10px] font-bold uppercase tracking-widest transition-colors inline-flex items-center gap-3"
+            className="bg-[#0A2540] text-[#F8F8F9] hover:bg-[#F38221] hover:text-[#0A2540] px-8 py-4 text-[10px] font-bold uppercase tracking-widest transition-colors inline-flex items-center gap-3"
           >
             Access Platform <ArrowRight size={14} />
           </button>
