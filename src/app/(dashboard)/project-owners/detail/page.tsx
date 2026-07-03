@@ -131,11 +131,11 @@ function ProjectOwnerDetailContent() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 bg-slate-900 text-white flex items-center justify-center text-2xl font-sans">
-                {getInitials(owner.firstName, owner.lastName)}
+                {getInitials(owner.name, owner.name)}
               </div>
               <div>
                 <h1 className="text-4xl font-sans text-slate-900 tracking-tight leading-none mb-3">
-                  {owner.firstName} {owner.lastName}
+                  {owner.name}
                 </h1>
                 <div className="flex items-center gap-4">
                   <span className="text-[11px] font-mono text-slate-500 uppercase tracking-[0.2em]">
