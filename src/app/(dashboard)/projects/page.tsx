@@ -255,7 +255,9 @@ export default function AllProjectsPage() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-100" />
               <DropdownMenuItem
-                onClick={() => router.push(`/projects/${row.original.id}`)}
+                onClick={() =>
+                  router.push(`/projects/detail?id=${row.original.id}`)
+                }
                 className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none"
               >
                 <ExternalLink className="h-3.5 w-3.5 mr-2 text-muted-foreground" />{" "}
@@ -296,7 +298,8 @@ export default function AllProjectsPage() {
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-sans text-foreground tracking-tight leading-none mb-4">
-                Asset <span className="italic text-muted-foreground">Oversight.</span>
+                Asset{" "}
+                <span className="italic text-muted-foreground">Oversight.</span>
               </h1>
               <p className="text-muted-foreground text-sm max-w-xl leading-relaxed">
                 Complete inventory of carbon sequestration assets under
@@ -512,7 +515,7 @@ export default function AllProjectsPage() {
                   <div className="border-t border-border grid grid-cols-2 divide-x divide-slate-200 bg-muted">
                     <button
                       type="button"
-                      onClick={() => router.push(`/projects/${p.id}`)}
+                      onClick={() => router.push(`/projects/detail?id=${p.id}`)}
                       className="py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-slate-100 transition-colors"
                     >
                       Details

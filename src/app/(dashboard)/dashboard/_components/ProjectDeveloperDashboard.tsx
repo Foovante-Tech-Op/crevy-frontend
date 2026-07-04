@@ -46,7 +46,7 @@ export default function ProjectDeveloperDashboard({
             to register your first project.
           </p>
           <Link
-            href="/onboarding"
+            href="/projects/new"
             className="inline-flex mt-6 bg-brand text-foreground px-6 py-3 text-[10px] font-bold uppercase tracking-widest"
           >
             Start Onboarding

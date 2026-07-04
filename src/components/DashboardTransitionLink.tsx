@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils";
 /**
  * FastTransitionLoader
  * Speed-optimized fullscreen overlay for route transitions.
- * Completes in ~250ms instead of 1.1s for snappier navigation.
+ * Adjusted to display for a minimum of ~500ms to prevent flashing.
  */
 function FastTransitionLoader() {
   const [progress, setProgress] = useState(0);
   const shouldReduceMotion = useReducedMotion();
-  const { isTransitioning, finishTransition } = useTransition();
+  const { isTransitioning } = useTransition();
 
   useEffect(() => {
     if (!isTransitioning) return;
@@ -26,22 +26,18 @@ function FastTransitionLoader() {
           clearInterval(timer);
           return 100;
         }
-        return prev + 12;
+        // Changed from 12 to 4.
+        // 100 / 4 = 25 ticks. 25 * 16ms = ~400ms to fill.
+        return prev + 4;
       });
     }, 16);
 
     return () => clearInterval(timer);
   }, [isTransitioning]);
 
-  // Auto-finish transition once progress is complete
-  useEffect(() => {
-    if (progress >= 100 && isTransitioning) {
-      const timeout = setTimeout(() => {
-        finishTransition();
-      }, 150); // Brief hold at 100% before exit
-      return () => clearTimeout(timeout);
-    }
-  }, [progress, isTransitioning, finishTransition]);
+  // Note: The auto-finish useEffect was removed.
+  // It's safer to let the Navigation links control the unmount
+  // so we don't have a race condition if the page takes longer than 500ms to load.
 
   return (
     <motion.div
@@ -86,7 +82,7 @@ function FastTransitionLoader() {
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 bg-brand" />
           <span className="font-mono text-[10px] text-muted-foreground tracking-[0.3em] uppercase tabular-nums">
-            {progress}%
+            {Math.floor(progress)}%
           </span>
         </div>
       </motion.div>
@@ -111,16 +107,25 @@ export function NavLink({
   onClick?: () => void;
 }) {
   const router = useRouter();
-  const { isTransitioning, startTransition } = useTransition();
+  const { isTransitioning, startTransition, finishTransition } =
+    useTransition();
 
   const handleClick = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       e.preventDefault();
       onClick?.();
       startTransition();
-      router.push(href);
+      try {
+        // Promise.all guarantees the loader stays up for AT LEAST 500ms
+        await Promise.all([
+          router.push(href),
+          new Promise((resolve) => setTimeout(resolve, 1000)),
+        ]);
+      } finally {
+        finishTransition();
+      }
     },
-    [href, onClick, router, startTransition],
+    [href, onClick, router, startTransition, finishTransition],
   );
 
   return (
@@ -150,16 +155,25 @@ export function DashboardTransitionLink({
   onClick?: () => void;
 }) {
   const router = useRouter();
-  const { isTransitioning, startTransition } = useTransition();
+  const { isTransitioning, startTransition, finishTransition } =
+    useTransition();
 
   useEffect(() => {
     router.prefetch("/dashboard");
   }, [router]);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     externalOnClick?.();
     startTransition();
-    router.push("/dashboard");
+    try {
+      // Promise.all guarantees the loader stays up for AT LEAST 500ms
+      await Promise.all([
+        router.push("/dashboard"),
+        new Promise((resolve) => setTimeout(resolve, 500)),
+      ]);
+    } finally {
+      finishTransition();
+    }
   };
 
   return (

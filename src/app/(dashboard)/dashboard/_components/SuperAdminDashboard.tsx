@@ -378,7 +378,7 @@ export default function SuperAdminDashboard({
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <Link
-                        href={`/projects/${p.id}`}
+                        href={`/projects/detail?id=${p.id}`}
                         className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-border text-slate-600 hover:bg-secondary hover:text-white transition-colors inline-block"
                       >
                         Review

@@ -74,7 +74,7 @@ const SubmissionResult = ({ data }: SubmissionResultProps) => {
         <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
           {projectId && (
             <Button
-              onClick={() => router.push(`/projects/${projectId}`)}
+              onClick={() => router.push(`/projects/detail?id=${projectId}`)}
               className="flex-1 bg-[#2ebc8d] hover:bg-[#27a37b] h-12 rounded-xl font-bold"
             >
               View My Project

@@ -120,7 +120,7 @@ const NewProject = () => {
       }
 
       toast.success("Asset successfully committed to registry.");
-      router.push(`/projects/${projectId}`);
+      router.push(`/projects/detail?id=${projectId}`);
     } catch (error: any) {
       console.error("Submission Error:", error);
       toast.error(

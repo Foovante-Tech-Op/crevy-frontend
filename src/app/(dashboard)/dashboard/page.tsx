@@ -18,6 +18,7 @@ export default function DashboardPage() {
     case "super_admin":
       return <SuperAdminDashboard userName={userName} />;
     case "admin":
+    case "project_manager":
       return <AdminDashboard userName={userName} role={role} />;
     case "org_admin":
       return <OrgAdminDashboard userName={userName} role={role} />;

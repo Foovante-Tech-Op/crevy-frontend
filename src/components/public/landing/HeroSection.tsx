@@ -67,7 +67,7 @@ const CAROUSEL_DATA = [
     tag: "Industrial Decarbonization",
     headlinePrefix: "Abating Heavy",
     headlineItalic: "Emissions.",
-    desc: "Cryptographic telemetry and verified offset mechanism integration to systematically neutralize heavy industry and scope-1 manufacturing footprints.",
+    desc: "Verified telemetry & offset mechanism integration to systematically neutralize heavy industry and scope-1 manufacturing footprints.",
   },
 ];
 
@@ -94,7 +94,7 @@ export function HeroSection({
   return (
     <section className="relative min-h-[95vh] w-full flex flex-col justify-center overflow-hidden bg-foreground pt-24 pb-16 border-b border-slate-900">
       {/* ── 1. Stabilized Cinematic Background ── */}
-      {/* The container below forces a stable aspect ratio and blocks layout shifts */}
+      {/* Fixed height container prevents layout shifts between videos */}
       <div className="absolute inset-0 z-0 bg-foreground">
         <video
           ref={videoRef}
@@ -133,7 +133,7 @@ export function HeroSection({
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-white font-light leading-relaxed max-w-3xl mb-12">
+              <p className="text-xl md:text-2xl text-white font-light leading-relaxed max-w-4xl mb-12">
                 {activeContent.desc}
               </p>
             </motion.div>
