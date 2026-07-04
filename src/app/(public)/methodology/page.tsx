@@ -21,7 +21,7 @@ import "katex/dist/katex.min.css";
 
 export default function MethodologyPage() {
   return (
-    <div className="bg-white min-h-screen font-sans selection:bg-slate-900 selection:text-white">
+    <div className="bg-white min-h-screen selection:bg-slate-900 selection:text-white">
       <NotebookHero />
       <TelemetrySpecs />
       <MathematicalSpecifications />
@@ -42,15 +42,15 @@ function NotebookHero() {
           >
             <div className="w-8 h-[1px] bg-slate-900"></div>
             <span className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-              <GitCommit size={14} className="animate-pulse text-emerald-600" />
+              <GitCommit size={14} className="animate-pulse text-brand" />
               PROTOCOL_V_2.4.1
             </span>
             <div className="w-8 h-[1px] bg-slate-900"></div>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-slate-900 tracking-tight leading- mb-8">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl text-slate-900 tracking-tight leading- mb-8">
             The Scientific{" "}
-            <span className="italic text-slate-500">Notebook.</span>
+            <span className="italic text-brand">Notebook.</span>
           </h1>
 
           <p className="text-slate-600 text-lg md:text-xl font-light leading-relaxed max-w-2xl mb-12">
@@ -62,11 +62,11 @@ function NotebookHero() {
 
           <div className="flex gap-4 border-t border-slate-200 pt-8">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-900">
-              <ShieldCheck size={16} className="text-emerald-700" />
+              <ShieldCheck size={16} className="text-brand" />
               ISO 14064 Compliant
             </div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-900 ml-6">
-              <Eye size={16} className="text-emerald-700" />
+              <Eye size={16} className="text-brand" />
               Peer Reviewed
             </div>
           </div>
@@ -111,11 +111,11 @@ function TelemetrySpecs() {
           {/* Header Column */}
           <div className="p-8 lg:p-12 lg:col-span-1 flex flex-col justify-center bg-slate-100/50">
             <Globe2
-              className="text-slate-900 mb-6"
+              className="text-brand mb-6"
               size={32}
               strokeWidth={1.5}
             />
-            <h2 className="text-2xl font-serif text-slate-900 mb-4 leading-tight">
+            <h2 className="text-2xl text-slate-900 mb-4 leading-tight">
               Data Ingestion Pipeline
             </h2>
             <p className="text-slate-500 text-sm leading-relaxed">
@@ -132,10 +132,10 @@ function TelemetrySpecs() {
             >
               <spec.icon
                 size={24}
-                className="text-emerald-700 mb-6"
+                className="text-brand mb-6"
                 strokeWidth={1.5}
               />
-              <h3 className="text-lg font-bold text-slate-900 mb-6 font-sans">
+              <h3 className="text-lg font-bold text-slate-900 mb-6">
                 {spec.title}
               </h3>
 
@@ -160,7 +160,7 @@ function TelemetrySpecs() {
                 </div>
               </div>
 
-              <p className="text-slate-500 text-sm leading-relaxed font-sans mt-auto">
+              <p className="text-slate-500 text-sm leading-relaxed mt-auto">
                 {spec.desc}
               </p>
             </div>
@@ -173,11 +173,11 @@ function TelemetrySpecs() {
 
 function MathematicalSpecifications() {
   return (
-    <section className="py-24 bg-white relative font-sans">
+    <section className="py-24 bg-white relative">
       <div className="container mx-auto px-6 max-w-[1400px]">
         <div className="mb-16 border-b border-slate-900 pb-6 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl font-serif text-slate-900 flex items-center gap-3">
+            <h2 className="text-3xl text-slate-900 flex items-center gap-3">
               <Code2 className="text-slate-400" size={28} strokeWidth={1.5} />
               Rigorous Mathematical Proofs
             </h2>
@@ -189,32 +189,32 @@ function MathematicalSpecifications() {
 
         <div className="grid lg:grid-cols-2 gap-12 font-mono">
           {/* Formula 1 */}
-          <div className="border border-slate-200 p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-slate-900 transition-colors">
+          <div className="border border-slate-200 p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-brand transition-colors">
             <div>
               <span className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] block mb-4 border-b border-slate-100 pb-4">
                 01. BIOMASS SEQUESTRATION (AGB)
               </span>
-              <h3 className="text-slate-900 text-xl font-bold font-sans mb-4">
+              <h3 className="text-brand text-xl font-bold mb-4">
                 Above-Ground Biomass Quantification
               </h3>
-              <p className="text-slate-500 text-sm font-sans leading-relaxed mb-8">
+              <p className="text-slate-500 text-sm leading-relaxed mb-8">
                 Utilized to translate raw physical observations (whether via
                 LiDAR canopy dimensions or environmental indices) into total
                 vegetative mass.
               </p>
             </div>
 
-            <div className="bg-slate-50 p-6 border border-slate-200 my-4 overflow-x-auto w-full min-w-0 select-none flex justify-center">
+            <div className="bg-brand/10 p-6 border border-brand/50 my-4 overflow-x-auto w-full min-w-0 select-none flex justify-center">
               <MathRenderer
                 formula="AGB = 0.0673 \times (\rho D^2 H)^{0.976}"
                 displayMode={true}
-                className="text-slate-900 text-base md:text-lg font-sans"
+                className="text-brand text-base md:text-lg"
               />
             </div>
 
-            <div className="text-xs text-slate-600 space-y-3 font-sans mt-6">
+            <div className="text-xs text-slate-600 space-y-3 mt-6">
               <p className="flex items-start gap-3">
-                <strong className="text-slate-900 font-mono w-12 shrink-0 pt-0.5">
+                <strong className="text-brand font-mono w-12 shrink-0 pt-0.5">
                   AGB:
                 </strong>
                 <span>
@@ -223,7 +223,7 @@ function MathematicalSpecifications() {
                 </span>
               </p>
               <p className="flex items-start gap-3">
-                <strong className="text-slate-900 font-mono w-12 shrink-0 pt-0.5">
+                <strong className="text-brand font-mono w-12 shrink-0 pt-0.5">
                   <MathRenderer formula="\rho" className="text-[13px]" />:
                 </strong>
                 <span>
@@ -231,7 +231,7 @@ function MathematicalSpecifications() {
                 </span>
               </p>
               <p className="flex items-start gap-3">
-                <strong className="text-slate-900 font-mono w-12 shrink-0 pt-0.5">
+                <strong className="text-brand font-mono w-12 shrink-0 pt-0.5">
                   D / H:
                 </strong>
                 <span>
@@ -244,32 +244,32 @@ function MathematicalSpecifications() {
           </div>
 
           {/* Formula 2 */}
-          <div className="border border-slate-200 p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-slate-900 transition-colors">
+          <div className="border border-slate-200 p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-brand transition-colors">
             <div>
               <span className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] block mb-4 border-b border-slate-100 pb-4">
                 02. CONSERVATISM PRINCIPLE
               </span>
-              <h3 className="text-slate-900 text-xl font-bold font-sans mb-4">
+              <h3 className="text-brand text-xl font-bold mb-4">
                 Net Asset Allocation Accounting
               </h3>
-              <p className="text-slate-500 text-sm font-sans leading-relaxed mb-8">
+              <p className="text-slate-500 text-sm leading-relaxed mb-8">
                 Aligns directly with global standards (Verra VM0042 / Gold
                 Standard). We explicitly subtract all risk factors before
                 minting credits.
               </p>
             </div>
 
-            <div className="bg-slate-50 p-6 border border-slate-200 my-4 overflow-x-auto w-full min-w-0 select-none flex justify-center">
+            <div className="bg-brand/10 p-6 border border-brand/50 my-4 overflow-x-auto w-full min-w-0 select-none flex justify-center">
               <MathRenderer
                 formula="N_{\text{credits}} = G_{\text{removals}} - L_{\text{deduction}} - B_{\text{contribution}}"
                 displayMode={true}
-                className="text-slate-900 text-base md:text-lg font-sans"
+                className="text-brand text-base md:text-lg"
               />
             </div>
 
-            <div className="text-xs text-slate-600 space-y-3 font-sans mt-6">
+            <div className="text-xs text-slate-600 space-y-3 mt-6">
               <p className="flex items-start gap-3">
-                <strong className="text-slate-900 font-mono w-24 shrink-0 pt-0.5">
+                <strong className="text-brand font-mono w-24 shrink-0 pt-0.5">
                   N_credits:
                 </strong>
                 <span>
@@ -277,7 +277,7 @@ function MathematicalSpecifications() {
                 </span>
               </p>
               <p className="flex items-start gap-3">
-                <strong className="text-slate-900 font-mono w-24 shrink-0 pt-0.5">
+                <strong className="text-brand font-mono w-24 shrink-0 pt-0.5">
                   G_removals:
                 </strong>
                 <span>
@@ -290,7 +290,7 @@ function MathematicalSpecifications() {
                 </span>
               </p>
               <p className="flex items-start gap-3">
-                <strong className="text-slate-900 font-mono w-24 shrink-0 pt-0.5">
+                <strong className="text-brand font-mono w-24 shrink-0 pt-0.5">
                   L / B:
                 </strong>
                 <span>
@@ -325,11 +325,11 @@ function TreeToTokenPipeline() {
     <section className="py-24 bg-slate-50 border-t border-slate-200">
       <div className="container mx-auto px-6 max-w-[1400px]">
         <div className="mb-16">
-          <h2 className="text-4xl font-serif text-slate-900 mb-4 leading-tight">
+          <h2 className="text-4xl text-slate-900 mb-4 leading-tight">
             Tree to Token: <br />
             <span className="italic text-slate-500">Chain of Custody.</span>
           </h2>
-          <p className="text-slate-500 text-base max-w-xl font-sans">
+          <p className="text-slate-500 text-base max-w-xl">
             Explore the exact path data takes from a remote forest to an
             immutable public registry. No manual spreadsheets. No human
             tampering.
@@ -338,12 +338,12 @@ function TreeToTokenPipeline() {
 
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Pipeline Visual (Left Col) */}
-          <div className="lg:col-span-5 space-y-6 relative before:absolute before:inset-0 before:ml-[31px] before:-translate-x-px before:h-full before:w-[2px] before:bg-slate-200">
+          <div className="lg:col-span-5 space-y-6 relative before:absolute before:inset-0 before:ml-[31px] before:-translate-x-px before:h-full before:w-[2px] before:bg-brand/20">
             <div className="relative flex items-start gap-6 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-900 shrink-0 relative z-10 group-hover:border-slate-900 transition-colors">
-                <HardDrive size={24} strokeWidth={1.5} />
+              <div className="flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-900 shrink-0 relative z-10 group-hover:border-brand group-hover:bg-brand transition-colors">
+                <HardDrive className="text-brand group-hover:text-white" size={24} strokeWidth={1.5} />
               </div>
-              <div className="pt-2 font-sans">
+              <div className="pt-2">
                 <h4 className="font-bold text-slate-900 text-lg mb-1">
                   1. Edge Capture
                 </h4>
@@ -355,10 +355,10 @@ function TreeToTokenPipeline() {
             </div>
 
             <div className="relative flex items-start gap-6 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-900 shrink-0 relative z-10 group-hover:border-slate-900 transition-colors">
-                <Database size={24} strokeWidth={1.5} />
+              <div className="flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-900 shrink-0 relative z-10 group-hover:border-brand group-hover:bg-brand transition-colors">
+                <Database className="text-brand group-hover:text-white" size={24} strokeWidth={1.5} />
               </div>
-              <div className="pt-2 font-sans">
+              <div className="pt-2">
                 <h4 className="font-bold text-slate-900 text-lg mb-1">
                   2. dMRV Ingestion & AI
                 </h4>
@@ -370,10 +370,10 @@ function TreeToTokenPipeline() {
             </div>
 
             <div className="relative flex items-start gap-6 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-slate-900 border border-slate-900 text-white shrink-0 relative z-10">
-                <LinkIcon size={24} strokeWidth={1.5} />
+              <div className="flex items-center justify-center w-16 h-16 bg-brand border border-brand text-white shrink-0 relative z-10 group-hover:bg-white">
+                <LinkIcon className="group-hover:text-brand" size={24} strokeWidth={1.5} />
               </div>
-              <div className="pt-2 font-sans">
+              <div className="pt-2">
                 <h4 className="font-bold text-slate-900 text-lg mb-1">
                   3. On-Chain Minting
                 </h4>
@@ -624,7 +624,7 @@ function TreeToTokenPipeline() {
                   </div>
 
                   {/* Hover Tooltip display area */}
-                  <div className="h-20 border-t border-slate-800 pt-4 text-xs flex items-start text-slate-400 shrink-0 select-none font-sans mt-4">
+                  <div className="h-20 border-t border-slate-800 pt-4 text-xs flex items-start text-slate-400 shrink-0 select-none mt-4">
                     <AnimatePresence mode="wait">
                       {hoveredField ? (
                         <motion.div
@@ -786,7 +786,7 @@ function TreeToTokenPipeline() {
                             ✕
                           </button>
                         </div>
-                        <p className="text-slate-300 font-sans font-medium mb-1">
+                        <p className="text-slate-300 font-medium mb-1">
                           {selectedIotNode.name}
                         </p>
                         <p className="text-slate-400 font-mono text-[10px]">
@@ -852,7 +852,7 @@ function TreeToTokenPipeline() {
                       setVerificationState("verifying");
                       setTimeout(() => setVerificationState("success"), 2500);
                     }}
-                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-[10px] uppercase tracking-[0.2em] px-4 py-2 font-bold transition-colors cursor-pointer"
+                    className="bg-brand hover:bg-brand/90 text-slate-900 text-[10px] uppercase tracking-[0.2em] px-4 py-2 font-bold transition-colors cursor-pointer"
                   >
                     Execute Proof
                   </button>
