@@ -55,9 +55,9 @@ export function PublicFooter() {
   };
 
   return (
-    <footer className="bg-[#F6F9FC] pt-24 pb-12 border-t border-[#0A2540]/10 shadow-[0_-8px_30px_rgba(10,37,64,0.06)] selection:bg-[#F38221] selection:text-white relative overflow-hidden">
+    <footer className="bg-[#F6F9FC] pt-24 pb-12 border-t border-[#0A2540]/10 shadow-[0_-8px_30px_rgba(10,37,64,0.06)] selection:bg-brand selection:text-white relative overflow-hidden">
       {/* Background Watermark */}
-      <div className="absolute -right-24 -bottom-24 text-[#F38221]/10 pointer-events-none">
+      <div className="absolute -right-24 -bottom-24 text-brand/10 pointer-events-none">
         <Globe size={400} strokeWidth={0.5} />
       </div>
 
@@ -65,15 +65,15 @@ export function PublicFooter() {
         {/* ── Editorial Header ── */}
         <div className="flex flex-col md:flex-row md:items-end justify-between pb-16 border-b border-[#0A2540]/10 mb-16 gap-8">
           <div className="max-w-3xl">
-            <h2 className="font-sans text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#0A2540] tracking-tight leading-[1.1] mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#0A2540] tracking-tight leading-[1.1] mb-6">
               Engineering the{" "}
-              <span className="italic text-[#F38221]">financial layer</span> of
+              <span className="italic text-brand">financial layer</span> of
               Africa's climate future.
             </h2>
           </div>
           <Link
             href="/support"
-            className="group flex items-center gap-4 bg-[#F38221] hover:bg-[#FF751F] text-[#F8F8F9] px-8 py-4 font-semibold text-[11px] uppercase tracking-[0.25em] transition-all shrink-0 rounded-sm shadow-lg shadow-[#F38221]/20"
+            className="group flex items-center gap-4 bg-brand hover:bg-[#FF751F] text-[#F8F8F9] px-8 py-4 font-semibold text-[11px] uppercase tracking-[0.25em] transition-all shrink-0 rounded-sm shadow-lg shadow-brand/20"
           >
             Initiate Contact{" "}
             <ArrowRight
@@ -102,7 +102,7 @@ export function PublicFooter() {
             </p>
             <div className="pt-4 space-y-3">
               <div className="flex items-center gap-3 text-[#0A2540] font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.25em]">
-                <MapPin size={14} className="text-[#F38221]" /> Accra, Greater
+                <MapPin size={14} className="text-brand" /> Accra, Greater
                 Accra, GH
               </div>
               {/* <div className="flex items-center gap-3 text-slate-400 font-mono text-[10px] uppercase tracking-widest">
@@ -132,9 +132,9 @@ export function PublicFooter() {
                         ? handleRegisterProjectClick
                         : undefined
                     }
-                    className="text-[#0A2540] hover:text-[#F38221] transition-colors text-[13px] sm:text-sm font-mono tracking-tight flex items-center gap-2 group"
+                    className="text-[#0A2540] hover:text-brand transition-colors text-[13px] sm:text-sm font-mono tracking-tight flex items-center gap-2 group"
                   >
-                    <span className="w-1.5 h-1.5 bg-[#0A2540]/20 group-hover:bg-[#F38221] transition-colors"></span>
+                    <span className="w-1.5 h-1.5 bg-[#0A2540]/20 group-hover:bg-brand transition-colors"></span>
                     {link.title}
                   </Link>
                 </li>
@@ -152,9 +152,9 @@ export function PublicFooter() {
                 <li key={link.title}>
                   <Link
                     href={link.href}
-                    className="text-[#0A2540] hover:text-[#F38221] transition-colors text-[13px] sm:text-sm font-mono tracking-tight flex items-center gap-2 group"
+                    className="text-[#0A2540] hover:text-brand transition-colors text-[13px] sm:text-sm font-mono tracking-tight flex items-center gap-2 group"
                   >
-                    <span className="w-1.5 h-1.5 bg-[#0A2540]/20 group-hover:bg-[#F38221] transition-colors"></span>
+                    <span className="w-1.5 h-1.5 bg-[#0A2540]/20 group-hover:bg-brand transition-colors"></span>
                     {link.title}
                   </Link>
                 </li>
@@ -182,7 +182,7 @@ export function PublicFooter() {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#0A2540] hover:text-[#F38221] transition-colors text-[10px] sm:text-[11px] font-mono font-semibold tracking-[0.25em] uppercase"
+                className="text-[#0A2540] hover:text-brand transition-colors text-[10px] sm:text-[11px] font-mono font-semibold tracking-[0.25em] uppercase"
               >
                 {social.label}
               </a>
