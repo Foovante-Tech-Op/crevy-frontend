@@ -169,7 +169,7 @@ export default function PublicRegistryPage() {
             </button>
             <button
               type="button"
-              className="px-3 py-1 bg-secondary text-white border border-slate-900"
+              className="px-3 py-1 bg-secondary text-foreground border border-slate-900"
             >
               1
             </button>
@@ -215,7 +215,7 @@ function RegistryHero() {
         </motion.div>
 
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-sans text-foreground tracking-tight leading-[1] mb-8">
-          Proof of <span className="italic text-muted-foreground">Impact.</span>
+          Proof of <span className="italic text-brand">Impact.</span>
         </h1>
 
         <p className="max-w-2xl mx-auto text-slate-600 text-lg md:text-xl font-light leading-relaxed">

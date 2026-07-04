@@ -50,8 +50,7 @@ function NotebookHero() {
           </motion.div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-sans text-foreground tracking-tight leading- mb-8">
-            The Scientific{" "}
-            <span className="italic text-muted-foreground">Notebook.</span>
+            The Scientific <span className="italic text-brand">Notebook.</span>
           </h1>
 
           <p className="text-slate-600 text-lg md:text-xl font-light leading-relaxed max-w-2xl mb-12">
@@ -194,7 +193,7 @@ function MathematicalSpecifications() {
 
         <div className="grid lg:grid-cols-2 gap-12 font-mono">
           {/* Formula 1 */}
-          <div className="border border-border p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-slate-900 transition-colors">
+          <div className="border border-border p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-brand transition-colors">
             <div>
               <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] block mb-4 border-b border-border pb-4">
                 01. BIOMASS SEQUESTRATION (AGB)
@@ -249,7 +248,7 @@ function MathematicalSpecifications() {
           </div>
 
           {/* Formula 2 */}
-          <div className="border border-border p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-slate-900 transition-colors">
+          <div className="border border-border p-8 md:p-10 flex flex-col justify-between bg-white shadow-sm hover:border-brand transition-colors">
             <div>
               <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] block mb-4 border-b border-border pb-4">
                 02. CONSERVATISM PRINCIPLE
@@ -332,9 +331,7 @@ function TreeToTokenPipeline() {
         <div className="mb-16">
           <h2 className="text-4xl font-sans text-foreground mb-4 leading-tight">
             Tree to Token: <br />
-            <span className="italic text-muted-foreground">
-              Chain of Custody.
-            </span>
+            <span className="italic text-brand">Chain of Custody.</span>
           </h2>
           <p className="text-muted-foreground text-base max-w-xl font-sans">
             Explore the exact path data takes from a remote forest to an
@@ -377,7 +374,7 @@ function TreeToTokenPipeline() {
             </div>
 
             <div className="relative flex items-start gap-6 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-secondary border border-slate-900 text-white shrink-0 relative z-10">
+              <div className="flex items-center justify-center w-16 h-16 bg-foreground border border-slate-900 text-white shrink-0 relative z-10">
                 <LinkIcon size={24} strokeWidth={1.5} />
               </div>
               <div className="pt-2 font-sans">

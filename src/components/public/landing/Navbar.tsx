@@ -161,7 +161,9 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                 href="/login"
                 className={cn(
                   "text-[10px] font-bold uppercase tracking-widest transition-colors px-4 py-2",
-                  isNavSolid && "text-muted-foreground hover:text-foreground",
+                  isNavSolid
+                    ? "text-muted-foreground hover:text-foreground hover:bg-foreground/10"
+                    : "hover:bg-white",
                 )}
               >
                 Login
@@ -171,7 +173,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                 className={cn(
                   "rounded-none font-bold uppercase tracking-widest text-[10px] px-8 h-10 transition-colors inline-flex items-center",
                   isNavSolid
-                    ? "bg-secondary hover:bg-brand text-white"
+                    ? "bg-foreground hover:bg-brand text-white"
                     : "bg-white hover:bg-brand text-foreground hover:text-white",
                 )}
               >
