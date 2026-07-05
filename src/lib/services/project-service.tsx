@@ -20,6 +20,8 @@ export const ProjectService = {
       startDate: format(data.startDate, "yyyy-MM-dd"),
       endDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
       totalAreaHectares: data.totalAreaHectares,
+      facilityName: data.facilityName || undefined,
+      address: data.address || undefined,
       currency: data.currency, // Pass the {code, name} object
       projectTags: data.projectTags ?? [],
       description: data.description || "",

@@ -243,6 +243,13 @@ export const createProjectInputSchema = z
       })
       .positive("Area must be greater than 0"),
 
+    // Site details — shown for non-land-based project types (processing
+    // facilities, energy installations, water bodies, coastal zones).
+    // Optional at the schema level since farm-plot project types don't
+    // render these fields at all (see Step1_ProjectProfile.tsx).
+    facilityName: z.string().max(255).optional().or(z.literal("")),
+    address: z.string().max(500).optional().or(z.literal("")),
+
     // Project metadata (still part of createProject payload — modules can refine later)
     description: z
       .string()
@@ -299,6 +306,8 @@ export const createProjectDefaultValues: TCreateProject = {
   startDate: new Date(),
   endDate: undefined,
   totalAreaHectares: 0,
+  facilityName: "",
+  address: "",
   currency: { code: "", name: "" },
   description: "",
   projectTags: [],

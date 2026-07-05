@@ -11,6 +11,7 @@ import {
   Radio,
 } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { authClient } from "@/lib/auth";
 import { ProjectService } from "@/lib/services/project-service";
 import { cn } from "@/lib/utils";
@@ -19,27 +20,27 @@ import { cn } from "@/lib/utils";
 
 const PIPELINE = [
   {
-    key: "registration",
-    label: "Project Baseline",
-    desc: "Documentation & boundary geo-fencing.",
+    key: "submission",
+    label: "Submission",
+    desc: "Initial documentation & project intake.",
     icon: FileText,
   },
   {
-    key: "active",
-    label: "Telemetry Ingress",
-    desc: "Field-to-cloud observation payloads.", //
+    key: "review",
+    label: "Methodology Review",
+    desc: "Evaluating project methodology & design.",
     icon: Activity,
   },
   {
-    key: "verification",
-    label: "Worker Verification",
-    desc: "AI methodology inference & auditing.", //
+    key: "audit",
+    label: "Audit",
+    desc: "Rigorous third-party verification.",
     icon: Cpu,
   },
   {
-    key: "completed",
-    label: "On-Chain Anchor",
-    desc: "Polygon ledger state finality.", //
+    key: "registry",
+    label: "Registry Submission",
+    desc: "Final issuance and registry anchoring.",
     icon: Network,
   },
 ];
@@ -59,17 +60,48 @@ export default function TrackVerificationPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-projects-verification", userId],
-    queryFn: () => ProjectService.getProjects({ createdBy: userId, limit: 50 }),
+    queryFn: () => ProjectService.getProjects({ createdBy: userId, limit: 20 }),
     enabled: !!userId,
   });
 
   const projects: any[] = data?.data ?? [];
 
-  // Group projects by pipeline stage
-  const grouped = PIPELINE.reduce<Record<string, any[]>>((acc, stage) => {
-    acc[stage.key] = projects.filter((p) => p.projectStage === stage.key);
-    return acc;
-  }, {});
+  // Group projects by pipeline stage using the aligned status matrix
+  const grouped = useMemo(() => {
+    // Rule: assessmentCompletion has to be complete to enter the pipeline
+    const pipelineProjects = projects.filter(
+      (p) => p.assessmentCompletion === "complete",
+    );
+
+    return PIPELINE.reduce<Record<string, any[]>>((acc, stage) => {
+      acc[stage.key] = pipelineProjects.filter((p) => {
+        const { registryStatus } = p;
+
+        switch (stage.key) {
+          case "submission":
+            // Assuming you add 'pending_review' as the new default for registryStatus.
+            // If it's still using 'admin_verified' as the default, you'll need to adjust this.
+            return !registryStatus || registryStatus === "pending_review";
+
+          case "review":
+            return (
+              registryStatus === "admin_verified" ||
+              registryStatus === "dmrv_verified"
+            );
+
+          case "audit":
+            return registryStatus === "registry_pending";
+
+          case "registry":
+            return registryStatus === "registry_certified";
+
+          default:
+            return false;
+        }
+      });
+      return acc;
+    }, {});
+  }, [projects]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-slate-900 selection:text-white">
@@ -84,12 +116,12 @@ export default function TrackVerificationPage() {
             <div className="w-8 h-[1px] bg-slate-900"></div>
           </div>
           <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight mb-4">
-            Pipeline <span className="italic text-slate-500">Oversight.</span>
+            Pipeline <span className="italic text-brand-700">Oversight.</span>
           </h1>
           <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
             Monitor the cryptographic lifecycle of your environmental assets.
-            Track projects from initial baseline registration through continuous
-            dMRV observation, down to final ledger anchoring.
+            Track projects from initial submission through rigorous methodology
+            review and auditing, down to final registry submission.
           </p>
         </div>
       </div>
@@ -116,8 +148,9 @@ export default function TrackVerificationPage() {
               The matrix is empty.
             </p>
             <p className="text-slate-500 text-sm mb-8 max-w-sm">
-              Register an environmental project to initialize the data ingestion
-              and verification pipeline.
+              Register an environmental project and complete the initial
+              assessment to initialize the data ingestion and verification
+              pipeline.
             </p>
             <Link
               href="/new-project"
@@ -216,16 +249,16 @@ export default function TrackVerificationPage() {
                             </div>
 
                             {/* Stage-Specific Microcopy */}
-                            {stage.key === "verification" && (
+                            {stage.key === "audit" && (
                               <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-600">
                                 <Radio className="h-3 w-3 animate-pulse text-brand-600" />
-                                INFERENCE_ACTIVE
+                                AUDIT_IN_PROGRESS
                               </div>
                             )}
-                            {stage.key === "completed" && (
+                            {stage.key === "registry" && (
                               <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-600">
                                 <Network className="h-3 w-3 text-brand-600" />
-                                TX_CONFIRMED
+                                REGISTRY_PENDING
                               </div>
                             )}
                           </div>

@@ -23,7 +23,7 @@ export function SectionLabel({
       className="flex justify-between items-end border-b-2 border-slate-900 pb-3 mb-8"
     >
       <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 flex items-center gap-2">
-        <span className="w-2 h-2 bg-brand-600 rounded-none shrink-0" />
+        <span className="w-2 h-2 bg-brand rounded-none shrink-0" />
         {label}
       </h2>
       {action && (

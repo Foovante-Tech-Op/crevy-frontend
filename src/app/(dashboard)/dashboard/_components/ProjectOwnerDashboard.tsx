@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { type Column, DataTable } from "@/components/DataTable";
 import { authClient } from "@/lib/auth";
 import { ProjectService } from "@/lib/services/project-service";
 import type { TRole } from "@/types/user.types";
@@ -68,6 +70,72 @@ export default function ProjectOwnerDashboard({
   const totalArea = projects
     .reduce((acc: number, p: any) => acc + Number(p.totalAreaHectares ?? 0), 0)
     .toFixed(1);
+
+  const projectColumns = useMemo<Column<any>[]>(
+    () => [
+      {
+        header: "Asset Designation",
+        render: (p) => (
+          <div>
+            <span className="font-sans font-bold text-slate-900 group-hover:text-brand-700 transition-colors block">
+              {p.name ?? p.code}
+            </span>
+            <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-1 block">
+              {p.region}, {p.country}
+            </span>
+          </div>
+        ),
+      },
+      {
+        header: "Methodology",
+        render: (p) => (
+          <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest">
+            {(p.projectType as string)?.replace(/_/g, " ")}
+          </span>
+        ),
+      },
+      {
+        header: "Status",
+        render: (p) => (
+          <span
+            className={`px-2 py-1 text-[9px] font-bold uppercase tracking-widest border ${statusStyle[p.projectStatus] || statusStyle.draft}`}
+          >
+            {p.projectStatus}
+          </span>
+        ),
+      },
+      {
+        header: "MRV Stage",
+        render: (p) => (
+          <span
+            className={`px-2 py-1 text-[9px] font-bold uppercase tracking-widest border ${stageStyle[p.projectStage] || stageStyle.registration}`}
+          >
+            {p.projectStage}
+          </span>
+        ),
+      },
+      {
+        header: "Telemetry Progress",
+        align: "right",
+        render: (p) => (
+          <div className="flex items-center justify-end gap-3">
+            <div className="w-24 h-1 bg-slate-200">
+              <div
+                className="h-full bg-slate-900 transition-all"
+                style={{
+                  width: `${stagePct[p.projectStage] ?? 0}%`,
+                }}
+              />
+            </div>
+            <span className="font-mono text-[10px] text-slate-500">
+              {stagePct[p.projectStage] ?? 0}%
+            </span>
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10 font-sans selection:bg-slate-900 selection:text-white bg-slate-50 min-h-screen">
@@ -200,15 +268,9 @@ export default function ProjectOwnerDashboard({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45 }}
-          className="bg-white border border-slate-200 overflow-x-auto"
         >
-          {loadingProjects ? (
-            <div className="flex flex-col items-center justify-center py-24 text-slate-400 font-mono text-xs uppercase tracking-widest">
-              <div className="w-6 h-6 border-2 border-slate-200 border-t-slate-900 animate-spin mb-4" />
-              Syncing Ledger...
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 px-6 text-center bg-slate-50">
+          {!loadingProjects && projects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 px-6 text-center bg-slate-50 border border-slate-200">
               <div className="p-4 bg-white border border-slate-200 text-slate-400 mb-4">
                 <Database size={24} />
               </div>
@@ -227,77 +289,18 @@ export default function ProjectOwnerDashboard({
               </Link>
             </div>
           ) : (
-            <table className="w-full text-left min-w-[900px]">
-              <thead className="bg-slate-50 border-b-2 border-slate-900">
-                <tr>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Asset Designation
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Methodology
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                    MRV Stage
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 text-right">
-                    Telemetry Progress
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {projects.map((p: any) => (
-                  <tr
-                    key={p.id}
-                    className="hover:bg-slate-50 transition-colors cursor-pointer group"
-                    onClick={() => router.push(`/projects/${p.id}`)}
-                  >
-                    <td className="px-6 py-4">
-                      <span className="font-sans font-bold text-slate-900 group-hover:text-brand-700 transition-colors block">
-                        {p.name ?? p.code}
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-1 block">
-                        {p.region}, {p.country}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500 uppercase tracking-widest">
-                      {(p.projectType as string).replace(/_/g, " ")}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 text-[9px] font-bold uppercase tracking-widest border ${statusStyle[p.projectStatus] || statusStyle.draft}`}
-                      >
-                        {p.projectStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 text-[9px] font-bold uppercase tracking-widest border ${stageStyle[p.projectStage] || stageStyle.registration}`}
-                      >
-                        {p.projectStage}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <div className="w-24 h-1 bg-slate-200">
-                          <div
-                            className="h-full bg-slate-900 transition-all"
-                            style={{
-                              width: `${stagePct[p.projectStage] ?? 0}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="font-mono text-[10px] text-slate-500">
-                          {stagePct[p.projectStage] ?? 0}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable
+              columns={projectColumns}
+              data={projects}
+              isLoading={loadingProjects}
+              loadingMessage="Syncing Ledger..."
+              emptyMessage="Ledger empty."
+              getRowKey={(p: any) => p.id}
+              onRowClick={(p: any) => router.push(`/projects/${p.id}`)}
+              currentPage={1}
+              totalPages={1}
+              onPageChange={() => {}}
+            />
           )}
         </motion.div>
       </div>
