@@ -154,7 +154,7 @@ export function AccessDashboardMobileButton({
 }) {
   return (
     <DashboardTransitionLink
-      className="w-full inline-flex items-center justify-center rounded-none bg-emerald-700 hover:bg-emerald-600 text-white font-bold uppercase tracking-widest text-[10px] h-12 transition-colors"
+      className="w-full inline-flex items-center justify-center rounded-none bg-brand hover:bg-brand/70 text-white font-bold uppercase tracking-widest text-[10px] h-12 transition-colors"
       onClick={onMenuClose}
     >
       Access Dashboard <LayoutDashboard className="w-4 h-4 ml-2" />

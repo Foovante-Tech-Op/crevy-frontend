@@ -152,21 +152,21 @@ export default function ProjectOwnerDashboard({
           </p>
           <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-6">
             Environmental Asset{" "}
-            <span className="italic text-slate-500">Command.</span>
+            <span className="italic text-brand">Command.</span>
           </h1>
           <p className="text-slate-500 font-light leading-relaxed max-w-xl mb-10">
             Register new environmental assets, monitor real-time dMRV telemetry,
             and track your cryptographic yield generation.
           </p>
           <Link
-            href="/new-project"
-            className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-900 transition-colors"
+            href="/projects/new"
+            className="inline-flex items-center gap-3 bg-foreground text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand transition-colors"
           >
-            <Plus size={14} /> Originate New Asset
+            <Plus size={14} /> Register New Project
           </Link>
         </div>
 
-        <div className="md:col-span-4 bg-slate-950 p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden">
+        <div className="md:col-span-4 bg-foreground p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden">
           <div className="relative z-10">
             <p className="font-sans text-2xl mb-8">
               Developer: {userName.split(" ")[0]}

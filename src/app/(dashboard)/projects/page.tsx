@@ -317,14 +317,15 @@ export default function AllProjectsPage() {
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
-                Asset <span className="italic text-slate-500">Oversight.</span>
+                Asset <span className="italic text-brand">Oversight.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
-                Complete inventory of carbon sequestration assets under
+                Complete inventory of carbon sequestration projects under
                 management.
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
+              {/* TODO: Export functionality */}
               <Button
                 variant="outline"
                 className="rounded-none border-slate-300 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 text-slate-900"

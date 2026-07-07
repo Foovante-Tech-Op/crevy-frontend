@@ -87,7 +87,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
         </NavLink>
 
         {/* ── Desktop Navigation ── */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden lg:flex items-center space-x-8">
           {navLinks.map((link) => (
             <NavLink
               key={link.name}
@@ -112,7 +112,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
         </div>
 
         {/* ── Desktop Auth Protocol ── */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden lg:flex items-center space-x-4">
           {isPending ? (
             <div
               className={cn(
@@ -197,7 +197,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
         <button
           type="button"
           className={cn(
-            "md:hidden transition-colors",
+            "lg:hidden transition-colors",
             isNavSolid ? "text-slate-900" : "text-white",
           )}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -215,7 +215,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed inset-0 top-0 left-0 h-screen w-full bg-slate-950 z-50 flex flex-col p-6 md:hidden overflow-y-auto"
+            className="fixed inset-0 top-0 left-0 h-screen w-full bg-foreground z-50 flex flex-col p-6 lg:hidden overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-16 border-b border-slate-800 pb-6">
               <span className="font-bold text-2xl text-white">Crevy.</span>

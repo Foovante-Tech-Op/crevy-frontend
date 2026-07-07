@@ -52,7 +52,8 @@ function ProjectDetailContent() {
     user?.role === "super_admin" ||
     user?.role === "admin" ||
     user?.role === "mrv_admin" ||
-    user?.role === "project_manager";
+    user?.role === "project_manager" ||
+    user?.role === "project_owner";
 
   const { data: projectRes, isLoading: loadingProject } = useQuery({
     queryKey: ["admin-project-detail", id],
@@ -72,6 +73,8 @@ function ProjectDetailContent() {
   const auditLogs = project?.auditLogs ?? [];
   const assessments = project?.onboardingAssessments ?? [];
   const assessmentScore = project?.assessmentScore;
+
+  console.log("Data: ", project, verifRes);
 
   // Set default active tab when assessments load
   useEffect(() => {
@@ -102,7 +105,7 @@ function ProjectDetailContent() {
     );
   }
 
-  if (!project) {
+  if (!loadingProject && !project) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-center px-6">
         <ShieldAlert size={32} className="text-slate-900 mb-4" />
