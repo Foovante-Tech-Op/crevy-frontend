@@ -53,7 +53,7 @@ export default function SupportPage() {
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight leading-none mb-6">
+          <h1 className="text-4xl md:text-6xl font-sans text-slate-900 tracking-tight leading-none mb-6">
             Institutional{" "}
             <span className="italic text-slate-500">Support.</span>
           </h1>
@@ -70,7 +70,7 @@ export default function SupportPage() {
             />
             <input
               placeholder="Query knowledge base, methodologies, or technical guidelines..."
-              className="w-full bg-transparent border-b-2 border-slate-200 pl-12 pr-4 py-4 text-xl font-serif text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors rounded-none"
+              className="w-full bg-transparent border-b-2 border-slate-200 pl-12 pr-4 py-4 text-xl font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors rounded-none"
             />
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function SupportPage() {
               <div className="w-12 h-12 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-900 mb-8 group-hover:bg-slate-900 group-hover:text-white transition-colors">
                 <MessageCircle size={20} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-serif text-slate-900 tracking-tight mb-2">
+              <h3 className="text-xl font-sans text-slate-900 tracking-tight mb-2">
                 Live Terminal
               </h3>
               <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-relaxed">
@@ -109,7 +109,7 @@ export default function SupportPage() {
               <div className="w-12 h-12 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-900 mb-8 group-hover:bg-slate-900 group-hover:text-white transition-colors">
                 <Mail size={20} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-serif text-slate-900 tracking-tight mb-2">
+              <h3 className="text-xl font-sans text-slate-900 tracking-tight mb-2">
                 Encrypted Mail
               </h3>
               <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-relaxed">
@@ -134,7 +134,7 @@ export default function SupportPage() {
               <div className="w-12 h-12 bg-white/10 border border-white/20 flex items-center justify-center text-white mb-8">
                 <Phone size={20} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-serif text-white tracking-tight mb-2">
+              <h3 className="text-xl font-sans text-white tracking-tight mb-2">
                 Institutional Hotline
               </h3>
               <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-relaxed">
@@ -167,7 +167,7 @@ export default function SupportPage() {
                 >
                   <div className="flex justify-between items-start gap-8">
                     <div>
-                      <h4 className="font-serif text-lg text-slate-900 mb-3 group-hover:text-emerald-800 transition-colors leading-snug">
+                      <h4 className="font-sans text-lg text-slate-900 mb-3 group-hover:text-emerald-800 transition-colors leading-snug">
                         {f.q}
                       </h4>
                       <p className="text-sm text-slate-500 leading-relaxed font-light">
@@ -203,7 +203,7 @@ export default function SupportPage() {
                       {doc.category}
                     </span>
                   </div>
-                  <h4 className="font-serif text-slate-900 group-hover:text-emerald-800 transition-colors">
+                  <h4 className="font-sans text-slate-900 group-hover:text-emerald-800 transition-colors">
                     {doc.title}
                   </h4>
                   <div className="mt-4 flex items-center gap-2 text-[10px] font-mono text-slate-400 group-hover:text-slate-900 transition-colors">

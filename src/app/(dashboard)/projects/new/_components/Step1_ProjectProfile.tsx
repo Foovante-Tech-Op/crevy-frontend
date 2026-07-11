@@ -14,6 +14,16 @@ import { PROJECT_TYPES, type TCreateProject } from "@/constants/new-project";
 import { ProjectService } from "@/lib/services/project-service";
 import { cn } from "@/lib/utils";
 
+// Mirrors PROJECT_TYPE_SITE_KIND in crevy-backend's assessment-modules.config.ts.
+// These two project types route to project_plot → farm_plot on the backend
+// (no facility name/address concept applies), so the Site Details fields
+// below are hidden for them. Everything else routes to project_site, which
+// DOES need a facility name/address to be meaningfully populated.
+const FARM_PLOT_PROJECT_TYPES = [
+  "regenerative_agriculture",
+  "agricultural_land_management",
+];
+
 interface ManifestType {
   projectTypeModuleMap: Record<string, string[]>;
   projectTypeSectorMap: Record<
@@ -425,6 +435,39 @@ const Step1_ProjectProfile = ({
                 documents exactly.
               </p>
             </div>
+
+            {!FARM_PLOT_PROJECT_TYPES.includes(selectedType) && (
+              <div className="space-y-4 border border-slate-200 p-5 bg-white animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div>
+                  <label
+                    htmlFor="site-details"
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground block mb-1"
+                  >
+                    Site Details
+                  </label>
+                  <p className="text-xs text-slate-500 font-light">
+                    Identify the physical facility, installation, or water body
+                    this project operates at.
+                  </p>
+                </div>
+
+                <CustomInput
+                  control={control}
+                  name="facilityName"
+                  type="text"
+                  label="Facility / Site Name"
+                  placeholder="e.g. Volta Basin Processing Facility"
+                />
+
+                <CustomInput
+                  control={control}
+                  name="address"
+                  type="text"
+                  label="Site Address"
+                  placeholder="e.g. Plot 12, Industrial Area, Ho, Volta Region"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <CustomDatePicker

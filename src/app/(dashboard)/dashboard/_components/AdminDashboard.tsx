@@ -1,18 +1,41 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
   Banknote,
+  ExternalLink,
   Layers,
   Leaf,
   Radio,
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { type Column, DataTable } from "@/components/DataTable";
+import {
+  type ProjectOwnerRecord,
+  ProjectOwnerService,
+} from "@/lib/services/project-owner-service";
 import { cn } from "@/lib/utils";
 import { SectionLabel, StatCard } from "./Shared";
+
+const kycConfig: Record<string, { label: string; className: string }> = {
+  pending: {
+    label: "Pending",
+    className: "bg-amber-50 border-amber-200 text-amber-700",
+  },
+  verified: {
+    label: "Verified",
+    className: "bg-brand/10 border-brand/30 text-brand-700",
+  },
+  rejected: {
+    label: "Rejected",
+    className: "bg-red-50 border-red-200 text-red-700",
+  },
+};
 
 export default function AdminDashboard({
   userName,
@@ -41,6 +64,70 @@ export default function AdminDashboard({
 
   const [activeTab, setActiveTab] = useState(tabs[0]?.key ?? "projects");
 
+  // ── Real data: developers assigned to this admin (backend scopes by role) ──
+  const { data: developersRes, isLoading: loadingDevelopers } = useQuery({
+    queryKey: ["admin-dashboard-project-owners"],
+    queryFn: () => ProjectOwnerService.listProjectOwners({ limit: 10 }),
+    enabled: isProjectManager,
+    staleTime: 30_000,
+  });
+
+  const developers: ProjectOwnerRecord[] = developersRes?.data ?? [];
+  const totalDevelopers = developersRes?.total ?? 0;
+  const pendingKycCount = developers.filter(
+    (d) => d.verificationStatus === "pending",
+  ).length;
+
+  const developerColumns = useMemo<Column<ProjectOwnerRecord>[]>(
+    () => [
+      {
+        header: "Entity",
+        render: (d) => (
+          <span className="font-sans text-sm font-bold text-slate-900">
+            {d.name}
+          </span>
+        ),
+      },
+      {
+        header: "Registry Code",
+        render: (d) => (
+          <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest">
+            {d.code}
+          </span>
+        ),
+      },
+      {
+        header: "KYC Status",
+        render: (d) => {
+          const kc = kycConfig[d.verificationStatus] ?? kycConfig.pending;
+          return (
+            <span
+              className={cn(
+                "px-2 py-1 text-[9px] font-bold uppercase tracking-widest border",
+                kc.className,
+              )}
+            >
+              {kc.label}
+            </span>
+          );
+        },
+      },
+      {
+        header: "Actions",
+        align: "right",
+        render: (d) => (
+          <Link
+            href={`/project-owners/${d.userId}`}
+            className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-slate-900 border-b border-transparent hover:border-slate-900 transition-all inline-flex items-center gap-1"
+          >
+            Audit Dossier <ExternalLink size={12} />
+          </Link>
+        ),
+      },
+    ],
+    [],
+  );
+
   return (
     <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10 font-sans selection:bg-slate-900 selection:text-white bg-slate-50 min-h-screen">
       {/* ── 1. Hero Dossier ── */}
@@ -64,7 +151,7 @@ export default function AdminDashboard({
           </p>
         </div>
         <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200">
-          <span className="w-2 h-2 bg-brand-500 animate-pulse"></span>
+          <span className="w-2 h-2 bg-brand animate-pulse"></span>
           <span className="font-mono text-[10px] uppercase tracking-widest text-slate-900">
             Operative: {userName}
           </span>
@@ -101,83 +188,56 @@ export default function AdminDashboard({
             className="space-y-12"
           >
             <div>
-              <SectionLabel label="Project Vetting Overview" />
+              <SectionLabel
+                label="Project Vetting Overview"
+                action={{ label: "View Full Roster", href: "/project-owners" }}
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200">
                 <StatCard
                   label="Assigned Developers"
-                  value="14"
+                  value={loadingDevelopers ? "—" : totalDevelopers.toString()}
                   icon={Users}
                   trend="Active Entities"
                 />
                 <StatCard
                   label="Under Review"
-                  value="8"
+                  value={loadingDevelopers ? "—" : pendingKycCount.toString()}
                   icon={Layers}
                   trend="Requires Action"
                 />
                 <StatCard
                   label="Site Visits"
-                  value="3"
+                  value="—"
                   icon={ShieldCheck}
-                  trend="Scheduled this week"
+                  trend="Not yet integrated"
                 />
                 <StatCard
                   label="Pending KYC"
-                  value="5"
+                  value={loadingDevelopers ? "—" : pendingKycCount.toString()}
                   icon={AlertTriangle}
                   trend="Identities unchecked"
                 />
               </div>
             </div>
 
-            {/* Table Mockup */}
+            {/* Assigned Developers Table */}
             <div className="bg-white border border-slate-200 overflow-x-auto">
               <div className="p-6 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                 <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
                   Assigned Developers
                 </h3>
               </div>
-              <table className="w-full text-left min-w-[800px]">
-                <thead className="border-b-2 border-slate-900 bg-white">
-                  <tr>
-                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                      Entity
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                      Jurisdiction
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-                      KYC Status
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-sans text-sm font-bold text-slate-900">
-                      Kwame Mensah
-                    </td>
-                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500 uppercase">
-                      GHANA
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-bold uppercase tracking-widest">
-                        Pending
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        type="button"
-                        className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-slate-900 border-b border-transparent hover:border-slate-900 transition-all"
-                      >
-                        Audit Dossier
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <DataTable
+                columns={developerColumns}
+                data={developers}
+                isLoading={loadingDevelopers}
+                loadingMessage="Syncing developer roster..."
+                emptyMessage="No developers assigned to your portfolio."
+                getRowKey={(d) => d.id}
+                currentPage={1}
+                totalPages={1}
+                onPageChange={() => {}}
+              />
             </div>
           </motion.div>
         )}

@@ -245,8 +245,7 @@ export default function ProjectOwnersPage() {
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-sans text-foreground tracking-tight leading-none mb-4">
-                Project{" "}
-                <span className="italic text-muted-foreground">Owners.</span>
+                Project <span className="italic text-brand">Developers.</span>
               </h1>
               <p className="text-muted-foreground text-sm max-w-xl leading-relaxed">
                 Institutional directory of verified developers and land

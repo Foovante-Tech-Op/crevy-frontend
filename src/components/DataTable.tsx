@@ -21,6 +21,9 @@ interface DataTableProps<T> {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  // Optional row interaction
+  onRowClick?: (item: T, index: number) => void;
+  getRowKey?: (item: T, index: number) => string | number;
 }
 
 export function DataTable<T>({
@@ -32,6 +35,8 @@ export function DataTable<T>({
   currentPage,
   totalPages,
   onPageChange,
+  onRowClick,
+  getRowKey,
 }: DataTableProps<T>) {
   return (
     <div className="bg-white border border-slate-200 rounded-none overflow-hidden flex flex-col">
@@ -77,8 +82,14 @@ export function DataTable<T>({
             ) : (
               data.map((item, rowIdx) => (
                 <tr
-                  key={rowIdx}
-                  className="group hover:bg-slate-50/60 transition-colors"
+                  key={getRowKey ? getRowKey(item, rowIdx) : rowIdx}
+                  onClick={
+                    onRowClick ? () => onRowClick(item, rowIdx) : undefined
+                  }
+                  className={cn(
+                    "group hover:bg-slate-50/60 transition-colors",
+                    onRowClick && "cursor-pointer",
+                  )}
                 >
                   {columns.map((col, colIdx) => (
                     <td

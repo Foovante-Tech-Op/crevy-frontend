@@ -126,7 +126,7 @@ function AboutHero() {
   return (
     <section className="bg-white border-b border-slate-200 pt-32 pb-24 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
-        <Globe size={400} />
+        <Globe size={400} className="animate-bounce" />
       </div>
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10 relative z-10">
         <motion.div
@@ -142,15 +142,13 @@ function AboutHero() {
         </motion.div>
 
         <motion.h1
-          className="text-5xl md:text-7xl lg:text-8xl font-serif text-slate-900 tracking-tight leading-[1.05] mb-8 max-w-4xl"
+          className="text-5xl md:text-7xl lg:text-8xl font-sans text-slate-900 tracking-tight leading-[1.05] mb-8 max-w-4xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           Engineering the{" "}
-          <span className="italic text-slate-500">
-            financial infrastructure
-          </span>{" "}
+          <span className="italic text-brand">financial infrastructure</span>{" "}
           for Africa's climate assets.
         </motion.h1>
       </div>
@@ -169,14 +167,14 @@ function StorySection() {
             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4 border-t border-slate-900 pt-4">
               The African Climate Paradox
             </h2>
-            <p className="text-3xl font-serif text-slate-900 leading-tight">
+            <p className="text-3xl font-sans text-slate-900 leading-tight">
               Africa generates over 30% of the world's carbon sequestration
               potential, yet receives less than 2% of market revenue.
             </p>
           </div>
           <div className="md:col-span-8 space-y-8 text-slate-600 text-lg font-light leading-relaxed">
             <p>
-              <span className="float-left text-7xl font-serif text-slate-900 leading-none pr-4 pt-2">
+              <span className="float-left text-7xl font-sans text-slate-900 leading-none pr-4 pt-2">
                 C
               </span>
               revy was engineered as the antidote for African climate projects
@@ -221,7 +219,7 @@ function MissionVisionSection() {
             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">
               Core Mission
             </h2>
-            <h3 className="text-3xl font-serif text-slate-900 mb-6 leading-tight">
+            <h3 className="text-3xl font-sans text-slate-900 mb-6 leading-tight">
               To engineer radical transparency and liquidity into African
               environmental assets.
             </h3>
@@ -237,7 +235,7 @@ function MissionVisionSection() {
             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">
               Long-Term Vision
             </h2>
-            <h3 className="text-3xl font-serif text-white mb-6 leading-tight">
+            <h3 className="text-3xl font-sans text-white mb-6 leading-tight">
               A continent where localized ecological stewardship is recognized
               as a premium, highly-valued global asset class.
             </h3>
@@ -313,7 +311,7 @@ function TeamSection() {
             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 border-t border-slate-900 pt-4 mb-4">
               Executive Directory
             </h2>
-            <h3 className="text-4xl font-serif text-slate-900 tracking-tight">
+            <h3 className="text-4xl font-sans text-slate-900 tracking-tight">
               Corporate Governance.
             </h3>
           </div>
@@ -330,7 +328,7 @@ function TeamSection() {
               className="border border-slate-200 bg-slate-50 hover:border-slate-900 transition-colors flex flex-col h-full group"
             >
               <div className="p-6 border-b border-slate-200 flex justify-between items-start bg-white">
-                <div className="w-12 h-12 bg-slate-900 text-white flex items-center justify-center font-serif text-xl">
+                <div className="w-12 h-12 bg-slate-900 text-white flex items-center justify-center font-sans text-xl">
                   {member.initials}
                 </div>
                 <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 group-hover:text-slate-900 transition-colors">
@@ -338,7 +336,7 @@ function TeamSection() {
                 </span>
               </div>
               <div className="p-6 flex-1 bg-white">
-                <h4 className="text-xl font-serif text-slate-900 mb-1">
+                <h4 className="text-xl font-sans text-slate-900 mb-1">
                   {member.name}
                 </h4>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-4">
@@ -385,7 +383,7 @@ function MilestonesSection() {
                 </div>
 
                 {/* Title */}
-                <h3 className="font-serif text-2xl text-slate-900 leading-tight">
+                <h3 className="font-sans text-2xl text-slate-900 leading-tight">
                   {m.title}
                 </h3>
               </div>
@@ -406,8 +404,8 @@ function AboutCTA() {
   return (
     <section className="py-32 bg-white text-center">
       <div className="max-w-3xl mx-auto px-6">
-        <Leaf className="w-8 h-8 mx-auto text-emerald-700 mb-8" />
-        <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight mb-8">
+        <Leaf className="w-8 h-8 mx-auto text-brand mb-8" />
+        <h2 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight mb-8">
           Initiate Partnership
         </h2>
         <p className="text-slate-500 font-light text-lg mb-10 max-w-xl mx-auto">

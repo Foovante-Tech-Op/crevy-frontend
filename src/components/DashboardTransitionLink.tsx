@@ -136,7 +136,7 @@ export function AccessDashboardButton({ isNavSolid }: { isNavSolid: boolean }) {
         "inline-flex items-center rounded-none font-bold uppercase tracking-widest text-[10px] px-6 h-10 transition-colors",
         isNavSolid
           ? "bg-slate-900 hover:bg-emerald-900 text-white"
-          : "bg-white hover:bg-emerald-500 text-slate-900 hover:text-white",
+          : "bg-white hover:bg-brand text-slate-900 hover:text-white",
       )}
     >
       Access Dashboard <LayoutDashboard className="w-3.5 h-3.5 ml-2" />
@@ -154,7 +154,7 @@ export function AccessDashboardMobileButton({
 }) {
   return (
     <DashboardTransitionLink
-      className="w-full inline-flex items-center justify-center rounded-none bg-emerald-700 hover:bg-emerald-600 text-white font-bold uppercase tracking-widest text-[10px] h-12 transition-colors"
+      className="w-full inline-flex items-center justify-center rounded-none bg-brand hover:bg-brand/70 text-white font-bold uppercase tracking-widest text-[10px] h-12 transition-colors"
       onClick={onMenuClose}
     >
       Access Dashboard <LayoutDashboard className="w-4 h-4 ml-2" />
