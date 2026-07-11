@@ -188,7 +188,7 @@ export default function MethodologyPage() {
   );
 
   return (
-    <div className="bg-white min-h-screen font-sans selection:bg-slate-900 selection:text-white">
+    <div className="bg-white min-h-screen selection:bg-slate-900 selection:text-white">
       <NotebookHero
         activeDomain={activeDomain}
         setActiveDomain={setActiveDomain}
@@ -250,7 +250,7 @@ function NotebookHero({
             <div className="w-8 h-[1px] bg-slate-900"></div>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-sans text-slate-900 tracking-tight mb-8">
+          <h1 className="text-5xl md:text-7xl text-slate-900 tracking-tight mb-8">
             The Scientific <span className="italic text-brand">Notebook.</span>
           </h1>
 
@@ -261,12 +261,12 @@ function NotebookHero({
           </p>
 
           {/* Segmented Control Toggle */}
-          <div className="inline-flex bg-slate-100 p-1.5 rounded-full shadow-inner">
+          <div className="inline-flex bg-brand/10 p-1.5 rounded-full shadow-inner">
             {/* Tab 1 */}
             <button
               type="button"
               onClick={() => setActiveDomain("protocols")}
-              className={`relative px-8 py-3 text-sm font-semibold rounded-full transition-colors duration-300 ${
+              className={`relative px-8 py-3 text-sm font-semibold rounded-full transition-colors duration-300 cursor-pointer ${
                 activeDomain === "protocols"
                   ? "text-slate-900"
                   : "text-slate-500 hover:text-slate-900"
@@ -286,7 +286,7 @@ function NotebookHero({
             <button
               type="button"
               onClick={() => setActiveDomain("telemetry")}
-              className={`relative px-8 py-3 text-sm font-semibold rounded-full transition-colors duration-300 ${
+              className={`relative px-8 py-3 text-sm font-semibold rounded-full transition-colors duration-300 cursor-pointer ${
                 activeDomain === "telemetry"
                   ? "text-slate-900"
                   : "text-slate-500 hover:text-slate-900"
@@ -316,7 +316,7 @@ function FoundationalStandards() {
       <div className="container mx-auto px-6 max-w-[1400px]">
         <div className="mb-12 border-b border-slate-200 pb-6 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl font-sans text-slate-900 flex items-center gap-3">
+            <h2 className="text-3xl text-slate-900 flex items-center gap-3">
               <BookOpen
                 className="text-slate-400"
                 size={28}
@@ -334,12 +334,12 @@ function FoundationalStandards() {
           {FOUNDATIONAL_STANDARDS.map((std) => (
             <div
               key={std.id}
-              className="bg-white border border-slate-200 p-8 hover:border-slate-900 transition-colors flex flex-col h-full shadow-sm"
+              className="bg-white border border-brand/20 p-8 hover:border-brand/90 transition-colors flex flex-col h-full shadow-sm"
             >
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand mb-4 pb-4 border-b border-slate-100">
                 CORE STANDARD
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-4">
+              <h3 className="text-lg font-bold text-brand mb-4">
                 {std.title}
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed flex-grow mb-6">
@@ -353,7 +353,7 @@ function FoundationalStandards() {
                   {std.scope.map((s) => (
                     <span
                       key={s}
-                      className="bg-slate-100 text-slate-600 px-2.5 py-1 text-[10px] font-semibold rounded"
+                      className="bg-brand/10 text-brand px-2.5 py-1 text-[10px] font-semibold rounded"
                     >
                       {s}
                     </span>
@@ -390,10 +390,10 @@ function MethodologyCatalog() {
       <div className="container mx-auto px-6 max-w-[1400px]">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="max-w-2xl">
-            <h2 className="text-4xl font-sans text-slate-900 mb-4 leading-tight">
+            <h2 className="text-4xl text-slate-900 mb-4 leading-tight">
               Registry Methodology Library.
             </h2>
-            <p className="text-slate-500 text-base font-sans">
+            <p className="text-slate-500 text-base">
               The Crevy Intelligence Engine automatically maps your project
               telemetry against these verified protocols to determine the most
               profitable and compliant credit pathway.
@@ -407,10 +407,10 @@ function MethodologyCatalog() {
                 variant={activeFilter === sector ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveFilter(sector)}
-                className={`rounded-full transition-all ${
+                className={`rounded-full transition-all cursor-pointer ${
                   activeFilter === sector
-                    ? "bg-slate-900 text-white hover:bg-slate-800"
-                    : "text-slate-600 border-slate-200 hover:border-slate-900 hover:text-slate-900"
+                    ? "bg-brand/90 text-white hover:bg-brand/80"
+                    : "text-slate-600 border-slate-200 hover:border-brand/90 hover:bg-brand/10 hover:text-brand/90"
                 }`}
               >
                 {sector}
@@ -432,17 +432,17 @@ function MethodologyCatalog() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="group relative bg-white border border-slate-200 p-8 flex flex-col h-full hover:shadow-xl hover:border-slate-300 transition-all cursor-pointer"
+                className="group relative bg-white border border-brand/20 p-8 flex flex-col h-full hover:shadow-xl hover:border-brand/30 transition-all cursor-pointer"
               >
                 {/* Header Row */}
                 <div className="flex justify-between items-start mb-6 pb-6 border-b border-slate-100">
-                  <span className="font-mono text-sm font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded">
+                  <span className="font-mono text-sm font-bold text-brand/90 bg-brand/10 px-3 py-1 rounded">
                     {methodology.code}
                   </span>
                   <span
                     className={`text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full border ${
                       methodology.registry === "Verra"
-                        ? "border-emerald-200 text-brand bg-emerald-50"
+                        ? "border-brand/20 text-brand bg-brand/5"
                         : methodology.registry === "Gold Standard"
                           ? "border-amber-200 text-amber-700 bg-amber-50"
                           : "border-blue-200 text-blue-700 bg-blue-50"
@@ -452,7 +452,7 @@ function MethodologyCatalog() {
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-slate-900 mb-6 font-sans leading-snug group-hover:text-brand transition-colors">
+                <h3 className="text-xl font-bold text-slate-900 mb-6 leading-snug group-hover:text-brand transition-colors">
                   {methodology.title}
                 </h3>
 
@@ -484,7 +484,7 @@ function MethodologyCatalog() {
 
                 {/* Hover Reveal Footer */}
                 <div className="mt-8 pt-4 border-t border-slate-100 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-brand/90 uppercase tracking-wider">
                     View Protocol
                   </span>
                   <ArrowRight size={16} className="text-brand" />
@@ -499,7 +499,7 @@ function MethodologyCatalog() {
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-400 via-transparent to-transparent"></div>
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="max-w-xl">
-              <h3 className="text-2xl font-sans mb-4">
+              <h3 className="text-2xl mb-4">
                 Don't know which methodology applies?
               </h3>
               <p className="text-slate-400 text-sm leading-relaxed">
@@ -569,7 +569,7 @@ function TelemetrySpecs() {
               size={32}
               strokeWidth={1.5}
             />
-            <h2 className="text-2xl font-sans text-slate-900 mb-4 leading-tight">
+            <h2 className="text-2xl text-slate-900 mb-4 leading-tight">
               Data Ingestion Pipeline
             </h2>
             <p className="text-slate-500 text-sm leading-relaxed">
@@ -610,7 +610,7 @@ function TelemetrySpecs() {
                   </span>
                 </div>
               </div>
-              <p className="text-slate-500 text-sm leading-relaxed font-sans mt-auto">
+              <p className="text-slate-500 text-sm leading-relaxed mt-auto">
                 {spec.desc}
               </p>
             </div>
@@ -627,7 +627,7 @@ function MathematicalSpecifications() {
       <div className="container mx-auto px-6 max-w-[1400px]">
         <div className="mb-16 border-b border-slate-900 pb-6 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl font-sans text-slate-900 flex items-center gap-3">
+            <h2 className="text-3xl text-slate-900 flex items-center gap-3">
               <Code2 className="text-slate-400" size={28} strokeWidth={1.5} />
               Rigorous Mathematical Proofs
             </h2>
@@ -645,7 +645,7 @@ function MathematicalSpecifications() {
               <h3 className="text-brand text-xl font-bold mb-4">
                 Above-Ground Biomass Quantification
               </h3>
-              <p className="text-slate-500 text-sm font-sans leading-relaxed mb-8">
+              <p className="text-slate-500 text-sm leading-relaxed mb-8">
                 Utilized to translate raw physical observations into total
                 vegetative mass.
               </p>
@@ -657,7 +657,7 @@ function MathematicalSpecifications() {
                 className="text-brand text-base md:text-lg"
               />
             </div>
-            <div className="text-xs text-slate-600 space-y-3 font-sans mt-6">
+            <div className="text-xs text-slate-600 space-y-3 mt-6">
               <p className="flex items-start gap-3">
                 <strong className="text-brand font-mono w-12 shrink-0 pt-0.5">
                   AGB:
@@ -695,7 +695,7 @@ function MathematicalSpecifications() {
               <h3 className="text-brand text-xl font-bold mb-4">
                 Net Asset Allocation Accounting
               </h3>
-              <p className="text-slate-500 text-sm font-sans leading-relaxed mb-8">
+              <p className="text-slate-500 text-sm leading-relaxed mb-8">
                 Aligns directly with global standards. We explicitly subtract
                 all risk factors before minting credits.
               </p>
@@ -707,7 +707,7 @@ function MathematicalSpecifications() {
                 className="text-brand text-base md:text-lg"
               />
             </div>
-            <div className="text-xs text-slate-600 space-y-3 font-sans mt-6">
+            <div className="text-xs text-slate-600 space-y-3 mt-6">
               <p className="flex items-start gap-3">
                 <strong className="text-brand font-mono w-24 shrink-0 pt-0.5">
                   N_credits:
@@ -765,7 +765,7 @@ function TreeToTokenPipeline() {
     <section className="py-24 bg-slate-50 border-t border-slate-200">
       <div className="container mx-auto px-6 max-w-[1400px]">
         <div className="mb-16">
-          <h2 className="text-4xl font-sans text-slate-900 mb-4 leading-tight">
+          <h2 className="text-4xl text-slate-900 mb-4 leading-tight">
             Tree to Token: <br />
             <span className="italic text-slate-500">Chain of Custody.</span>
           </h2>
@@ -991,7 +991,7 @@ function TreeToTokenPipeline() {
                       <span className="text-slate-500">{`}`}</span>
                     </pre>
                   </div>
-                  <div className="h-20 border-t border-slate-800 pt-4 text-xs flex items-start text-slate-400 shrink-0 select-none font-sans mt-4">
+                  <div className="h-20 border-t border-slate-800 pt-4 text-xs flex items-start text-slate-400 shrink-0 select-none mt-4">
                     <AnimatePresence mode="wait">
                       {hoveredField ? (
                         <motion.div
