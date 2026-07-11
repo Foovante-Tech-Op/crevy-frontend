@@ -147,13 +147,7 @@ export function HeroSection({
           >
             <Link
               href="/register"
-              className="w-full sm:w-auto bg-brand text-slate-900 px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-white transition-colors text-center"
-            >
-              Enter the Marketplace
-            </Link>
-            <Link
-              href="/register"
-              className="w-full sm:w-auto border-white border text-white px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-brand hover:border-brand transition-colors text-center"
+              className="w-full sm:w-auto bg-brand text-white px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-brand/90 transition-colors text-center"
             >
               Join Us
             </Link>
