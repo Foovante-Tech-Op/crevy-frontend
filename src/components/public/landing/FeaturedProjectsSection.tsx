@@ -8,8 +8,19 @@ export function ScrollingMarquee() {
   return (
     <div className="bg-slate-200 py-3 overflow-hidden relative border-b border-slate-300">
       <style jsx>{`
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .marquee-container { display: flex; white-space: nowrap; animation: marquee 40s linear infinite; }
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .marquee-container {
+          display: flex;
+          white-space: nowrap;
+          animation: marquee 40s linear infinite;
+        }
       `}</style>
       <div className="marquee-container">
         {[...Array(4)].map((_, i) => (
@@ -59,7 +70,7 @@ export function FinalCTASection({
               Become a Project Owner
             </Link>
             <Link
-              href="/marketplace"
+              href="/register"
               className="w-full sm:w-auto bg-foreground text-brand hover:bg-slate-900 px-8 py-5 text-[10px] font-bold uppercase tracking-widest transition-colors"
             >
               Start Buying Credits

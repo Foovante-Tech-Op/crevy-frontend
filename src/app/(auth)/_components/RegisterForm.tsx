@@ -1,294 +1,491 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2, Sprout } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { authClient } from "@/lib/auth";
+import { z } from "zod";
+import {
+  applyManagesProjectsRefinement,
+  completeRegistrationBaseSchema,
+  MANAGES_PROJECTS_OPTIONS,
+  REGISTER_CLIMATE_SECTOR_OPTIONS,
+  type TCompleteRegistration,
+} from "@/constants/register";
+import {
+  ROLE_DESCRIPTION_OPTIONS,
+  USE_CASE_OPTIONS,
+} from "@/constants/waitlist";
 import { axiosClient } from "@/lib/axiosClient";
 import { cn } from "@/lib/utils";
+import {
+  FieldLabel,
+  MultiSelectChips,
+  SelectableCardGroup,
+  SingleSelectField,
+  TextField,
+} from "./form-fields";
 
 type EntityType = "organization" | "project_owner";
+
+const registerFormSchema = z
+  .object({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    email: z.string().email("Enter a valid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+    contactNumber: z.string().optional().or(z.literal("")),
+    // Spreads the un-refined base object — completeRegistrationSchema (the
+    // refined version) does NOT expose `.shape`, so spreading that here
+    // would silently drop every one of these fields from validation.
+    ...completeRegistrationBaseSchema.shape,
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+      });
+    }
+    // Reapply the buyer-only organizationName/jobTitle requirement here,
+    // at the schema that actually gets used for validation.
+    applyManagesProjectsRefinement(data, ctx);
+  });
+
+type TRegisterForm = z.infer<typeof registerFormSchema>;
+
+const defaultValues: TRegisterForm = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  contactNumber: "",
+  roleDescription: "",
+  climateSectors: [],
+  useCases: [],
+  managesProjects: "" as TCompleteRegistration["managesProjects"],
+  organizationName: "",
+  jobTitle: "",
+};
 
 export default function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sectorParam = searchParams.get("sector");
 
-  const [entityType, setEntityType] = useState<EntityType>("organization");
   const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    orgName: "",
-    taxResidence: "",
+  const methods = useForm<TRegisterForm>({
+    resolver: zodResolver(registerFormSchema) as any,
+    defaultValues,
+    mode: "onTouched",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { control, handleSubmit, watch, setValue } = methods;
+  const managesProjects = watch("managesProjects");
+  const climateSectors = watch("climateSectors");
+  const isInvestor = managesProjects === "I invest in climate projects";
 
-    if (formData.password !== confirmPassword) {
-      return toast.error("Cryptographic mismatch. Passwords must align.");
+  // Pre-select sector from URL param
+  useEffect(() => {
+    if (
+      sectorParam &&
+      REGISTER_CLIMATE_SECTOR_OPTIONS.includes(sectorParam as any)
+    ) {
+      setValue("climateSectors", [sectorParam]);
     }
-    if (formData.password.length < 8) {
-      return toast.error("Security policy requires at least 8 characters.");
-    }
+  }, [sectorParam, setValue]);
 
+  const onSubmit = async (data: TRegisterForm) => {
     setLoading(true);
 
     try {
-      const { data, error } = await authClient.signUp.email({
-        email: formData.email,
-        password: formData.password,
-        name: `${formData.firstName} ${formData.lastName}`,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        profileCompleted: true,
-      } as any);
-
-      if (error) throw error;
-
-      await axiosClient.post("/auth/register/organization", {
-        userId: data.user.id,
-        orgName: formData.orgName,
-        taxResidence: formData.taxResidence,
+      // Single call — the backend creates the better-auth user AND the
+      // org/project_developer entity, with a compensating rollback if the
+      // entity half fails. No more stranded half-accounts from a failed
+      // second request.
+      await axiosClient.post("/auth/register/account", {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        contactNumber: data.contactNumber || undefined,
+        roleDescription: data.roleDescription,
+        climateSectors: data.climateSectors,
+        useCases: data.useCases,
+        managesProjects: data.managesProjects,
+        organizationName: data.organizationName || undefined,
+        jobTitle: data.jobTitle || undefined,
       });
 
-      toast.success("Entity initialization complete. Welcome to the registry.");
-      router.push("/dashboard");
+      // Show success modal. Registration no longer auto-logs the person in
+      // (better-auth's session cookie is only set on a direct browser call
+      // to signUp.email(), which this endpoint doesn't proxy) — "Go to
+      // Login" below is the actual next step, not just a formality.
+      setRegisteredEmail(data.email);
+      setShowSuccessModal(true);
+
+      toast.success(
+        "Account created successfully! Please check your email to verify.",
+      );
     } catch (err: any) {
-      toast.error(err.message || "Initialization failed. Review system logs.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Registration failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const onInvalid = (errors: any) => {
+    const entries = Object.entries(errors);
+    if (entries.length > 0) {
+      const [field, error]: [string, unknown][] = entries;
+      toast.error(`${field}: ${(error as any)?.message || "Invalid input"}`);
+    }
+  };
+
   return (
     <div className={cn("w-full max-w-md mx-auto", className)} {...props}>
-      {/* ── Entity Selection Tabs ── */}
-      <div className="flex border-b border-slate-200 mb-8 rounded-none">
-        <button
-          type="button"
-          onClick={() => setEntityType("organization")}
-          className={cn(
-            "flex-1 pb-4 text-[10px] font-mono font-bold uppercase tracking-[0.2em] transition-all rounded-none",
-            entityType === "organization"
-              ? "border-b-2 border-slate-900 text-slate-900"
-              : "text-slate-400 hover:text-slate-600",
-          )}
-        >
-          Institutional Buyer
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setEntityType("project_owner")}
-          className={cn(
-            "flex-1 pb-4 text-[10px] font-mono font-bold uppercase tracking-[0.2em] transition-all rounded-none",
-            entityType === "project_owner"
-              ? "border-b-2 border-slate-900 text-slate-900"
-              : "text-slate-400 hover:text-slate-600",
-          )}
-        >
-          Project Owner
-        </button>
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight leading-none mb-3">
+          Create Account<span className="text-brand">.</span>
+        </h1>
+        <p className="text-sm text-slate-500 font-light leading-relaxed">
+          Join Crevy as a buyer or project developer. Start your journey in the
+          carbon market.
+        </p>
       </div>
 
-      {entityType === "project_owner" ? (
-        <div className="space-y-8 py-4 animate-in fade-in duration-300">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-950 border border-slate-900 rounded-none">
-            <Sprout className="w-5 h-5 text-brand" strokeWidth={1.5} />
-          </div>
-          <div className="space-y-3">
-            <p className="font-bold text-2xl text-slate-900 tracking-tight leading-snug">
-              Project accounts require underwriting.
-            </p>
-            <p className="text-sm text-slate-500 font-light leading-relaxed">
-              Onboarding a project involves a short conversation with our team
-              to align on methodology, verification requirements, and registry
-              setup. Register your interest below and a representative will
-              follow up by email or phone to get you started.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push("/register-interest")}
-            className="w-full bg-slate-900 hover:bg-brand hover:text-slate-900 text-white font-bold uppercase tracking-[0.2em] text-[10px] py-6 rounded-none transition-colors flex items-center justify-center gap-2"
-          >
-            Register Your Interest <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Details */}
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
+        {/* ── Personal Details ── */}
+        <section className="space-y-6">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
+            Personal Details
+          </p>
+
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label
-                htmlFor="firstName"
-                className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-              >
-                First Name
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-                required
-                disabled={loading}
+              <FieldLabel required>First Name</FieldLabel>
+              <Controller
+                control={control}
+                name="firstName"
+                render={({ field, fieldState }) => (
+                  <>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                      {...field}
+                      disabled={loading}
+                    />
+                    {fieldState.error && (
+                      <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
             </div>
             <div className="space-y-3">
-              <label
-                htmlFor="lastName"
-                className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-              >
-                Last Name
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                required
-                disabled={loading}
+              <FieldLabel required>Last Name</FieldLabel>
+              <Controller
+                control={control}
+                name="lastName"
+                render={({ field, fieldState }) => (
+                  <>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                      {...field}
+                      disabled={loading}
+                    />
+                    {fieldState.error && (
+                      <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
             </div>
           </div>
 
           <div className="space-y-3">
-            <label
-              htmlFor="email"
-              className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-            >
-              Work Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
-              disabled={loading}
+            <FieldLabel required>Email Address</FieldLabel>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field, fieldState }) => (
+                <>
+                  <input
+                    type="email"
+                    className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                    {...field}
+                    disabled={loading}
+                  />
+                  {fieldState.error && (
+                    <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </>
+              )}
             />
           </div>
 
-          {/* Security Details */}
+          <div className="space-y-3">
+            <FieldLabel>Phone Number</FieldLabel>
+            <Controller
+              control={control}
+              name="contactNumber"
+              render={({ field, fieldState }) => (
+                <>
+                  <input
+                    type="tel"
+                    placeholder="+233 123 456 789"
+                    className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                    {...field}
+                    disabled={loading}
+                  />
+                  {fieldState.error && (
+                    <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </>
+              )}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label
-                htmlFor="password"
-                className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
-                disabled={loading}
+              <FieldLabel required>Password</FieldLabel>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field, fieldState }) => (
+                  <>
+                    <input
+                      type="password"
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                      {...field}
+                      disabled={loading}
+                    />
+                    {fieldState.error && (
+                      <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
             </div>
             <div className="space-y-3">
-              <label
-                htmlFor="confirmPassword"
-                className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-              >
-                Verify Password
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
+              <FieldLabel required>Verify Password</FieldLabel>
+              <Controller
+                control={control}
+                name="confirmPassword"
+                render={({ field, fieldState }) => (
+                  <>
+                    <input
+                      type="password"
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                      {...field}
+                      disabled={loading}
+                    />
+                    {fieldState.error && (
+                      <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
             </div>
           </div>
+        </section>
 
-          {/* Organization Fields */}
-          <div className="pt-6 border-t border-slate-200 space-y-6">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-              Corporate Ledger Identity
-            </p>
+        {/* ── Profile Section ── */}
+        <section className="space-y-6">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
+            03 — Profile
+          </p>
 
-            <div className="space-y-3">
-              <label
-                htmlFor="orgName"
-                className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-              >
-                Registered Organization Name
-              </label>
-              <input
-                type="text"
-                id="orgName"
-                className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-                value={formData.orgName}
-                onChange={(e) =>
-                  setFormData({ ...formData, orgName: e.target.value })
-                }
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-3">
-              <label
-                htmlFor="taxResidence"
-                className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block"
-              >
-                Primary Tax Jurisdiction (ISO Alpha-2 Code)
-              </label>
-              <input
-                type="text"
-                id="taxResidence"
-                placeholder="e.g. US, DE, JP, GH"
-                maxLength={2}
-                className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 uppercase tracking-widest focus:ring-0 focus:border-slate-900 transition-colors outline-none"
-                value={formData.taxResidence}
-                onChange={(e) =>
-                  setFormData({ ...formData, taxResidence: e.target.value })
-                }
-                disabled={loading}
-              />
-            </div>
+          <div className="space-y-3">
+            <FieldLabel required>Which best describes you?</FieldLabel>
+            <SelectableCardGroup
+              control={control}
+              name="roleDescription"
+              options={ROLE_DESCRIPTION_OPTIONS}
+            />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-brand text-slate-900 rounded-none px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin h-4 w-4" /> Initializing...
-              </>
-            ) : (
-              "Initialize Entity Record"
-            )}
-          </button>
-        </form>
+          <MultiSelectChips
+            control={control}
+            name="climateSectors"
+            label="Which climate sectors are you interested in?"
+            options={REGISTER_CLIMATE_SECTOR_OPTIONS}
+            required
+          />
+
+          <MultiSelectChips
+            control={control}
+            name="useCases"
+            label="What would you like to use Crevy for?"
+            options={USE_CASE_OPTIONS}
+            required
+          />
+        </section>
+
+        {/* ── Engagement Section ── */}
+        <section className="space-y-6">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 pb-3 border-b border-slate-200">
+            04 — Engagement
+          </p>
+
+          <div className="space-y-3">
+            <FieldLabel required>Which applies to you?</FieldLabel>
+            <SelectableCardGroup
+              control={control}
+              name="managesProjects"
+              options={MANAGES_PROJECTS_OPTIONS}
+            />
+          </div>
+
+          {isInvestor && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 animate-in fade-in duration-300">
+              <div className="space-y-3">
+                <FieldLabel required>Organization Name</FieldLabel>
+                <Controller
+                  control={control}
+                  name="organizationName"
+                  render={({ field, fieldState }) => (
+                    <>
+                      <input
+                        type="text"
+                        className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                        {...field}
+                        disabled={loading}
+                      />
+                      {fieldState.error && (
+                        <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                />
+              </div>
+              <div className="space-y-3">
+                <FieldLabel required>Job Title</FieldLabel>
+                <Controller
+                  control={control}
+                  name="jobTitle"
+                  render={({ field, fieldState }) => (
+                    <>
+                      <input
+                        type="text"
+                        className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                        {...field}
+                        disabled={loading}
+                      />
+                      {fieldState.error && (
+                        <p className="text-[10px] font-mono text-red-600 uppercase tracking-wide mt-1">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                />
+              </div>
+            </div>
+          )}
+        </section>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-brand text-slate-900 rounded-none px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin h-4 w-4" /> Creating Account...
+            </>
+          ) : (
+            "Create Account"
+          )}
+        </button>
+      </form>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 p-8 max-w-md w-full shadow-2xl">
+            <div className="space-y-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-brand border border-slate-900">
+                <svg
+                  className="w-6 h-6 text-slate-900"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  role="img"
+                  aria-label="Success icon"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+                  Check Your Email
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  We've sent a verification link to{" "}
+                  <span className="font-mono font-bold text-slate-900">
+                    {registeredEmail}
+                  </span>
+                  . Please click the link to activate your account.
+                </p>
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => router.push("/login")}
+                  className="w-full bg-brand text-slate-900 rounded-none px-8 py-4 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-colors"
+                >
+                  Go to Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-none px-8 py-4 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-slate-100 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

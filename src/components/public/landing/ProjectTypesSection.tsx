@@ -12,6 +12,36 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
+import {
+  PROJECT_TYPE_ROUTING,
+  type TProjectTypeSlug,
+} from "@/constants/register";
+
+// Maps each card's display title to its PROJECT_TYPE_ROUTING key. Kept as
+// an explicit lookup (rather than deriving the slug from the title at
+// render time) so a copy tweak to `title` below can't silently break the
+// routing lookup.
+const TITLE_TO_SLUG: Record<string, TProjectTypeSlug> = {
+  "Regenerative Agriculture": "regenerative-agriculture",
+  Reforestation: "reforestation",
+  "Renewable Energy": "renewable-energy",
+  Biochar: "biochar",
+  "Blue Carbon": "blue-carbon",
+  "Waste Management": "waste-management",
+};
+
+function getSignUpHref(title: string): string {
+  const slug = TITLE_TO_SLUG[title];
+  const routing = slug ? PROJECT_TYPE_ROUTING[slug] : undefined;
+
+  if (!routing) return "/register-interest"; // safe fallback, shouldn't happen
+
+  if (routing.route === "register") {
+    return `/register?sector=${encodeURIComponent(routing.registerSector as string)}`;
+  }
+
+  return `/register-interest?sector=${encodeURIComponent(routing.waitlistSector)}`;
+}
 
 // ─── DATA & METADATA DICTIONARY ──────────────────────────────────────────────
 const projectTypes = [
@@ -166,7 +196,7 @@ export function ProjectTypesSection({
                   </p>
 
                   <Link
-                    href="/register"
+                    href={getSignUpHref(type.title)}
                     className="inline-flex items-center justify-center text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-bold text-white border border-white/30 px-6 py-4 hover:bg-white hover:text-slate-900 transition-all duration-300 w-full sm:w-fit backdrop-blur-sm group"
                   >
                     Sign Up{" "}

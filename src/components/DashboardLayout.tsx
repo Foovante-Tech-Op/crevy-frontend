@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { ProfileCompletionGate } from "@/components/ProfileCompletionGate";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -36,6 +37,10 @@ export const DashboardLayoutClient = ({
 
       {/* Main Container */}
       <SidebarInset className="flex min-h-screen flex-col bg-white">
+        {/* Self-registered project developers: nudge to finish payment +
+            farm plot details. Renders nothing for buyers/completed profiles. */}
+        <ProfileCompletionGate user={user} />
+
         {/* Mobile Sidebar Trigger */}
         <div className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4 md:hidden">
           <SidebarTrigger className="-ml-1 text-slate-900" />

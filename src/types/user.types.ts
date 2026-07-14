@@ -98,6 +98,11 @@ export type TBetterAuthUser = {
   role?: TRole | null;
   // Injected by customSession — the org this user belongs to (if any).
   activeOrganizationId?: string | null;
+  // Injected by customSession via a join on project_developer_member.
+  // true/false for project developers, null if not applicable (e.g. buyers).
+  // Frontend should only act (show the complete-profile banner/modal) on
+  // an explicit `false` — null means "doesn't apply to this account".
+  hasOnboarded?: boolean | null;
   image?: string | null;
   createdAt: Date;
   updatedAt: Date;

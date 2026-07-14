@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import BackButton from "../_components/BackButton";
 import RegisterForm from "../_components/RegisterForm";
 
@@ -16,6 +17,25 @@ const VALUE_PROPS = [
   { value: "Polygon", label: "Immutable Ledger", icon: LinkIcon },
   { value: "Direct", label: "Developer Liquidity", icon: CheckCircle },
 ];
+
+// Simple loading skeleton to show while the form client-hydrates
+const RegisterFormSkeleton = () => (
+  <div className="space-y-5 animate-pulse w-full">
+    <div className="space-y-2">
+      <div className="h-4 bg-slate-100 rounded w-1/4" />
+      <div className="h-11 bg-slate-100 rounded-lg w-full" />
+    </div>
+    <div className="space-y-2">
+      <div className="h-4 bg-slate-100 rounded w-1/4" />
+      <div className="h-11 bg-slate-100 rounded-lg w-full" />
+    </div>
+    <div className="space-y-2">
+      <div className="h-4 bg-slate-100 rounded w-1/3" />
+      <div className="h-11 bg-slate-100 rounded-lg w-full" />
+    </div>
+    <div className="h-11 bg-slate-200 rounded-lg w-full mt-6" />
+  </div>
+);
 
 const RegisterPage = () => {
   return (
@@ -82,7 +102,7 @@ const RegisterPage = () => {
       </div>
 
       {/* ── Right: Form Panel ──────────────────────────────────────────────── */}
-      <div className="relative flex flex-col w-full lg:w-[46%] xl:w-[42%] bg-white px-8 md:px-16 py-12 h-full overflow-y-auto">
+      <div className="relative flex flex-col w-full lg:w-[46%] xl:w-[42%] bg-white px-8 2xl:px-10 py-12 h-full overflow-y-auto">
         <div className="flex items-center justify-between mb-16 shrink-0 border-b border-slate-200 pb-6">
           <Link
             href="/"
@@ -102,7 +122,7 @@ const RegisterPage = () => {
         <BackButton href="/" label="Back to Home" className="mb-8 -mt-8" />
 
         <div className="flex flex-1 flex-col max-w-md w-full mx-auto justify-center">
-          <div className="mb-10">
+          {/* <div className="mb-10">
             <h1 className="text-4xl font-bold text-slate-900 tracking-tight leading-none mb-3">
               Register Entity<span className="text-brand">.</span>
             </h1>
@@ -110,9 +130,12 @@ const RegisterPage = () => {
               Register your organization to access the verified carbon registry
               and act on its cryptographic behalf.
             </p>
-          </div>
+          </div> */}
 
-          <RegisterForm />
+          {/* Wrap the form in Suspense to allow static build rendering */}
+          <Suspense fallback={<RegisterFormSkeleton />}>
+            <RegisterForm />
+          </Suspense>
 
           <div className="mt-12 pt-8 border-t border-slate-200 text-center">
             <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] leading-relaxed">

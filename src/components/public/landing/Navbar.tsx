@@ -53,7 +53,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
   const navLinks = [
     { name: "Marketplace", href: "/marketplace" },
     { name: "Methodology", href: "/methodology" },
-    { name: "About", href: "/about-us" },
+    // { name: "About", href: "/about-us" },
     { name: "Support", href: "/support" },
   ];
 
@@ -181,8 +181,8 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                 className={cn(
                   "rounded-none font-bold uppercase tracking-widest text-[10px] px-8 h-10 transition-colors",
                   isNavSolid
-                    ? "bg-slate-900 hover:bg-emerald-900 text-white"
-                    : "bg-white hover:bg-emerald-500 text-slate-900 hover:text-white",
+                    ? "bg-slate-900 hover:bg-brand text-white"
+                    : "bg-white hover:bg-brand text-slate-900 hover:text-white",
                 )}
               >
                 <Link href="/register">Sign Up</Link>
@@ -286,7 +286,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                   </Button>
                   <Button
                     asChild
-                    className="rounded-none bg-emerald-700 hover:bg-emerald-600 text-white font-bold uppercase tracking-widest text-[10px] h-12"
+                    className="rounded-none bg-brand hover:bg-brand text-white font-bold uppercase tracking-widest text-[10px] h-12"
                   >
                     <Link
                       href="/register"

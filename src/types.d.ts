@@ -13,4 +13,7 @@ export type TBetterAuthUser = {
   role?: TRole;
   firstName?: string;
   lastName?: string;
+
+  hasOnboarded?: boolean;
+  isVerified?: boolean;
 };
