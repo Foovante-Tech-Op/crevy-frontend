@@ -6,17 +6,19 @@ import {
   Activity,
   Database,
   Leaf,
+  Lock,
   Plus,
   ScanSearch,
   TreePine,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { type Column, DataTable } from "@/components/DataTable";
+import { CompleteProfileModal } from "@/components/ProfileCompletionGate";
 import { authClient } from "@/lib/auth";
 import { ProjectService } from "@/lib/services/project-service";
-import type { TRole } from "@/types/user.types";
+import type { TBetterAuthUser, TRole } from "@/types/user.types";
 import { SectionLabel, StatCard } from "./Shared";
 
 // ─── Status & Stage Dictionaries ──────────────────────────────────────────────
@@ -50,8 +52,14 @@ export default function ProjectOwnerDashboard({
   role: TRole;
 }) {
   const { data: session } = authClient.useSession();
-  const userId = (session?.user as any)?.id;
+  const user = session?.user as TBetterAuthUser | undefined;
+  const userId = user?.id;
   const router = useRouter();
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Explicit `false` only — `null`/`undefined` means "not applicable" or
+  // "session still resolving", neither of which should block the CTA.
+  const needsProfileCompletion = user?.hasOnboarded === false;
 
   // ─── Data Fetching ───
   const { data: projectsRes, isLoading: loadingProjects } = useQuery({
@@ -158,12 +166,22 @@ export default function ProjectOwnerDashboard({
             Register new environmental assets, monitor real-time dMRV telemetry,
             and track your cryptographic yield generation.
           </p>
-          <Link
-            href="/projects/new"
-            className="inline-flex items-center gap-3 bg-foreground text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand transition-colors"
-          >
-            <Plus size={14} /> Register New Project
-          </Link>
+          {needsProfileCompletion ? (
+            <button
+              type="button"
+              onClick={() => setProfileModalOpen(true)}
+              className="inline-flex items-center gap-3 bg-amber-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-900 transition-colors"
+            >
+              <Lock size={14} /> Complete Profile to Register Projects
+            </button>
+          ) : (
+            <Link
+              href="/projects/new"
+              className="inline-flex items-center gap-3 bg-foreground text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-brand transition-colors"
+            >
+              <Plus size={14} /> Register New Project
+            </Link>
+          )}
         </div>
 
         <div className="md:col-span-4 bg-foreground p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden">
@@ -189,6 +207,10 @@ export default function ProjectOwnerDashboard({
           </div>
         </div>
       </motion.div>
+
+      {profileModalOpen && (
+        <CompleteProfileModal onClose={() => setProfileModalOpen(false)} />
+      )}
 
       {/* ── 2. KPI Metrics ── */}
       <div className="mb-16">
@@ -283,9 +305,9 @@ export default function ProjectOwnerDashboard({
               </p>
               <Link
                 href="/new-project"
-                className="bg-slate-900 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-700 transition-colors"
+                className="bg-foreground text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-700 transition-colors"
               >
-                Originate Protocol
+                Register New Project
               </Link>
             </div>
           ) : (

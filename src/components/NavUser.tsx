@@ -49,7 +49,7 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
       await authClient.signOut();
       router.push("/login");
     } catch (error) {
-      toast.error(`Protocol terminated: ${(error as Error).message}`);
+      toast.error(`Sign out aborted: ${(error as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -153,7 +153,7 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
                 ) : (
                   <LogOut className="h-4 w-4 mr-3" />
                 )}
-                Terminate Session
+                Logout
               </DropdownMenuItem>
             </div>
           </DropdownMenuContent>

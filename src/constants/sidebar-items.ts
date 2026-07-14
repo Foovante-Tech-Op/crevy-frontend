@@ -30,7 +30,6 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
   ];
 
   const transparencyItems: SidebarItem[] = [
-    { title: "Public Registry", url: "/public-registry", icon: ViewIcon },
     { title: "Methodology", url: "/methodology", icon: CalculateIcon },
     { title: "Credits Ledger", url: "/credits-ledger", icon: CheckListIcon },
   ];
@@ -49,7 +48,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
           icon: CheckListIcon,
         },
         {
-          title: "Project Owners",
+          title: "Project Developers",
           url: "/project-owners",
           icon: UserGroupIcon,
         },
@@ -98,7 +97,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
           icon: CheckListIcon,
         },
         {
-          title: "Project Owners",
+          title: "Project Developers",
           url: "/project-owners",
           icon: UserGroupIcon,
         },
@@ -231,12 +230,12 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {
-          title: "My Project Owners",
+          title: "My Project Developers",
           url: "/project-owners",
           icon: UserGroupIcon,
         },
         {
-          title: "Onboard Owner",
+          title: "Onboard Project Developer",
           url: "/project-owners/register",
           icon: PropertyAddIcon,
         },

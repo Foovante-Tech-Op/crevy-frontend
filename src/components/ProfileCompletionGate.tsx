@@ -10,7 +10,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FieldLabel, TextField } from "@/app/(auth)/_components/form-fields";
 import {
@@ -72,8 +72,28 @@ export function ProfileCompletionGate({
   );
 }
 
-function CompleteProfileModal({ onClose }: { onClose: () => void }) {
+// Exported so pages like the dashboard can open the same modal directly
+// (e.g. from a "Complete Profile" CTA gating project registration) without
+// going through the banner's own dismiss/open state.
+export function CompleteProfileModal({ onClose }: { onClose: () => void }) {
   const { mutateAsync, isPending } = useCompleteProjectDeveloperProfile();
+
+  // Lock scroll on both <html> and <body> so the page behind the modal
+  // doesn't scroll. Compensate for scrollbar width to prevent layout shift.
+  useEffect(() => {
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, []);
 
   const { control, handleSubmit, watch } = useForm<TCompleteProfileForm>({
     resolver: zodResolver(completeProfileFormSchema) as any,

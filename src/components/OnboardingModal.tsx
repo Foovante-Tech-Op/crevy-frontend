@@ -14,15 +14,28 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
 
-  // Prevent body scroll when modal is open
+  // Prevent body/page scroll when modal is open.
+  // We lock both <html> and <body> because the dashboard's SidebarInset
+  // can be the actual scroll root, not just <body>.
+  // We also compensate for the scrollbar width so the layout doesn't jump.
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+    if (!isOpen) return;
+
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    // Prevent layout shift caused by the scrollbar disappearing
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
+
     return () => {
-      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     };
   }, [isOpen]);
 

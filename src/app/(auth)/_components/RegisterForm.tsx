@@ -35,7 +35,7 @@ const registerFormSchema = z
   .object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
-    email: z.string().email("Enter a valid email address"),
+    email: z.email("Enter a valid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
     contactNumber: z.string().optional().or(z.literal("")),
@@ -110,29 +110,31 @@ export default function RegisterForm({
   const onSubmit = async (data: TRegisterForm) => {
     setLoading(true);
 
-    try {
-      // Single call — the backend creates the better-auth user AND the
-      // org/project_developer entity, with a compensating rollback if the
-      // entity half fails. No more stranded half-accounts from a failed
-      // second request.
-      await axiosClient.post("/auth/register/account", {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-        contactNumber: data.contactNumber || undefined,
-        roleDescription: data.roleDescription,
-        climateSectors: data.climateSectors,
-        useCases: data.useCases,
-        managesProjects: data.managesProjects,
-        organizationName: data.organizationName || undefined,
-        jobTitle: data.jobTitle || undefined,
-      });
+    // Timeout after 30 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Request timeout")), 30000);
+    });
 
-      // Show success modal. Registration no longer auto-logs the person in
-      // (better-auth's session cookie is only set on a direct browser call
-      // to signUp.email(), which this endpoint doesn't proxy) — "Go to
-      // Login" below is the actual next step, not just a formality.
+    try {
+      // Race the API call against the timeout
+      await Promise.race([
+        axiosClient.post("/auth/register/account", {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          password: data.password,
+          contactNumber: data.contactNumber || undefined,
+          roleDescription: data.roleDescription,
+          climateSectors: data.climateSectors,
+          useCases: data.useCases,
+          managesProjects: data.managesProjects,
+          organizationName: data.organizationName || undefined,
+          jobTitle: data.jobTitle || undefined,
+        }),
+        timeoutPromise,
+      ]);
+
+      // Only show success modal and toast AFTER successful response
       setRegisteredEmail(data.email);
       setShowSuccessModal(true);
 
@@ -140,11 +142,26 @@ export default function RegisterForm({
         "Account created successfully! Please check your email to verify.",
       );
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Registration failed. Please try again.",
-      );
+      console.error("Registration error:", err);
+
+      // Format error message for display
+      let errorMessage = "Registration failed. Please try again.";
+
+      if (err.message === "Request timeout") {
+        errorMessage =
+          "The request is taking longer than expected. Please try again later or contact support if the issue persists.";
+      } else if (err?.response?.data?.message) {
+        // Use backend error message if available
+        errorMessage = err.response.data.message;
+      } else if (err?.message) {
+        // Use error message from the error object
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        description: "Please check your information and try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -187,7 +204,7 @@ export default function RegisterForm({
                   <>
                     <input
                       type="text"
-                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-sans text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
                       {...field}
                       disabled={loading}
                     />
@@ -209,7 +226,7 @@ export default function RegisterForm({
                   <>
                     <input
                       type="text"
-                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-serif text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-sans text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
                       {...field}
                       disabled={loading}
                     />

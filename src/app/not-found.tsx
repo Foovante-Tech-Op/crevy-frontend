@@ -6,7 +6,6 @@ import {
   CornerDownLeft,
   HelpCircle,
   LayoutDashboard,
-  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +18,8 @@ export default function NotFound() {
     <div className="relative h-screen w-screen overflow-hidden font-sans selection:bg-brand selection:text-slate-900 flex items-center justify-center p-4 sm:p-6">
       {/* Fixed masonry background matching the submission screen */}
       <GalleryBackground parallax={false} dim={true} />
+
+      <div className="fixed inset-0 bg-foreground/40 backdrop-blur-xs pointer-events-none z-0" />
 
       {/* Floating Editorial Canvas Container */}
       <div className="relative z-10 w-full max-w-2xl bg-white border border-slate-200 p-6 sm:p-12 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col justify-between min-h-[500px]">

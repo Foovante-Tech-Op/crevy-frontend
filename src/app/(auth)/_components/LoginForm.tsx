@@ -38,20 +38,68 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
     await signInMethod({
       ...signInData,
       fetchOptions: {
-        onSuccess: () => {
-          toast.success("Cryptographic handshake successful.");
-          router.refresh();
-          router.push("/dashboard");
+        onSuccess: async (ctx: any) => {
+          toast.success(
+            "Login successful. We are redirecting you to your dashboard.",
+          );
+
+          // customSession augments the get-session response with
+          // isVerified/hasOnboarded/role, but sign-in's own response body
+          // isn't guaranteed to carry the same augmented shape across
+          // better-auth versions — fall back to an explicit session fetch
+          // if isVerified isn't already present here.
+          let verifiedStatus = ctx.data?.user?.emailVerified;
+          let email = ctx.data?.user?.email;
+
+          console.log(
+            "signIn response",
+            ctx.data,
+            "verifiedStatus",
+            verifiedStatus,
+          );
+
+          if (verifiedStatus === undefined) {
+            const { data: freshSession } = await authClient.getSession();
+            verifiedStatus = (freshSession?.user as any)?.emailVerified;
+            email = freshSession?.user?.email ?? email;
+          }
+
+          console.log(
+            "signIn response",
+            ctx.data,
+            "verifiedStatus",
+            verifiedStatus,
+          );
+
+          // NOTE: no router.refresh() here. Calling refresh() immediately
+          // before push() races the two transitions — refresh() re-renders
+          // the CURRENT route (still /login) and can cancel the pending
+          // push, which is why the redirect was silently failing. Since
+          // we're navigating to a brand new route entirely, push() alone
+          // already fetches fresh server data for the destination.
+          if (verifiedStatus === false) {
+            router.push(
+              `/verify-email?email=${encodeURIComponent(email || "")}`,
+            );
+          } else {
+            router.push("/dashboard");
+          }
+
+          // finally, reset the form so that if the user logs out and returns to
+          // the login page, the form is pristine and ready for a new attempt.
+          form.reset();
+          setLoading(false);
         },
         onError: (ctx: any) => {
           toast.error("Protocol Error", {
             description: ctx.error.message || "Invalid credentials.",
           });
           form.setError("root", { message: ctx.error.message });
-        },
-        onResponse: () => {
           setLoading(false);
         },
+        // onResponse: () => {
+        //   setLoading(false);
+        // },
       },
     } as any);
   };
@@ -124,7 +172,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
             </label>
             <Link
               href="/forgot-password"
-              className="text-[9px] font-mono text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-[0.2em]"
+              className="text-[9px] font-mono text-slate-700 hover:text-foreground transition-colors uppercase tracking-[0.2em]"
             >
               Reset Password?
             </Link>

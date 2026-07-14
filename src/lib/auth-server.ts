@@ -46,7 +46,18 @@ export const getServerSession = async () => {
     if (!response.ok) return null;
 
     const data = await response.json();
-    return data?.session ? data : null;
+
+    // The response could be { session: { user: ... } } or directly { user: ... }
+    if (data?.session) {
+      return data;
+    }
+
+    if (data?.user) {
+      // Mock the session structure to keep the layout code happy if it expects .session
+      return { session: data, user: data.user, ...data };
+    }
+
+    return null;
   } catch (err: any) {
     if (err?.name === "AbortError") {
       console.error("[getServerSession] Timed out after 8s fetching session.");

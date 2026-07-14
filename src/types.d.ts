@@ -15,5 +15,5 @@ export type TBetterAuthUser = {
   lastName?: string;
 
   hasOnboarded?: boolean;
-  isVerified?: boolean;
+  emailVerified: boolean;
 };

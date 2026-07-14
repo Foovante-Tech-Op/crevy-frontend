@@ -103,10 +103,12 @@ export type TBetterAuthUser = {
   // Frontend should only act (show the complete-profile banner/modal) on
   // an explicit `false` — null means "doesn't apply to this account".
   hasOnboarded?: boolean | null;
+  // Native better-auth field — present on every session/sign-in payload.
+  // Drives the /verify-email redirect after login.
+  emailVerified: boolean;
   image?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  emailVerified: boolean;
   // additionalFields
   firstName?: string;
   lastName?: string;

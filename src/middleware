@@ -1,0 +1,19 @@
+// import type { NextRequest } from "next/server";
+// import { NextResponse } from "next/server";
+
+// /**
+//  * Middleware — minimal pass-through.
+//  *
+//  * Auth protection is handled server-side in (dashboard)/layout.tsx via
+//  * getServerSession(). Doing session checks here caused a race condition:
+//  * the session cookie set by the backend hadn't propagated to the browser
+//  * yet when middleware ran immediately after login, so the router.push to
+//  * /dashboard was silently cancelled by a 307 redirect back to /login.
+//  */
+// export function middleware(_request: NextRequest) {
+//   return NextResponse.next();
+// }
+
+// export const config = {
+//   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+// };

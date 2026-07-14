@@ -9,7 +9,6 @@ export interface CrevyUser {
   email: string;
   name: string;
   emailVerified: boolean;
-  isVerified?: boolean; // Email verification status (soft gate)
   hasOnboarded?: boolean; // Project developer onboarding status
   role?: string | null;
   activeOrganizationId?: string | null;
@@ -126,8 +125,7 @@ export function useIsVerified(): boolean | null {
     return null;
   }
 
-  // Default to true for backward compatibility if field is missing
-  return data.user.isVerified ?? true;
+  return data.user.emailVerified;
 }
 
 /**
