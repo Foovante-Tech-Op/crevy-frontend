@@ -17,7 +17,6 @@ const FOOTER_LINKS = {
     { title: "Entity Registration", href: "/register" },
   ],
   governance: [
-    { title: "Corporate Overview", href: "/about-us" },
     { title: "Institutional Support", href: "/support" },
     { title: "Terms of Service", href: "/terms-of-service" },
     { title: "Privacy Protocol", href: "/privacy-policy" },

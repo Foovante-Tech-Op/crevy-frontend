@@ -45,7 +45,6 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
     pathname.startsWith("/marketplace") ||
     pathname.startsWith("/portfolio") ||
     pathname.startsWith("/public-registry") ||
-    pathname.startsWith("/about-us") ||
     pathname.startsWith("/methodology") ||
     pathname.startsWith("/support") ||
     pathname.startsWith("/privacy-policy") ||
@@ -55,7 +54,6 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
     { name: "Marketplace", href: "/marketplace" },
     { name: "Public Registry", href: "/public-registry" },
     { name: "Methodology", href: "/methodology" },
-    { name: "About", href: "/about-us" },
     { name: "Support", href: "/support" },
   ];
 

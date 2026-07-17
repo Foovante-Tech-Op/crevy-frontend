@@ -22,7 +22,6 @@ export function PublicNavbar() {
     { name: "Home", href: "/" },
     { name: "Marketplace", href: "/marketplace" },
     { name: "How It Works", href: "/#how-it-works" },
-    { name: "About", href: "/about" },
     { name: "Support", href: "/support" },
   ];
 
