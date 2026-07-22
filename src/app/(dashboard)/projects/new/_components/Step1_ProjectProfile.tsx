@@ -147,11 +147,11 @@ const Step1_ProjectProfile = ({
               Phase 01
             </p>
             <h2 className="text-3xl md:text-4xl font-sans text-foreground tracking-tight">
-              Select Methodology Class
+              Select Sector
             </h2>
             <p className="text-slate-500 text-sm font-light mt-1">
-              Choose the approved cryptographic protocol mapping to your
-              ecological asset class.
+              Choose the approved sector that closely matches your ecological
+              project.
             </p>
           </div>
 
@@ -159,7 +159,7 @@ const Step1_ProjectProfile = ({
             {PROJECT_TYPES.map((type) => {
               const isSelected = selectedType === type.id;
               const manifestEntry = manifest?.projectTypeModuleMap?.[type.id];
-              const isEnabled = type.pilotEnabled || !!manifestEntry;
+              const isEnabled = type.pilotEnabled;
 
               return (
                 <button

@@ -140,7 +140,10 @@ export function CompleteProfileModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div
+        data-lenis-prevent="true"
+        className="bg-white border border-slate-200 p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+      >
         <div className="flex items-start justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
             Complete Your Profile

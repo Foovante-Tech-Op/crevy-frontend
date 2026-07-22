@@ -98,10 +98,10 @@ export function EditProfileForm({
         <UserIcon className="w-5 h-5 text-slate-400" />
         <div>
           <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-            Identity Ledger
+            Identity Info
           </h2>
           <p className="text-xs text-slate-500 font-mono mt-1">
-            {readOnly ? "Read-Only Access" : "Update Operational Parameters"}
+            {readOnly ? "Read-Only Access" : "Update your profile"}
           </p>
         </div>
       </div>
@@ -226,7 +226,7 @@ export function EditProfileForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Asset Methodology Focus
+                  Project Category
                 </Label>
                 <Input
                   {...form.register("projectCategory")}
@@ -236,7 +236,7 @@ export function EditProfileForm({
               </div>
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Genesis Date
+                  Project Start Date
                 </Label>
                 <Input
                   {...form.register("projectStartDate")}
@@ -260,7 +260,7 @@ export function EditProfileForm({
               ) : (
                 <Save className="w-4 h-4 mr-2" />
               )}
-              Commit Ledger Updates
+              Save Updates
             </Button>
           </div>
         )}

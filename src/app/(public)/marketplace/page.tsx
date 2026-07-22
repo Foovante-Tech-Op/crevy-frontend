@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useLenis } from "lenis/react";
 import {
   ChevronDown,
   RotateCcw,
@@ -11,6 +12,7 @@ import {
 import {
   useCallback,
   useDeferredValue,
+  useEffect,
   useMemo,
   useReducer,
   useRef,
@@ -68,7 +70,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const REGIONS = ["Africa", "West Africa", "East Africa", "Southern Africa"];
+// const _REGIONS = ["Africa", "West Africa", "East Africa", "Southern Africa"];
 const STATUSES = [
   { value: "approved", label: "Verified" },
   { value: "submitted", label: "Pending Review" },
@@ -80,6 +82,24 @@ const STATUSES = [
 export default function MarketplacePage() {
   const [filters, dispatch] = useReducer(filterReducer, INITIAL_FILTERS);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Lenis smooth-scroll instance – stop/start when drawer toggles
+  const lenis = useLenis();
+
+  // Lock body scroll AND stop Lenis when mobile filter drawer is open
+  useEffect(() => {
+    if (mobileFiltersOpen) {
+      document.body.style.overflow = "hidden";
+      lenis?.stop();
+    } else {
+      document.body.style.overflow = "";
+      lenis?.start();
+    }
+    return () => {
+      document.body.style.overflow = "";
+      lenis?.start();
+    };
+  }, [mobileFiltersOpen, lenis]);
   const [sortBy, setSortBy] = useState<"newest" | "impact" | "price">("newest");
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -87,14 +107,14 @@ export default function MarketplacePage() {
 
   const queryFilters = useMemo(
     () => ({
-      region: filters.region || undefined,
+      // region: filters.region || undefined,
       projectType: filters.projectType || undefined,
       status: filters.status || undefined,
       search: deferredSearch.trim() || undefined,
       sdgs: filters.sdgs.length > 0 ? filters.sdgs.join(",") : undefined,
     }),
     [
-      filters.region,
+      // filters.region,
       filters.projectType,
       filters.status,
       deferredSearch,
@@ -126,17 +146,16 @@ export default function MarketplacePage() {
 
   const activeFilterCount = useMemo(
     () =>
-      (filters.region ? 1 : 0) +
       (filters.projectType ? 1 : 0) +
       (filters.status ? 1 : 0) +
       filters.sdgs.length,
-    [filters.region, filters.projectType, filters.status, filters.sdgs],
+    [filters.projectType, filters.status, filters.sdgs],
   );
 
-  const setRegion = useCallback(
-    (v: string) => dispatch({ type: "SET", key: "region", value: v }),
-    [],
-  );
+  // const setRegion = useCallback(
+  //   (v: string) => dispatch({ type: "SET", key: "region", value: v }),
+  //   [],
+  // );
   const setProjectType = useCallback(
     (v: string) => dispatch({ type: "SET", key: "projectType", value: v }),
     [],
@@ -187,11 +206,14 @@ export default function MarketplacePage() {
 
         <div className="flex gap-12 items-start">
           {/* ── Institutional Sidebar ───────────────────────────────────── */}
-          <aside className="hidden xl:block w-[290px] shrink-0 sticky top-8 bg-slate-900 border border-slate-800 p-6">
+          <aside
+            data-lenis-prevent
+            className="hidden xl:block w-[290px] shrink-0 sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain bg-slate-900 border border-slate-800 p-6"
+          >
             <FilterPanel
               filters={filters}
               activeFilterCount={activeFilterCount}
-              onRegion={setRegion}
+              // onRegion={setRegion}
               onProjectType={setProjectType}
               onStatus={setStatus}
               onToggleSdg={toggleSdg}
@@ -265,11 +287,12 @@ export default function MarketplacePage() {
               onClick={() => setMobileFiltersOpen(false)}
             />
             <motion.div
+              data-lenis-prevent
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 w-[85vw] max-w-[340px] bg-slate-900 z-50 shadow-2xl overflow-y-auto border-r border-slate-800 text-white"
+              className="fixed inset-y-0 left-0 w-[85vw] max-w-[340px] bg-slate-900 z-50 shadow-2xl overflow-y-auto overscroll-contain border-r border-slate-800 text-white"
             >
               <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-slate-950">
                 <h2 className="font-extrabold text-lg text-white uppercase tracking-wider">
@@ -287,7 +310,7 @@ export default function MarketplacePage() {
                 <FilterPanel
                   filters={filters}
                   activeFilterCount={activeFilterCount}
-                  onRegion={setRegion}
+                  // onRegion={setRegion}
                   onProjectType={setProjectType}
                   onStatus={setStatus}
                   onToggleSdg={toggleSdg}
@@ -307,7 +330,7 @@ export default function MarketplacePage() {
 interface FilterPanelProps {
   filters: FilterState;
   activeFilterCount: number;
-  onRegion: (v: string) => void;
+  // onRegion: (v: string) => void;
   onProjectType: (v: string) => void;
   onStatus: (v: string) => void;
   onToggleSdg: (id: string) => void;
@@ -317,7 +340,7 @@ interface FilterPanelProps {
 function FilterPanel({
   filters,
   activeFilterCount,
-  onRegion,
+  // onRegion,
   onProjectType,
   onStatus,
   onToggleSdg,
@@ -340,7 +363,7 @@ function FilterPanel({
         )}
       </div>
 
-      <FilterSection title="Geographic Region">
+      {/* <FilterSection title="Geographic Region">
         <div className="space-y-1">
           <button
             type="button"
@@ -354,7 +377,7 @@ function FilterPanel({
           >
             Global Index
           </button>
-          {REGIONS.map((r) => (
+          {/* {REGIONS.map((r) => (
             <button
               type="button"
               key={r}
@@ -368,9 +391,9 @@ function FilterPanel({
             >
               {r}
             </button>
-          ))}
+          ))} 
         </div>
-      </FilterSection>
+      </FilterSection> */}
 
       <FilterSection title="Methodology Type">
         <div className="space-y-1">

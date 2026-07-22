@@ -150,7 +150,7 @@ function VerifyEmailContent() {
 
       {/* Centered container keeping the card stationary while its content slides */}
       <div className="relative z-10 flex items-center justify-center h-full w-full px-4 sm:px-6 lg:px-8 py-6 pt-28 md:pt-0 overflow-y-auto">
-        <div className="w-full max-w-md bg-background/95 backdrop-blur-md border border-slate-200/10 p-8 sm:p-10 overflow-hidden">
+        <div className="w-full max-w-2xl bg-background/95 backdrop-blur-md border border-slate-200/10 p-8 sm:p-10 overflow-hidden">
           <AnimatePresence mode="wait" custom={direction} initial={false}>
             {view === "default" ? (
               <motion.div

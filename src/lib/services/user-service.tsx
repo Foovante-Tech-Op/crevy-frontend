@@ -42,7 +42,7 @@ export const UserService = {
   getUserProfile: async (userId: string) => {
     try {
       const response = await axiosClient.get(`/users/${userId}`);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error("Error getting user profile:", error);
       throw error;

@@ -4,6 +4,7 @@ import {
   CalculateIcon,
   CheckListIcon,
   CheckmarkCircle03Icon,
+  Contact01Icon,
   CustomerService01Icon,
   DashboardSquareAddIcon,
   DiscoverCircleIcon,
@@ -257,6 +258,40 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
         // },
         ...transparencyItems,
         ...commonAccountItems,
+      ],
+      sections: [],
+    },
+    // ── PROJECT ADMIN: manages field agents + the developers they register ──
+    project_admin: {
+      topItems: [
+        { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
+        {
+          title: "Field Agents",
+          url: "/field-agents",
+          icon: Contact01Icon,
+        },
+        {
+          title: "Project Developers",
+          url: "/project-owners",
+          icon: UserGroupIcon,
+        },
+        {
+          title: "Onboard Project Developer",
+          url: "/project-owners/register",
+          icon: PropertyAddIcon,
+        },
+        { title: "Projects", url: "/projects", icon: ViewIcon },
+        ...transparencyItems,
+        ...commonAccountItems,
+      ],
+      sections: [],
+    },
+    // ── FIELD AGENT: unused in practice — the (agent) route group's own
+    // layout redirects field_agent users to /agent before this sidebar ever
+    // renders. Kept here only so `configs` stays a complete Record<TRole,...>.
+    field_agent: {
+      topItems: [
+        { title: "Home", url: "/agent", icon: DashboardSquareAddIcon },
       ],
       sections: [],
     },

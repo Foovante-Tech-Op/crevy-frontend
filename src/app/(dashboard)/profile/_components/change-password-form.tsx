@@ -62,7 +62,7 @@ export function ChangePasswordForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
         <div className="space-y-3">
           <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Active Cipher Key
+            Current Password
           </Label>
           <Input
             type="password"
@@ -72,7 +72,7 @@ export function ChangePasswordForm() {
         </div>
         <div className="space-y-3">
           <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            New Cipher Key
+            New Password
           </Label>
           <Input
             type="password"
@@ -82,7 +82,7 @@ export function ChangePasswordForm() {
         </div>
         <div className="space-y-3">
           <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Verify New Cipher Key
+            Verify New Password
           </Label>
           <Input
             type="password"
@@ -100,7 +100,7 @@ export function ChangePasswordForm() {
           ) : (
             <ShieldCheck className="w-4 h-4 mr-2" />
           )}{" "}
-          Submit Key Rotation
+          Rotate Password
         </Button>
       </form>
     </div>

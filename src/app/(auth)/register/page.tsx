@@ -114,8 +114,7 @@ const RegisterPage = () => {
             href="/login"
             className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2"
           >
-            Authenticate Existing{" "}
-            <ArrowRightIcon className="w-3 h-3 text-brand" />
+            Login <ArrowRightIcon className="w-3 h-3 text-brand" />
           </Link>
         </div>
 

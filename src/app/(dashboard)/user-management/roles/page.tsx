@@ -227,7 +227,7 @@ export default function RolesManagementPage() {
                 : "hover:bg-slate-50",
             )}
           >
-            Configure Strategy Matrix
+            Assign Permission to Role
           </Button>
         ),
       },
@@ -297,7 +297,7 @@ export default function RolesManagementPage() {
               <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
                 <DialogTrigger asChild>
                   <Button className="rounded-none bg-slate-950 text-white font-mono text-[10px] uppercase tracking-widest px-5 py-4 hover:bg-slate-800">
-                    <Plus size={12} className="mr-1.5" /> Initialize Role Tier
+                    <Plus size={12} className="mr-1.5" /> Add New Role
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="rounded-none max-w-md p-0 border border-slate-200 bg-white">
@@ -375,8 +375,8 @@ export default function RolesManagementPage() {
                     variant="outline"
                     className="rounded-none border-slate-900 text-slate-950 font-mono text-[10px] uppercase tracking-widest px-5 py-4 hover:bg-slate-50"
                   >
-                    <ShieldCheck size={12} className="mr-1.5" /> Initialize
-                    Action Permission
+                    <ShieldCheck size={12} className="mr-1.5" /> Add New
+                    Permission
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="rounded-none max-w-md p-0 border border-slate-200 bg-white">
@@ -394,7 +394,7 @@ export default function RolesManagementPage() {
                     <div className="p-6 space-y-6">
                       <DialogHeader>
                         <DialogTitle className="font-sans text-xl tracking-tight text-slate-950">
-                          Initialize Capability Rule
+                          Initialize New Permission
                         </DialogTitle>
                         <DialogDescription className="text-xs text-slate-400 font-light font-mono uppercase tracking-wider">
                           Configure precise resource action criteria mappings.
@@ -475,7 +475,7 @@ export default function RolesManagementPage() {
                   : "border-transparent text-slate-400 hover:text-slate-600",
               )}
             >
-              Registered Platform Capability Rules ({permissions.length})
+              All Registered Platform Permissions ({permissions.length})
             </button>
             <button
               type="button"
@@ -487,7 +487,7 @@ export default function RolesManagementPage() {
                   : "border-transparent text-slate-400 hover:text-slate-600",
               )}
             >
-              Configured Structural Tiers ({roles.length})
+              All Authorization Roles ({roles.length})
             </button>
           </div>
 
@@ -510,7 +510,10 @@ export default function RolesManagementPage() {
         </div>
 
         {/* ─── Right Context Assignment Side Panel Matrix ─── */}
-        <div className="w-full lg:w-[380px] xl:w-[425px] shrink-0">
+        <div
+          data-lenis-prevent
+          className="w-full lg:w-[380px] xl:w-[425px] shrink-0"
+        >
           {selectedRole ? (
             <div className="border-2 border-slate-950 p-6 space-y-6 sticky top-8 bg-white selection:bg-slate-950">
               <div className="flex items-start justify-between pb-4 border-b border-slate-100">
@@ -533,7 +536,7 @@ export default function RolesManagementPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-950">
-                    Capability Grid Link Matrix
+                    Role-Permission Assignment Matrix
                   </h3>
                   {loadingRolePerms && (
                     <Loader2
@@ -553,13 +556,27 @@ export default function RolesManagementPage() {
                       const isAssigned = rolePermissions?.some(
                         (p: TPermission) => p.id === perm.id,
                       );
+
+                      // Check if this specific item is currently being attached or detached
+                      const isMutatingThisPerm =
+                        (assignPermission.isPending &&
+                          assignPermission.variables?.permissionId ===
+                            perm.id) ||
+                        (unassignPermission.isPending &&
+                          unassignPermission.variables?.permissionId ===
+                            perm.id);
+
                       return (
                         <button
                           type="button"
                           key={perm.id}
+                          disabled={isMutatingThisPerm}
                           onClick={() => handleTogglePermission(perm)}
                           className={cn(
-                            "p-3 border transition-all cursor-pointer flex items-start justify-between gap-4 hover:border-slate-950",
+                            "p-3 border transition-all text-left flex items-start justify-between gap-4 hover:border-slate-950",
+                            isMutatingThisPerm
+                              ? "opacity-70 cursor-wait border-slate-400"
+                              : "cursor-pointer",
                             isAssigned
                               ? "border-slate-950 bg-slate-50/50"
                               : "border-slate-200 bg-transparent text-slate-400",
@@ -595,7 +612,17 @@ export default function RolesManagementPage() {
                                 : "border-slate-300 bg-white",
                             )}
                           >
-                            {isAssigned && <Check size={10} strokeWidth={3} />}
+                            {isMutatingThisPerm ? (
+                              <Loader2
+                                size={10}
+                                className={cn(
+                                  "animate-spin",
+                                  isAssigned ? "text-white" : "text-slate-950",
+                                )}
+                              />
+                            ) : (
+                              isAssigned && <Check size={10} strokeWidth={3} />
+                            )}
                           </div>
                         </button>
                       );

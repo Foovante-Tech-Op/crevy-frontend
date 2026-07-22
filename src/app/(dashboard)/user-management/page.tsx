@@ -191,13 +191,20 @@ export default function UserManagementPage() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-100" />
               <DropdownMenuItem
-                onClick={() => router.push(`/profile/${row.original.id}`)}
+                onClick={() =>
+                  router.push(`/user-management/${row.original.id}`)
+                }
                 className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none"
               >
                 <UserCircle className="h-3.5 w-3.5 mr-2 text-slate-400" /> View
-                Dossier
+                Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none">
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(`/user-management/${row.original.id}`)
+                }
+                className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none"
+              >
                 <Shield className="h-3.5 w-3.5 mr-2 text-slate-400" /> Manage
                 Clearance
               </DropdownMenuItem>

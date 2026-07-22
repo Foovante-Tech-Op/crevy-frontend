@@ -41,6 +41,8 @@ export default function OrganizationsListPage() {
 
   const organizations = data?.data || [];
 
+  console.log("PPPPP ", organizations);
+
   return (
     <div className="animate-in fade-in duration-700 pb-24">
       {/* ── Editorial Header ── */}
@@ -56,7 +58,7 @@ export default function OrganizationsListPage() {
               </div>
               <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
                 Institutional{" "}
-                <span className="italic text-slate-500">Entities.</span>
+                <span className="italic text-brand">Entities.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
                 Manage organizational profiles, monitor cross-border tax

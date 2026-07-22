@@ -48,14 +48,13 @@ export default function SupportPage() {
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="w-8 h-[1px] bg-slate-900"></div>
             <span className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-              <ShieldCheck size={14} className="text-emerald-700" />
+              <ShieldCheck size={14} className="text-brand" />
               Help & Operations Center
             </span>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-sans text-slate-900 tracking-tight leading-none mb-6">
-            Institutional{" "}
-            <span className="italic text-slate-500">Support.</span>
+            Institutional <span className="italic text-brand">Support.</span>
           </h1>
           <p className="text-slate-500 text-lg font-light leading-relaxed max-w-2xl mb-12">
             Access methodology documentation, review cryptographic operational
@@ -92,12 +91,12 @@ export default function SupportPage() {
               </p>
             </div>
             <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
                 2 Min ETA
               </span>
               <button
                 type="button"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1"
+                className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground hover:text-brand transition-colors flex items-center gap-1"
               >
                 Initiate <ArrowUpRight size={14} />
               </button>
@@ -122,7 +121,7 @@ export default function SupportPage() {
               </span>
               <button
                 type="button"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1"
+                className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground hover:text-brand transition-colors flex items-center gap-1"
               >
                 Draft <ArrowUpRight size={14} />
               </button>
@@ -142,7 +141,7 @@ export default function SupportPage() {
               </p>
             </div>
             <div className="mt-8 pt-6 border-t border-white/20 flex items-center justify-between relative z-10">
-              <span className="text-sm font-mono font-bold text-emerald-400">
+              <span className="text-sm font-mono font-bold text-brand">
                 +233 504 609 989
               </span>
             </div>
@@ -167,7 +166,7 @@ export default function SupportPage() {
                 >
                   <div className="flex justify-between items-start gap-8">
                     <div>
-                      <h4 className="font-sans text-lg text-slate-900 mb-3 group-hover:text-emerald-800 transition-colors leading-snug">
+                      <h4 className="font-sans text-lg text-foreground mb-3 group-hover:text-brand transition-colors leading-snug">
                         {f.q}
                       </h4>
                       <p className="text-sm text-slate-500 leading-relaxed font-light">
@@ -203,7 +202,7 @@ export default function SupportPage() {
                       {doc.category}
                     </span>
                   </div>
-                  <h4 className="font-sans text-slate-900 group-hover:text-emerald-800 transition-colors">
+                  <h4 className="font-sans text-foreground group-hover:text-brand transition-colors">
                     {doc.title}
                   </h4>
                   <div className="mt-4 flex items-center gap-2 text-[10px] font-mono text-slate-400 group-hover:text-slate-900 transition-colors">
@@ -215,8 +214,8 @@ export default function SupportPage() {
 
             <div className="mt-8 p-6 bg-slate-50 border border-slate-200">
               <div className="flex items-center gap-3 mb-3">
-                <BookOpen className="w-4 h-4 text-emerald-700" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
+                <BookOpen className="w-4 h-4 text-brand" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
                   Developer Portal
                 </span>
               </div>
@@ -226,7 +225,7 @@ export default function SupportPage() {
               </p>
               <button
                 type="button"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 hover:text-emerald-700 transition-colors flex items-center gap-1 border-b border-slate-900 pb-0.5 w-fit"
+                className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground hover:text-brand transition-colors flex items-center gap-1 border-b border-foreground pb-0.5 w-fit"
               >
                 Open Portal <ArrowUpRight size={14} />
               </button>

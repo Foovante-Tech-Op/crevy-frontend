@@ -96,7 +96,7 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md p-0 rounded-none border border-slate-900 shadow-2xl gap-0 bg-white">
+      <DialogContent className="sm:max-w-xl p-0 rounded-none border border-slate-900 shadow-2xl gap-0 bg-white">
         {/* ── Institutional Header ── */}
         <DialogHeader className="p-8 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3 mb-4">
@@ -107,13 +107,13 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
                 : "System Access Control"}
             </span>
           </div>
-          <DialogTitle className="text-3xl font-serif text-slate-900 tracking-tight leading-none mb-2">
+          <DialogTitle className="text-3xl font-sans text-slate-900 tracking-tight leading-none mb-2">
             {isOrgAdmin ? "Invite Team Member" : "Provision Credential"}
           </DialogTitle>
           <DialogDescription className="text-slate-500 font-light text-sm">
             {isOrgAdmin
               ? "Issue access to a new member of your organization."
-              : "Issue access role to a new governance officer."}
+              : "Issue access role to a new Crevy member."}
           </DialogDescription>
         </DialogHeader>
 
@@ -149,7 +149,7 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
                 onValueChange={(val) => setValue("roleName", val)}
                 defaultValue={isOrgAdmin ? "sustainability_manager" : "admin"}
               >
-                <SelectTrigger className="rounded-none border-0 border-b-2 border-slate-200 bg-slate-50 px-4 py-6 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors">
+                <SelectTrigger className="w-full rounded-none border-0 border-b-2 border-slate-200 bg-slate-50 px-4 py-6 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors">
                   <SelectValue placeholder="Select clearance level" />
                 </SelectTrigger>
                 <SelectContent className="rounded-none border border-slate-200 shadow-xl">
@@ -189,7 +189,7 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
             <Button
               type="submit"
               disabled={loading || loadingRoles}
-              className="rounded-none bg-slate-900 hover:bg-emerald-900 text-white px-8 py-6 text-[10px] font-bold uppercase tracking-widest transition-colors"
+              className="rounded-none bg-slate-900 hover:bg-brand text-white px-8 py-6 text-[10px] font-bold uppercase tracking-widest transition-colors"
             >
               {loading ? (
                 <Loader2 className="animate-spin h-4 w-4 mr-2" />
