@@ -33,12 +33,18 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
   const transparencyItems: SidebarItem[] = [
     { title: "Methodology", url: "/methodology", icon: CalculateIcon },
     { title: "Credits Ledger", url: "/credits-ledger", icon: CheckListIcon },
+    {
+      title: "Carbon Calculator",
+      url: "/carbon-calculator",
+      icon: CalculateIcon,
+    },
   ];
 
   const configs: Record<TRole, SidebarConfig> = {
     // ── SUPER ADMIN: Gets Clustered Sections ──
     super_admin: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         { title: "Asset Portfolio", url: "/portfolio", icon: OrganicFoodIcon },
@@ -88,6 +94,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     // ── ALL OTHER ROLES: Straight Nav Items (No Clustering) ──
     admin: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         { title: "Asset Portfolio", url: "/portfolio", icon: OrganicFoodIcon },
@@ -120,6 +127,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     },
     org_admin: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         { title: "Asset Registry", url: "/portfolio", icon: OrganicFoodIcon },
@@ -137,6 +145,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     },
     sustainability_manager: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         { title: "Asset Registry", url: "/portfolio", icon: OrganicFoodIcon },
@@ -157,6 +166,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     },
     org_auditor: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {
@@ -186,6 +196,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     },
     financial_admin: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         { title: "Asset Registry", url: "/portfolio", icon: OrganicFoodIcon },
@@ -203,6 +214,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     },
     mrv_admin: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         { title: "Projects", url: "/projects", icon: ViewIcon },
@@ -228,6 +240,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     },
     project_manager: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {
@@ -246,11 +259,11 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
           url: "/track-verification",
           icon: CheckListIcon,
         },
-        // {
-        //   title: "User Management",
-        //   url: "/user-management",
-        //   icon: UserGroupIcon,
-        // },
+        {
+          title: "Field Agents",
+          url: "/field-agents",
+          icon: Contact01Icon,
+        },
         // {
         //   title: "Compliance",
         //   url: "/compliance",
@@ -264,14 +277,11 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     // ── PROJECT ADMIN: manages field agents + the developers they register ──
     project_admin: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
+        { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {
-          title: "Field Agents",
-          url: "/field-agents",
-          icon: Contact01Icon,
-        },
-        {
-          title: "Project Developers",
+          title: "My Project Developers",
           url: "/project-owners",
           icon: UserGroupIcon,
         },
@@ -281,6 +291,21 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
           icon: PropertyAddIcon,
         },
         { title: "Projects", url: "/projects", icon: ViewIcon },
+        {
+          title: "Project Vetting",
+          url: "/track-verification",
+          icon: CheckListIcon,
+        },
+        {
+          title: "Field Agents",
+          url: "/field-agents",
+          icon: Contact01Icon,
+        },
+        // {
+        //   title: "Compliance",
+        //   url: "/compliance",
+        //   icon: CheckmarkCircle03Icon,
+        // },
         ...transparencyItems,
         ...commonAccountItems,
       ],
@@ -291,12 +316,19 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
     // renders. Kept here only so `configs` stays a complete Record<TRole,...>.
     field_agent: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Home", url: "/agent", icon: DashboardSquareAddIcon },
+        {
+          title: "Carbon Calculator",
+          url: "/carbon-calculator",
+          icon: CalculateIcon,
+        },
       ],
       sections: [],
     },
     project_owner: {
       topItems: [
+        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
         { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {

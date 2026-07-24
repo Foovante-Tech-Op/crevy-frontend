@@ -64,13 +64,6 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
             email = freshSession?.user?.email ?? email;
           }
 
-          console.log(
-            "signIn response",
-            ctx.data,
-            "verifiedStatus",
-            verifiedStatus,
-          );
-
           // NOTE: no router.refresh() here. Calling refresh() immediately
           // before push() races the two transitions — refresh() re-renders
           // the CURRENT route (still /login) and can cancel the pending
@@ -82,7 +75,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
               `/verify-email?email=${encodeURIComponent(email || "")}`,
             );
           } else {
-            router.push("/dashboard");
+            router.push("/get-started");
           }
 
           // finally, reset the form so that if the user logs out and returns to
