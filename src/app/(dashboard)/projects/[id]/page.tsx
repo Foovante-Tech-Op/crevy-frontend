@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   ArrowLeft,
@@ -42,6 +42,7 @@ function ProjectDetailContent() {
   const { user, isPending } = useUser();
   const [isMounted, setIsMounted] = useState(false);
   const [activeAssessmentTab, setActiveAssessmentTab] = useState<string>("");
+  const [classificationOpen, setClassificationOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -67,6 +68,7 @@ function ProjectDetailContent() {
     enabled: !!id,
   });
 
+  const queryClient = useQueryClient();
   const project = projectRes?.data;
   const verifications = verifRes?.data ?? [];
   const developer = project?.developer;
@@ -94,7 +96,33 @@ function ProjectDetailContent() {
     }
   }, [isAuthorized, isPending, router, isMounted]);
 
-  if (loadingProject || !isMounted) {
+  // Hooks must run unconditionally on every render, so this is declared
+  // before the early returns below (loading / not-found) rather than after
+  // them — otherwise the hook count differs between renders and React
+  // throws "Rendered more hooks than during the previous render".
+  const updateClassificationMutation = useMutation({
+    mutationFn: (
+      data: Parameters<typeof ProjectService.updateClassification>[1],
+    ) => ProjectService.updateClassification(project?.id, data),
+    onSuccess: () => {
+      toast.success("Classification updated");
+      queryClient.invalidateQueries({ queryKey: ["admin-project-detail", id] });
+      setClassificationOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update classification", {
+        description: error?.response?.data?.message || error.message,
+      });
+    },
+  });
+
+  // The project query is `enabled: !!id && !!user`, so while `user` is still
+  // resolving (isPending) the query hasn't started yet and `loadingProject`
+  // is `false` — not because data loaded, but because react-query never
+  // fired the fetch. Without `isPending` here, that gap renders the
+  // "Asset Not Found" branch below for a flash before the real fetch even
+  // begins.
+  if (loadingProject || !isMounted || isPending) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center bg-slate-50">
         <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-900 rounded-none animate-spin mb-4" />
@@ -141,6 +169,11 @@ function ProjectDetailContent() {
   }));
 
   // Helper to format dates
+  const isClassificationAdmin =
+    user?.role === "super_admin" ||
+    user?.role === "admin" ||
+    user?.role === "project_manager";
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "TBD";
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -168,23 +201,9 @@ function ProjectDetailContent() {
         </div>
       </div>
 
-      {/* ── 1. MEDIA & GIS CONTROL CENTER (Split Screen) ────────────────────── */}
-      <section className="min-h-[60vh] w-full grid grid-cols-1 lg:grid-cols-2 border-b-2 border-slate-900 bg-white">
-        {/* Left: Spatial Overview / Map Integration */}
-        <div className="relative border-r border-slate-200 bg-slate-950 flex flex-col min-h-[40vh] lg:min-h-full">
-          <div className="flex-1 w-full h-full [&>div]:h-full">
-            <SpatialCoordinatePicker
-              latitude={mapLat}
-              longitude={mapLng}
-              onChange={(coords) =>
-                console.log("Spatial focus adjusted:", coords)
-              }
-            />
-          </div>
-        </div>
-
-        {/* Right: Core Asset Telemetry */}
-        <div className="p-8 md:p-14 lg:p-20 flex flex-col justify-center">
+      {/* ── 1. CORE ASSET TELEMETRY (full width) ────────────────────── */}
+      <section className="w-full border-b-2 border-slate-900 bg-white">
+        <div className="max-w-[1400px] mx-auto p-8 md:p-14 lg:p-20">
           <div className="mb-12">
             <div className="flex items-center gap-4 mb-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
@@ -235,10 +254,52 @@ function ProjectDetailContent() {
             </div>
             <div className="bg-white p-6 flex flex-col">
               <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Industry Sector
+              </span>
+              <span className="font-mono text-sm text-slate-900 capitalize break-words">
+                {project.industrySector?.replace(/_/g, " ") || "UNKNOWN"}
+              </span>
+            </div>
+            <div className="bg-white p-6 flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
                 Sector
               </span>
               <span className="font-mono text-sm text-slate-900 capitalize break-words">
                 {project.sector?.replace(/_/g, " ") || "UNKNOWN"}
+              </span>
+            </div>
+            <div className="bg-white p-6 flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Activity
+              </span>
+              <span className="font-mono text-sm text-slate-900 capitalize break-words">
+                {project.activity ||
+                  project.sector?.replace(/_/g, " ") ||
+                  "UNKNOWN"}
+              </span>
+            </div>
+            <div className="bg-white p-6 flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Product
+              </span>
+              <span className="font-mono text-sm text-slate-900 capitalize break-words">
+                {project.product || "UNKNOWN"}
+              </span>
+            </div>
+            <div className="bg-white p-6 flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Carbon Mechanism
+              </span>
+              <span className="font-mono text-sm text-slate-900 capitalize break-words">
+                {project.carbonMechanism || "UNKNOWN"}
+              </span>
+            </div>
+            <div className="bg-white p-6 flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Credit Type
+              </span>
+              <span className="font-mono text-sm text-slate-900 capitalize break-words">
+                {project.creditType?.replace(/_/g, " ") || "UNKNOWN"}
               </span>
             </div>
             <div className="bg-white p-6 flex flex-col">
@@ -301,8 +362,53 @@ function ProjectDetailContent() {
                 {project.projectStatus?.toUpperCase() || "DRAFT"}
               </span>
             </div>
+            <div className="bg-white p-6 flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                Classification Status
+              </span>
+              <span
+                className={cn(
+                  "font-mono text-xs font-bold uppercase",
+                  project.assignedMethodologyStatus === "admin_confirmed"
+                    ? "text-brand-600"
+                    : project.assignedMethodologyStatus === "auto_suggested"
+                      ? "text-amber-600"
+                      : "text-slate-500",
+                )}
+              >
+                {project.assignedMethodologyStatus?.replace(/_/g, " ") ||
+                  "NOT ASSIGNED"}
+              </span>
+            </div>
           </div>
+
+          {isClassificationAdmin && (
+            <div className="mt-8 flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setClassificationOpen(true)}
+                className="px-5 py-3 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-slate-700 transition-colors"
+              >
+                Edit Classification
+              </button>
+              {project.classificationConfirmedAt && (
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
+                  Confirmed {formatDate(project.classificationConfirmedAt)}
+                </span>
+              )}
+            </div>
+          )}
         </div>
+      </section>
+
+      {/* ── 1.5 SPATIAL OVERVIEW / GIS MAP (full width) ──────────────────── */}
+      <section className="w-full border-b-2 border-slate-900 bg-slate-950 relative">
+        <SpatialCoordinatePicker
+          latitude={mapLat}
+          longitude={mapLng}
+          onChange={(coords) => console.log("Spatial focus adjusted:", coords)}
+          className="w-full h-[75vh] min-h-[600px] border-0"
+        />
       </section>
 
       {/* ── 2. ONBOARDING & ASSESSMENT DOSSIER ───────────────────────────────── */}

@@ -143,14 +143,14 @@ export default function PrimaryMarketplaceHero() {
             >
               <div className="relative w-full h-full overflow-hidden border border-slate-800 rounded-none bg-black">
                 <Image
-                  src="https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg?auto=compress&cs=tinysrgb&w=600"
+                  src="https://images.pexels.com/photos/17764754/pexels-photo-17764754.jpeg"
                   alt="Canopy"
                   fill
-                  className="object-cover mix-blend-luminosity opacity-50 group-hover:mix-blend-normal group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  className="object-cover opacity-65 group-hover:mix-blend-normal group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                 />
                 <div className="absolute top-3 left-3 bg-background/90 border border-slate-800 px-2 py-1 z-10">
                   <span className="text-[9px] font-mono uppercase tracking-widest text-foreground font-bold">
-                    REF-CANOPY
+                    Green Projects
                   </span>
                 </div>
               </div>
@@ -159,16 +159,16 @@ export default function PrimaryMarketplaceHero() {
             {/* Visual 2: Parallax Video (Center Left) */}
             <motion.div
               style={{ y: y2 }}
-              className="absolute top-[35%] left-[5%] w-[260px] h-[220px] border border-brand bg-foreground/80 p-2 z-20 group shadow-2xl shadow-brand/10 rounded-none backdrop-blur-sm"
+              className="absolute top-[35%] left-[5%] w-[320px] h-[220px] border border-brand bg-foreground/80 p-2 z-20 group shadow-2xl shadow-brand/10 rounded-none backdrop-blur-sm"
             >
               <div className="relative w-full h-full overflow-hidden border border-slate-800 rounded-none bg-black">
                 <video
-                  src="https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4"
+                  src="https://www.pexels.com/download/video/34494550"
                   autoPlay
                   loop
                   muted
                   playsInline
-                  className="w-full h-full object-cover mix-blend-luminosity opacity-60 group-hover:mix-blend-normal group-hover:opacity-90 transition-all duration-700"
+                  className="w-full h-full object-cover opacity-65 group-hover:mix-blend-normal group-hover:opacity-90 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
                 <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center z-10">
@@ -183,18 +183,18 @@ export default function PrimaryMarketplaceHero() {
             {/* Visual 3: Parallax Image (Bottom Right) */}
             <motion.div
               style={{ y: y3 }}
-              className="absolute top-[65%] right-[15%] w-[220px] h-[220px] border border-slate-800 bg-foreground p-2 z-10 group rounded-none"
+              className="absolute top-[65%] right-[15%] size-[250px] border border-slate-800 bg-foreground p-2 z-10 group rounded-none"
             >
               <div className="relative w-full h-full overflow-hidden border border-slate-800 rounded-none bg-black">
                 <Image
-                  src="https://images.pexels.com/photos/259280/pexels-photo-259280.jpeg?auto=compress&cs=tinysrgb&w=400"
+                  src="https://images.pexels.com/photos/31938887/pexels-photo-31938887.jpeg"
                   alt="Soil"
                   fill
-                  className="object-cover mix-blend-luminosity opacity-60 group-hover:mix-blend-normal group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
+                  className="object-cover opacity-65 group-hover:mix-blend-normal group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
                 />
                 <div className="absolute bottom-3 right-3 bg-brand/50 backdrop-blur-sm border border-slate-800 px-2 py-1 z-10">
                   <span className="text-[9px] font-mono uppercase tracking-widest text-foreground font-bold">
-                    SOIL DATA
+                    Canopy
                   </span>
                 </div>
               </div>

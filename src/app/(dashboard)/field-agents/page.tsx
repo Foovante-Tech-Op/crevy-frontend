@@ -24,6 +24,13 @@ import { toast } from "sonner";
 import { InviteFieldAgentModal } from "@/components/InviteFieldAgentModal";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -277,7 +284,7 @@ export default function FieldAgentsPage() {
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-            <div className="relative group w-full md:w-64">
+            <div className="relative group w-full md:w-64 border-b-2 border-foreground">
               <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-slate-900 transition-colors pointer-events-none" />
               <input
                 placeholder="Search agents..."
@@ -287,16 +294,20 @@ export default function FieldAgentsPage() {
               />
             </div>
 
-            <select
+            <Select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="appearance-none bg-transparent border-none border-b-2 border-slate-200 py-2 pl-2 pr-8 text-[10px] font-bold uppercase tracking-widest text-slate-500 focus:outline-none focus:border-slate-900 focus:text-slate-900 cursor-pointer transition-colors"
+              onValueChange={(v) => setStatusFilter(v as any)}
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="disabled">Disabled</option>
-              <option value="pending">Pending Invite</option>
-            </select>
+              <SelectTrigger className="border-b-2 border-slate-800 border-t-0 border-l-0 border-r-0 bg-transparent px-2 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 focus:border-slate-900 focus:text-slate-900 rounded-none shadow-none h-auto">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="disabled">Disabled</SelectItem>
+                <SelectItem value="pending">Pending Invite</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

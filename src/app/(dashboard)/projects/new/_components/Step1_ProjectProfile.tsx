@@ -5,7 +5,6 @@ import { ArrowRight, ChevronLeft, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { CurrencySelect } from "@/components/CurrencySelect";
 import CustomDatePicker from "@/components/CustomDatePicker";
 import CustomInput from "@/components/CustomInput";
 import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
@@ -56,7 +55,6 @@ const Step1_ProjectProfile = ({
   const [isCreating, setIsCreating] = useState(false);
 
   const selectedType = watch("projectType");
-  const currency = watch("currency");
   const startDate = watch("startDate");
   // Parse current latitude and longitude from the unified telemetry field
   const gpsCoordinates = watch("gpsCoordinates") || "";
@@ -101,7 +99,6 @@ const Step1_ProjectProfile = ({
       "country",
       "region",
       "startDate",
-      "currency",
       "totalAreaHectares",
       "projectOwnerId",
       "customProjectTypeLabel",
@@ -226,7 +223,7 @@ const Step1_ProjectProfile = ({
                 Phase 01
               </p>
               <h2 className="text-2xl font-sans text-foreground tracking-tight">
-                Telemetry Dossier
+                Project Profile
               </h2>
             </div>
             <button
@@ -493,31 +490,6 @@ const Step1_ProjectProfile = ({
               label="Project Plot Scale (Hectares) *"
               placeholder="e.g. 50"
             />
-
-            <div className="space-y-2 relative" data-lenis-prevent="true">
-              <label
-                htmlFor="currency"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground"
-              >
-                Settlement Currency *
-              </label>
-              <CurrencySelect
-                value={currency}
-                onChange={(val) =>
-                  setValue("currency", val, {
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
-                }
-                placeholder="Select protocol currency"
-                className="w-full rounded-none border-slate-200"
-              />
-              {errors.currency && (
-                <p className="text-red-500 text-xs font-mono">
-                  {errors.currency.message}
-                </p>
-              )}
-            </div>
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row gap-4 pt-8 border-t border-slate-100">

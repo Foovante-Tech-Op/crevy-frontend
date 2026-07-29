@@ -135,7 +135,7 @@ export function AccessDashboardButton({ isNavSolid }: { isNavSolid: boolean }) {
       className={cn(
         "inline-flex items-center rounded-none font-bold uppercase tracking-widest text-[10px] px-6 h-10 transition-colors",
         isNavSolid
-          ? "bg-slate-900 hover:bg-emerald-900 text-white"
+          ? "bg-slate-900 hover:bg-brand text-white"
           : "bg-white hover:bg-brand text-slate-900 hover:text-white",
       )}
     >

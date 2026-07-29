@@ -311,7 +311,7 @@ export default function UserManagementPage() {
             </Button>
             {!isOrgRelated && (
               <Button
-                onClick={() => router.push("/project-owners/register")}
+                onClick={() => router.push("/project-developers/register")}
                 className="rounded-none bg-slate-900 hover:bg-brand-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors"
               >
                 <UserCheck className="h-3.5 w-3.5 mr-2" /> Onboard Project Owner

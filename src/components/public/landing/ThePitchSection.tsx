@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export function ThePitchSection() {
   return (
     <section className="py-24 bg-slate-50">
+      {/* Commented out CTA buttons for now as directed by team */}
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10 space-y-24">
         {/* ── 1. PROJECT OWNERS (Supply) ── */}
         <PitchBlock
@@ -28,7 +29,7 @@ export function ThePitchSection() {
               desc: "Receive dedicated operational and technical guidance from project inception through the asset's entire verifiable lifetime.",
             },
           ]}
-          cta={{ label: "Calculate Your Revenue Potential", href: "/register" }}
+          // cta={{ label: "Calculate Your Revenue Potential", href: "/register" }}
           align="left"
         />
 
@@ -55,7 +56,7 @@ export function ThePitchSection() {
               desc: "Choose from Nature-Based (REDD+, Blue Carbon), Tech-Based (DAC), or Renewable Energy.",
             },
           ]}
-          cta={{ label: "Explore the Spot Market", href: "/marketplace" }}
+          // cta={{ label: "Explore the Spot Market", href: "/marketplace" }}
           align="right"
         />
 
@@ -82,7 +83,7 @@ export function ThePitchSection() {
               desc: "Auditors receive read-only cryptographic access to project monitoring reports and serial hashes.",
             },
           ]}
-          cta={{ label: "Request Auditor Access", href: "/contact" }}
+          // cta={{ label: "Request Auditor Access", href: "/contact" }}
           align="left"
         />
       </div>
@@ -116,12 +117,12 @@ function PitchBlock({ tag, headline, painPoint, bullets, cta, align }: any) {
           </p>
           <p className="text-sm">{painPoint}</p>
         </div>
-        <Link
+        {/* <Link
           href={cta.href}
           className="inline-flex items-center gap-3 bg-brand text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-900 transition-colors"
         >
           {cta.label} <ArrowUpRight size={14} />
-        </Link>
+        </Link> */}
       </div>
 
       <div className="flex-1 bg-white border border-slate-200 p-8 md:p-10">

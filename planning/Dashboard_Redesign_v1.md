@@ -23,12 +23,12 @@ sustainability_manager/org_auditor roles enter it — there is no `buyer` case.
 
 Reading the code directly:
 
-| Component | Has live data? | Connected hooks/services | State |
-|---|---|---|---|
-| `SuperAdminDashboard` | Partly | `useWaitlistRegistrations` (wired this sprint) | Updated |
-| `AdminDashboard` | No | None | All mock |
-| `OrgAdminDashboard` | No | None | All mock |
-| `ProjectOwnerDashboard` | Yes | `ProjectService.getProjects` via `useQuery` | Partially live |
+| Component               | Has live data? | Connected hooks/services                       | State          |
+| ----------------------- | -------------- | ---------------------------------------------- | -------------- |
+| `SuperAdminDashboard`   | Partly         | `useWaitlistRegistrations` (wired this sprint) | Updated        |
+| `AdminDashboard`        | No             | None                                           | All mock       |
+| `OrgAdminDashboard`     | No             | None                                           | All mock       |
+| `ProjectOwnerDashboard` | Yes            | `ProjectService.getProjects` via `useQuery`    | Partially live |
 
 `ProjectOwnerDashboard` is the most mature — it already fetches real project
 data per `userId`, derives `activeProjects`, `verificationProjects`, and
@@ -72,6 +72,7 @@ the yield-centric framing that doesn't apply yet. The score and the module
 completion checklist are the project owner's actual daily workflow.
 
 **Product:** Role taxonomy is:
+
 ```
 super_admin           → SuperAdminDashboard (platform operator)
 admin                 → AdminDashboard
@@ -83,6 +84,7 @@ org_admin             → BuyerDashboard (renamed from OrgAdminDashboard)
 sustainability_manager → BuyerDashboard
 org_auditor           → BuyerDashboard
 ```
+
 `buyer` is a future role string — add a case to `page.tsx` routing to
 `BuyerDashboard` but don't build a separate component; it's the same view.
 
@@ -93,22 +95,22 @@ org_auditor           → BuyerDashboard
 ```tsx
 // src/app/(dashboard)/dashboard/page.tsx — target switch statement
 switch (role) {
-  case 'super_admin':
+  case "super_admin":
     return <SuperAdminDashboard userName={userName} />;
 
-  case 'admin':
-  case 'project_manager':
-  case 'mrv_admin':
-  case 'financial_admin':
+  case "admin":
+  case "project_manager":
+  case "mrv_admin":
+  case "financial_admin":
     return <AdminDashboard userName={userName} role={role} />;
 
-  case 'project_owner':
+  case "project_owner":
     return <ProjectDeveloperDashboard userName={userName} />;
 
-  case 'org_admin':
-  case 'sustainability_manager':
-  case 'org_auditor':
-  case 'buyer':                        // future role string, same view
+  case "org_admin":
+  case "sustainability_manager":
+  case "org_auditor":
+  case "buyer": // future role string, same view
     return <BuyerDashboard userName={userName} role={role} />;
 
   default:
@@ -125,23 +127,24 @@ switch (role) {
 
 ### Sections (in render order)
 
-| # | Section | Component | Data source | Status |
-|---|---|---|---|---|
-| 1 | Hero Dossier | Custom grid | `session.user.name`, mock counts | Mock counts only |
-| 2 | Alert Strip | `AlertStrip` | Derived from section 4 + mock | Partially live |
-| 3 | Registry KPIs | 4× `StatCard` | MOCK — needs `/dashboard/stats` | ❌ Mock |
-| 4 | Waitlist KPIs | 4× `StatCard` | `useWaitlistRegistrations` | ✅ Live |
-| 5 | Waitlist Table | `DataTable<WaitlistRow>` | `useWaitlistRegistrations({ limit: 10 })` | ✅ Live |
-| 6 | Financial Settlement | 3 custom cards | MOCK | ❌ Mock |
-| 7 | MRV Pipeline Stepper | `MrvPipelineStepper` | MOCK counts | ❌ Mock |
-| 8 | System Diagnostics | Custom list | MOCK | ❌ Mock |
-| 9 | Activity Feed | Custom list | MOCK — needs `/audit?limit=5` | ❌ Mock |
+| #   | Section              | Component                | Data source                               | Status           |
+| --- | -------------------- | ------------------------ | ----------------------------------------- | ---------------- |
+| 1   | Hero Dossier         | Custom grid              | `session.user.name`, mock counts          | Mock counts only |
+| 2   | Alert Strip          | `AlertStrip`             | Derived from section 4 + mock             | Partially live   |
+| 3   | Registry KPIs        | 4× `StatCard`            | MOCK — needs `/dashboard/stats`           | ❌ Mock          |
+| 4   | Waitlist KPIs        | 4× `StatCard`            | `useWaitlistRegistrations`                | ✅ Live          |
+| 5   | Waitlist Table       | `DataTable<WaitlistRow>` | `useWaitlistRegistrations({ limit: 10 })` | ✅ Live          |
+| 6   | Financial Settlement | 3 custom cards           | MOCK                                      | ❌ Mock          |
+| 7   | MRV Pipeline Stepper | `MrvPipelineStepper`     | MOCK counts                               | ❌ Mock          |
+| 8   | System Diagnostics   | Custom list              | MOCK                                      | ❌ Mock          |
+| 9   | Activity Feed        | Custom list              | MOCK — needs `/audit?limit=5`             | ❌ Mock          |
 
 ### Waitlist DataTable columns (implemented)
 
 ```
 Applicant | Email | Organization | Role | Country | Status | Registered
 ```
+
 Status badge colors: pending=amber, approved=emerald, rejected=rose.
 "View Full Waitlist" action links to `/user-management`.
 
@@ -152,7 +155,7 @@ interface SuperAdminStats {
   totalCreditsIssuedTco2e: number;
   grossRegistryValueUsd: number;
   activeProjectCount: number;
-  pendingGovernanceCount: number;   // projects pending review + KYC pending
+  pendingGovernanceCount: number; // projects pending review + KYC pending
   platformRevenueMtdUsd: number;
   payoutQueueCount: number;
   payoutQueueOutstandingUsd: number;
@@ -169,7 +172,8 @@ interface SuperAdminStats {
 ### Alert strip logic (current)
 
 ```ts
-const totalPending = pendingProjectsCount + pendingUsersCount + pendingWaitlistCount;
+const totalPending =
+  pendingProjectsCount + pendingUsersCount + pendingWaitlistCount;
 // pendingProjectsCount, pendingUsersCount: mock until /dashboard/stats wired
 // pendingWaitlistCount: live from useWaitlistRegistrations
 ```
@@ -185,6 +189,7 @@ const totalPending = pendingProjectsCount + pendingUsersCount + pendingWaitlistC
 
 The tabbed domain view is architecturally sound. Admins have distinctly different
 responsibilities depending on their role sub-type:
+
 - `admin` → all three tabs
 - `project_manager` → Project Operations tab only
 - `mrv_admin` → MRV & Credits tab only
@@ -217,7 +222,7 @@ ALWAYS VISIBLE (above tabs):
 
 TAB: Project Operations  (project_manager, admin)
   ├─ 4 KPI StatCards: Assigned Developers / Under Review / Site Visits / Pending KYC
-  ├─ DataTable: Recent project owners (5 rows, "View All" → /project-owners)
+  ├─ DataTable: Recent project owners (5 rows, "View All" → /project-developers)
   │    Columns: Entity | Jurisdiction | KYC Status | Assigned | Actions
   └─ DataTable: Projects awaiting review (5 rows, "View All" → /projects)
        Columns: Project Ref | Developer | Type | Stage | Actions
@@ -334,10 +339,10 @@ Activity Feed (static → live):
 // src/components/dashboard/ReadinessScoreRing.tsx
 // SVG circle-based ring. Props:
 interface ReadinessScoreRingProps {
-  score: number;            // 0–100
-  size?: number;            // px, default 120
-  strokeWidth?: number;     // default 10
-  showLabel?: boolean;      // default true
+  score: number; // 0–100
+  size?: number; // px, default 120
+  strokeWidth?: number; // default 10
+  showLabel?: boolean; // default true
 }
 // Color logic:
 //   score < 41  → stroke="#f59e0b" (amber)
@@ -354,7 +359,7 @@ interface ReadinessScoreRingProps {
 
 export function useProjectAssessments(projectId: string | undefined) {
   return useQuery({
-    queryKey: ['project-assessments', projectId],
+    queryKey: ["project-assessments", projectId],
     queryFn: () => ProjectService.listAssessments(projectId!),
     enabled: !!projectId,
   });
@@ -362,7 +367,7 @@ export function useProjectAssessments(projectId: string | undefined) {
 
 export function useProjectAssessmentScore(projectId: string | undefined) {
   return useQuery({
-    queryKey: ['project-assessment-score', projectId],
+    queryKey: ["project-assessment-score", projectId],
     queryFn: () => ProjectService.getLatestScore(projectId!),
     enabled: !!projectId,
   });
@@ -370,9 +375,9 @@ export function useProjectAssessmentScore(projectId: string | undefined) {
 
 export function useAssessmentManifest() {
   return useQuery({
-    queryKey: ['assessment-manifest'],
+    queryKey: ["assessment-manifest"],
     queryFn: () => ProjectService.getAssessmentManifest(),
-    staleTime: 10 * 60 * 1000,   // 10min — the manifest changes rarely
+    staleTime: 10 * 60 * 1000, // 10min — the manifest changes rarely
   });
 }
 ```
@@ -386,9 +391,10 @@ recently updated project that is NOT in status 'closed'. Logic:
 
 ```ts
 const heroProject = projects
-  .filter(p => p.projectStatus !== 'closed')
-  .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-  [0];
+  .filter((p) => p.projectStatus !== "closed")
+  .sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  )[0];
 ```
 
 If `heroProject` is undefined (no projects yet), show a "Register your first
@@ -463,14 +469,17 @@ ESG Section:
 
 ```ts
 // Credits held
-CreditService.getCarbonCredits({ ownerId: session.user.activeOrganizationId })
+CreditService.getCarbonCredits({ ownerId: session.user.activeOrganizationId });
 // → derive: totalHeldTco2e, totalRetiredTco2e, pendingPurchaseCount, netPosition
 
 // Portfolio transactions (last 5)
-CreditService.getTransactions({ limit: 5, orgId: session.user.activeOrganizationId })
+CreditService.getTransactions({
+  limit: 5,
+  orgId: session.user.activeOrganizationId,
+});
 
 // Organization profile (for company name, net-zero targets)
-OrganizationService.getOrganizationById(session.user.activeOrganizationId)
+OrganizationService.getOrganizationById(session.user.activeOrganizationId);
 // → org.name for hero, org.carbonNeutralityTargets for gauge goal value
 ```
 
@@ -532,14 +541,17 @@ const handleClick = (e: React.MouseEvent) => {
   e.preventDefault();
   onClick?.();
 
-  const isSamePageAnchor = href.startsWith('#');
+  const isSamePageAnchor = href.startsWith("#");
   if (!isSamePageAnchor && (window as any).__showCrevyLoader) {
     (window as any).__showCrevyLoader();
   }
 
-  setTimeout(() => {
-    router.push(href);
-  }, isSamePageAnchor ? 0 : 100);
+  setTimeout(
+    () => {
+      router.push(href);
+    },
+    isSamePageAnchor ? 0 : 100,
+  );
 };
 ```
 
@@ -572,10 +584,10 @@ src/components/dashboard/
 2. Update `Shared.tsx` to re-export everything from the new locations:
    ```ts
    // Shared.tsx — transitional re-export shim
-   export { StatCard } from '@/components/dashboard/StatCard';
-   export { SectionLabel } from '@/components/dashboard/SectionLabel';
-   export { AlertStrip } from '@/components/dashboard/AlertStrip';
-   export { MrvPipelineStepper } from '@/components/dashboard/MrvPipelineStepper';
+   export { StatCard } from "@/components/dashboard/StatCard";
+   export { SectionLabel } from "@/components/dashboard/SectionLabel";
+   export { AlertStrip } from "@/components/dashboard/AlertStrip";
+   export { MrvPipelineStepper } from "@/components/dashboard/MrvPipelineStepper";
    ```
 3. All existing consumers continue to work unchanged during migration
 4. Remove `Shared.tsx` once all four dashboard components are updated
@@ -606,11 +618,11 @@ interface QuickAction {
   label: string;
   href: string;
   icon: React.ComponentType<{ size?: number }>;
-  variant?: 'primary' | 'outline';  // primary = bg-slate-900, outline = border
+  variant?: "primary" | "outline"; // primary = bg-slate-900, outline = border
 }
 interface QuickActionsGridProps {
   actions: QuickAction[];
-  columns?: 2 | 3;  // default 2
+  columns?: 2 | 3; // default 2
 }
 ```
 
@@ -624,18 +636,18 @@ All new hooks go in `src/hooks/` following the existing naming convention
 ### `src/hooks/use-project-assessment.ts` (new)
 
 ```ts
-export function useProjectAssessments(projectId: string | undefined)
-  // queryKey: ['project-assessments', projectId]
-  // queryFn: ProjectService.listAssessments(projectId!)
+export function useProjectAssessments(projectId: string | undefined);
+// queryKey: ['project-assessments', projectId]
+// queryFn: ProjectService.listAssessments(projectId!)
 
-export function useProjectAssessmentScore(projectId: string | undefined)
-  // queryKey: ['project-assessment-score', projectId]
-  // queryFn: ProjectService.getLatestScore(projectId!)
+export function useProjectAssessmentScore(projectId: string | undefined);
+// queryKey: ['project-assessment-score', projectId]
+// queryFn: ProjectService.getLatestScore(projectId!)
 
-export function useAssessmentManifest()
-  // queryKey: ['assessment-manifest']
-  // staleTime: 10 * 60 * 1000
-  // queryFn: ProjectService.getAssessmentManifest()
+export function useAssessmentManifest();
+// queryKey: ['assessment-manifest']
+// staleTime: 10 * 60 * 1000
+// queryFn: ProjectService.getAssessmentManifest()
 ```
 
 All three `ProjectService` methods are already implemented (`getLatestScore`,
@@ -645,22 +657,22 @@ to consume them.
 ### `src/hooks/use-credits.ts` (new or extend)
 
 ```ts
-export function useCarbonCredits(params?: Record<string, unknown>)
-  // queryKey: ['carbon-credits', params]
-  // queryFn: CreditService.getCarbonCredits(params)
+export function useCarbonCredits(params?: Record<string, unknown>);
+// queryKey: ['carbon-credits', params]
+// queryFn: CreditService.getCarbonCredits(params)
 
-export function useCreditTransactions(params?: Record<string, unknown>)
-  // queryKey: ['credit-transactions', params]
-  // queryFn: CreditService.getTransactions(params)
+export function useCreditTransactions(params?: Record<string, unknown>);
+// queryKey: ['credit-transactions', params]
+// queryFn: CreditService.getTransactions(params)
 ```
 
 ### `src/hooks/use-organization.ts` (new)
 
 ```ts
-export function useOrganization(id: string | undefined)
-  // queryKey: ['organization', id]
-  // queryFn: OrganizationService.getOrganizationById(id!)
-  // enabled: !!id
+export function useOrganization(id: string | undefined);
+// queryKey: ['organization', id]
+// queryFn: OrganizationService.getOrganizationById(id!)
+// enabled: !!id
 ```
 
 ---
@@ -669,17 +681,17 @@ export function useOrganization(id: string | undefined)
 
 Ordered by priority against what the dashboards need to stop showing mock data.
 
-| Priority | Endpoint | Consuming dashboard | Returns |
-|---|---|---|---|
-| 🔴 High | `GET /v2/dashboard/stats?role=super_admin` | SuperAdminDashboard | `SuperAdminStats` object (§3) |
-| 🔴 High | `GET /v2/dashboard/stats?role=admin` | AdminDashboard | Project/KYC/MRV aggregate counts |
-| 🔴 High | `GET /v2/projects/:id/assessment-score` | ProjectDeveloperDashboard | Latest score row — **controller already built this sprint** |
-| 🟡 Medium | `GET /v2/mrv/stats` | AdminDashboard MRV tab | Pipeline stage counts + anomaly flag count |
-| 🟡 Medium | `GET /v2/financials/payouts?status=pending&limit=5` | AdminDashboard Financial tab | Payout queue rows |
-| 🟡 Medium | `GET /v2/financials/contracts?limit=5` | AdminDashboard Financial tab | Contract rows |
-| 🟡 Medium | `GET /v2/projects/:id/activities?limit=5` | ProjectDeveloperDashboard | Activity feed rows |
-| 🟢 Low | `GET /v2/reports/esg?limit=1` | BuyerDashboard | Latest ESG report summary |
-| 🟢 Low | `GET /v2/mrv/health` | SuperAdminDashboard System Diagnostics | Anchoring latency, uptime |
+| Priority  | Endpoint                                            | Consuming dashboard                    | Returns                                                     |
+| --------- | --------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------- |
+| 🔴 High   | `GET /v2/dashboard/stats?role=super_admin`          | SuperAdminDashboard                    | `SuperAdminStats` object (§3)                               |
+| 🔴 High   | `GET /v2/dashboard/stats?role=admin`                | AdminDashboard                         | Project/KYC/MRV aggregate counts                            |
+| 🔴 High   | `GET /v2/projects/:id/assessment-score`             | ProjectDeveloperDashboard              | Latest score row — **controller already built this sprint** |
+| 🟡 Medium | `GET /v2/mrv/stats`                                 | AdminDashboard MRV tab                 | Pipeline stage counts + anomaly flag count                  |
+| 🟡 Medium | `GET /v2/financials/payouts?status=pending&limit=5` | AdminDashboard Financial tab           | Payout queue rows                                           |
+| 🟡 Medium | `GET /v2/financials/contracts?limit=5`              | AdminDashboard Financial tab           | Contract rows                                               |
+| 🟡 Medium | `GET /v2/projects/:id/activities?limit=5`           | ProjectDeveloperDashboard              | Activity feed rows                                          |
+| 🟢 Low    | `GET /v2/reports/esg?limit=1`                       | BuyerDashboard                         | Latest ESG report summary                                   |
+| 🟢 Low    | `GET /v2/mrv/health`                                | SuperAdminDashboard System Diagnostics | Anchoring latency, uptime                                   |
 
 ### `/v2/dashboard/stats` — recommended shape
 
@@ -694,13 +706,18 @@ interface SuperAdminStats {
   activeProjectCount: number;
   pendingProjectSubmissions: number;
   pendingKycCount: number;
-  pendingWaitlistCount: number;     // sum of above three = totalPending
+  pendingWaitlistCount: number; // sum of above three = totalPending
   platformRevenueMtdUsd: number;
   payoutQueueCount: number;
   payoutQueueOutstandingUsd: number;
   creditsAcquiredMtdTco2e: number;
   creditsAcquiredMtdValueUsd: number;
-  mrvPipeline: { ingest: number; verify: number; anchor: number; issue: number };
+  mrvPipeline: {
+    ingest: number;
+    verify: number;
+    anchor: number;
+    issue: number;
+  };
 }
 
 // Admin shape
@@ -733,26 +750,30 @@ Recommended order to avoid building UI for endpoints that don't exist yet,
 and to ship the most user-visible improvements first:
 
 ### Sprint 1 (this sprint — ✅ mostly done)
+
 - [x] Public layout CrevyLoader overlay pattern
 - [x] SuperAdminDashboard: waitlist KPIs + DataTable wired to live API
 - [x] Backend: assessment controller + routes + service + scoring engines
 - [ ] NavLink anchor-link fix (30 min, §7)
 
 ### Sprint 2 (next)
+
 - [ ] Extract `Shared.tsx` primitives to `src/components/dashboard/`
 - [ ] Build `ReadinessScoreRing` component
 - [ ] Build `use-project-assessment.ts` hooks
 - [ ] Rebuild `ProjectDeveloperDashboard` (rename from ProjectOwnerDashboard)
-  around Carbon Readiness Score hero
+      around Carbon Readiness Score hero
 - [ ] Update `page.tsx` switch statement to match §2 role map
 
 ### Sprint 3
+
 - [ ] Backend: `GET /v2/dashboard/stats` (super_admin + admin shapes)
 - [ ] Wire SuperAdminDashboard Registry KPIs to live data
 - [ ] Wire AdminDashboard KPIs to live data
 - [ ] Replace AdminDashboard custom tables with `DataTable`/`MiniDataTable`
 
 ### Sprint 4
+
 - [ ] Build `BuyerDashboard` (rename from OrgAdminDashboard)
 - [ ] Build `use-credits.ts` and `use-organization.ts` hooks
 - [ ] Wire BuyerDashboard portfolio + gauge to live data

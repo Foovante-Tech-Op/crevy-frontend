@@ -66,7 +66,7 @@ export default function AdminDashboard({
 
   // ── Real data: developers assigned to this admin (backend scopes by role) ──
   const { data: developersRes, isLoading: loadingDevelopers } = useQuery({
-    queryKey: ["admin-dashboard-project-owners"],
+    queryKey: ["admin-dashboard-project-developers"],
     queryFn: () => ProjectOwnerService.listProjectOwners({ limit: 10 }),
     enabled: isProjectManager,
     staleTime: 30_000,
@@ -117,10 +117,10 @@ export default function AdminDashboard({
         align: "right",
         render: (d) => (
           <Link
-            href={`/project-owners/${d.userId}`}
+            href={`/project-developers/${d.code}`}
             className="text-[10px] font-bold uppercase tracking-widest text-brand-700 hover:text-slate-900 border-b border-transparent hover:border-slate-900 transition-all inline-flex items-center gap-1"
           >
-            Audit Dossier <ExternalLink size={12} />
+            View <ExternalLink size={12} />
           </Link>
         ),
       },
@@ -190,7 +190,10 @@ export default function AdminDashboard({
             <div>
               <SectionLabel
                 label="Project Vetting Overview"
-                action={{ label: "View Full Roster", href: "/project-owners" }}
+                action={{
+                  label: "View Full Roster",
+                  href: "/project-developers",
+                }}
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200">
                 <StatCard

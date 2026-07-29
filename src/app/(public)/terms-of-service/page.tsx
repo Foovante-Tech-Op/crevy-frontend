@@ -28,7 +28,11 @@ const SECTIONS = [
   { id: "platform-use", label: "4. Infrastructure Use", icon: Globe },
   { id: "prohibited", label: "5. Prohibited Vectors", icon: ShieldAlert },
   { id: "carbon-credits", label: "6. Asset Immutability", icon: Leaf },
-  { id: "project-owners", label: "7. Developer Obligations", icon: Briefcase },
+  {
+    id: "project-developers",
+    label: "7. Developer Obligations",
+    icon: Briefcase,
+  },
   { id: "corporate-buyers", label: "8. Institutional Buyers", icon: Building2 },
   { id: "payments", label: "9. Settlement & Fees", icon: Wallet },
   { id: "ip", label: "10. Intellectual Property", icon: FileText },
@@ -282,7 +286,7 @@ function TermsContent({
               </TermsSection>
 
               <TermsSection
-                id="project-owners"
+                id="project-developers"
                 title="7. Developer Obligations"
               >
                 <p>

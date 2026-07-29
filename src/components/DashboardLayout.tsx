@@ -58,7 +58,7 @@ export const DashboardLayoutClient = ({
             !pathname.startsWith("/portfolio") &&
             !pathname.startsWith("/compliance") &&
             !pathname.startsWith("/track-verification") &&
-            !pathname.startsWith("/project-owners") &&
+            !pathname.startsWith("/project-developers") &&
             !pathname.startsWith("/user-management") &&
             !pathname.startsWith("/credits-ledger") &&
             !pathname.startsWith("/organizations") && (

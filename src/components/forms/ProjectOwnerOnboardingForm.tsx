@@ -31,8 +31,8 @@ import {
 
 const STEPS = [
   { id: 1, title: "Identity Register" },
-  { id: 2, title: "Payout Vectors" },
-  { id: 3, title: "Spatial Assets" },
+  { id: 2, title: "Payout Details" },
+  { id: 3, title: "Porject Site Details" },
   { id: 4, title: "System Finalization" },
 ];
 
@@ -240,7 +240,7 @@ export default function ProjectOwnerOnboardingForm() {
               {currentStep === 1 && (
                 <div className="space-y-8">
                   <div className="border-b border-slate-200 pb-6 mb-8">
-                    <h2 className="text-3xl font-serif text-slate-900 tracking-tight mb-2">
+                    <h2 className="text-3xl font-sans text-slate-900 tracking-tight mb-2">
                       Identity Profile
                     </h2>
                     <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">
@@ -312,7 +312,7 @@ export default function ProjectOwnerOnboardingForm() {
                 <div className="space-y-8">
                   <div className="border-b border-slate-200 pb-6 mb-8">
                     <h2 className="text-3xl font-serif text-slate-900 tracking-tight mb-2">
-                      Payout Vectors
+                      Payout Details
                     </h2>
                     <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">
                       Configure climate revenue disbursement channels.

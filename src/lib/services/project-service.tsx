@@ -198,4 +198,22 @@ export const ProjectService = {
     );
     return response.data;
   },
+
+  updateClassification: async (
+    projectId: string,
+    data: Partial<{
+      industrySector: string;
+      activity: string;
+      product: string;
+      carbonMechanism: string;
+      creditType: string;
+      economySubClassification: string[];
+    }>,
+  ) => {
+    const response = await axiosClient.patch(
+      `/projects/${projectId}/classification`,
+      data,
+    );
+    return response.data;
+  },
 };

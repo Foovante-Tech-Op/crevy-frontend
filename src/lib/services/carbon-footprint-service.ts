@@ -63,10 +63,11 @@ export const CarbonFootprintService = {
     inputs: CarbonFootprintInputs;
     regionCode?: string;
   }): Promise<CarbonFootprintResult> => {
-    const response = await axiosClient.post(
-      "/carbon-footprint/calculate",
-      data,
-    );
+    // Backend expects energy, transport, lifestyle at top level, not nested in inputs
+    const response = await axiosClient.post("/carbon-footprint/calculate", {
+      ...data.inputs,
+      regionCode: data.regionCode,
+    });
     return response.data.data;
   },
 

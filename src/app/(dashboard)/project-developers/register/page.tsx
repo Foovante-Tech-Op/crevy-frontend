@@ -18,7 +18,7 @@ export default function ProjectOwnerRegisterPage() {
             </Link>
             <ChevronRight className="w-3 h-3" />
             <Link
-              href="/project-owners"
+              href="/project-developers"
               className="hover:text-slate-900 transition-colors flex items-center gap-1.5"
             >
               <Users className="w-3.5 h-3.5" /> Directory
@@ -36,7 +36,7 @@ export default function ProjectOwnerRegisterPage() {
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
-                Onboard <span className="italic text-slate-500">Entity.</span>
+                Onboard <span className="italic text-brand">Entity.</span>
               </h1>
               <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
                 Systematically register new developers, configure payout

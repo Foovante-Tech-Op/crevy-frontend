@@ -1,4 +1,5 @@
 # Crevy Dashboard Rebuild — AI Generation Prompt
+
 ### Comprehensive UI Specification for Three User Categories
 
 ---
@@ -9,11 +10,11 @@ Rebuild the Crevy platform dashboard as a **world-class, editorially structured 
 
 Three self-contained dashboard variants exist, driven by `session.user.role`:
 
-| Role string(s) | Dashboard variant | Persona |
-|---|---|---|
-| `super_admin` | **Super Admin Dashboard** | Platform owner — full sovereignty over the registry |
-| `project_manager`, `mrv_admin`, `financial_admin` | **Admin Dashboard** | Staff member — operates one domain within the platform |
-| `org_admin`, `sustainability_manager`, `org_auditor` | **Org Admin Dashboard** | Corporate/institutional — manages carbon exposure and ESG obligations |
+| Role string(s)                                       | Dashboard variant         | Persona                                                               |
+| ---------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
+| `super_admin`                                        | **Super Admin Dashboard** | Platform owner — full sovereignty over the registry                   |
+| `project_manager`, `mrv_admin`, `financial_admin`    | **Admin Dashboard**       | Staff member — operates one domain within the platform                |
+| `org_admin`, `sustainability_manager`, `org_auditor` | **Org Admin Dashboard**   | Corporate/institutional — manages carbon exposure and ESG obligations |
 
 Every dashboard variant must be **fully responsive**, use **real API data where endpoints exist** (fall back to static illustrative mock data where they do not, clearly commented), and animate with **Framer Motion** using the existing staggered reveal pattern.
 
@@ -60,27 +61,28 @@ Accent slate:     #64748b / #475569
 
 ```css
 /* Headings — already loaded via next/font/google */
-font-family: var(--font-syne), sans-serif;   /* section labels, card titles, KPI values */
+font-family:
+  var(--font-syne), sans-serif; /* section labels, card titles, KPI values */
 
 /* Body — system default */
-font-family: var(--font-geist), sans-serif;  /* everything else */
+font-family: var(--font-geist), sans-serif; /* everything else */
 ```
 
 ### 1.4 Existing chart components — reuse, do not rewrite
 
 All charts live in `src/app/(dashboard)/dashboard/_components/`. Import and reuse:
 
-| Component | Usage |
-|---|---|
-| `AreaChart` | Single-series trend over time |
-| `GroupedBarChart` | Two-series side-by-side comparison |
-| `MultiLineChart` | Two-series line comparison |
-| `DonutChart` | Proportional breakdown with legend |
-| `StatCard` | KPI card — `label`, `value`, `sub`, `icon`, `trend`, `accent`, `delay` props |
-| `HeroSection` | Top welcome/CTA card — already role-aware, extend as needed |
-| `SectionLabel` | Section title with framer-motion fade-in — export from ProjectOwnerDashboard |
-| `OnboardingFlow` | Project lifecycle stepper |
-| `SystemHealth` | 2×2 grid of platform metrics |
+| Component         | Usage                                                                        |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `AreaChart`       | Single-series trend over time                                                |
+| `GroupedBarChart` | Two-series side-by-side comparison                                           |
+| `MultiLineChart`  | Two-series line comparison                                                   |
+| `DonutChart`      | Proportional breakdown with legend                                           |
+| `StatCard`        | KPI card — `label`, `value`, `sub`, `icon`, `trend`, `accent`, `delay` props |
+| `HeroSection`     | Top welcome/CTA card — already role-aware, extend as needed                  |
+| `SectionLabel`    | Section title with framer-motion fade-in — export from ProjectOwnerDashboard |
+| `OnboardingFlow`  | Project lifecycle stepper                                                    |
+| `SystemHealth`    | 2×2 grid of platform metrics                                                 |
 
 ### 1.5 Editorial layout structure
 
@@ -133,6 +135,7 @@ src/app/(dashboard)/dashboard/
 ```
 
 Update `page.tsx` role switch:
+
 ```typescript
 switch (role) {
   case "super_admin":
@@ -189,12 +192,12 @@ Color: `bg-amber-50 border-amber-100 text-amber-700`.
 
 4 StatCards in a 4-column grid:
 
-| KPI | Value source | Icon | Accent |
-|---|---|---|---|
-| **Total Credits Issued** | `GET /api/v2/credits?limit=1` — total from count or mock `42,840 tCO₂e` | `Leaf` | green |
-| **Gross Registry Value** | Mock `$856,800` | `DollarSign` | blue |
-| **Active Projects** | `GET /api/v2/projects?projectStatus=active&limit=1` | `Layers` | green |
-| **Pending Approvals** | Count pending projects + pending users | `Clock` | amber |
+| KPI                      | Value source                                                            | Icon         | Accent |
+| ------------------------ | ----------------------------------------------------------------------- | ------------ | ------ |
+| **Total Credits Issued** | `GET /api/v2/credits?limit=1` — total from count or mock `42,840 tCO₂e` | `Leaf`       | green  |
+| **Gross Registry Value** | Mock `$856,800`                                                         | `DollarSign` | blue   |
+| **Active Projects**      | `GET /api/v2/projects?projectStatus=active&limit=1`                     | `Layers`     | green  |
+| **Pending Approvals**    | Count pending projects + pending users                                  | `Clock`      | amber  |
 
 Each StatCard must have a `trend` prop showing week-on-week change.
 
@@ -205,17 +208,19 @@ Layout: **3/5 left + 2/5 right**.
 **Left (3/5) — two charts stacked:**
 
 Chart A — `MultiLineChart`, title "User Growth", subtitle "Monthly onboarding by user type":
+
 ```typescript
-data: Array<{ label: string; a: number; b: number }>
+data: Array<{ label: string; a: number; b: number }>;
 // a = Project Owners, b = Org Admins / Buyers
 // 12 months of mock data, growing trend
-labelA="Project Owners"
-labelB="Org Buyers"
-colorA="#2cc295"
-colorB="#131927"
+labelA = "Project Owners";
+labelB = "Org Buyers";
+colorA = "#2cc295";
+colorB = "#131927";
 ```
 
 Chart B — `GroupedBarChart`, title "Credit Market Liquidity", subtitle "tCO₂e by quarter":
+
 ```typescript
 // labelA="Issued", labelB="Purchased", colorA="#2cc295", colorB="#131927"
 // 4 quarters of mock data
@@ -234,11 +239,13 @@ Fetch: `GET /api/v2/projects?projectStatus=draft&limit=10` (or mock while endpoi
 Columns: `Project Name`, `Owner`, `Type`, `Location`, `Submitted`, `Priority`, `Action`.
 
 Priority badge colors:
+
 - High → `bg-rose-50 text-rose-600`
 - Medium → `bg-amber-50 text-amber-600`
 - Low → `bg-gray-100 text-gray-500`
 
 Action buttons per row:
+
 - **Verify** → green button → opens `ApprovalModal` → `PATCH /api/v2/projects/:id { projectStatus: 'active', projectStage: 'active' }`
 - **Reject** → rose button → opens `ApprovalModal` (type: reject) → `PATCH /api/v2/projects/:id { projectStatus: 'suspended' }`
 - **View** → ghost button → `router.push('/project-profile/:id')`
@@ -254,6 +261,7 @@ Fetch: Mock data — `GET /api/v2/users?verificationStatus=pending` (endpoint no
 Columns: `Name`, `Organisation`, `Role`, `Applied`, `KYC`, `Action`.
 
 KYC badge:
+
 - `verified` → `bg-[#2cc295]/10 text-[#178a74]`
 - `pending` → `bg-amber-50 text-amber-600`
 - `rejected` → `bg-rose-50 text-rose-600`
@@ -265,17 +273,20 @@ Action buttons: **Approve** / **Decline** — same modal pattern as projects.
 A 3-column card row. Each card is `rounded-2xl border bg-white shadow-sm p-5`:
 
 **Card 1 — Revenue This Month**
+
 - Large number: `$24,600` (mock)
 - Subtitle: "platform fees collected"
 - Sparkline: use a tiny 6-point AreaChart embedded inline (SVG, height 40px)
 - Trend: `+18% vs last month`
 
 **Card 2 — Payout Queue**
+
 - Count: `12 pending payouts`
 - Total: `$38,240 outstanding`
 - CTA link: "Manage Payouts →" → `/financials/payouts`
 
 **Card 3 — Credits Sold (MTD)**
+
 - Number: `2,840 tCO₂e`
 - Value: `$56,800`
 - Projects contributing: `7`
@@ -289,6 +300,7 @@ A horizontal stepper showing the 4 MRV stages with live counts:
 ```
 
 Each stage node:
+
 - Circle with count badge
 - Label below
 - Connector line between stages (gray, not green — represents in-progress flow)
@@ -300,18 +312,19 @@ Fetch: `GET /api/v2/mrv/ingestions/project/:projectId` (or platform-wide mock co
 
 A 2×2 grid using the SystemHealth card pattern, but with registry-specific metrics:
 
-| Metric | Value | Status |
-|---|---|---|
-| Registry Uptime | 99.97% | good |
-| Webhook Processing | 142ms avg | good |
-| Pending Audit Items | 3 | warning |
-| Double-Count Checks | ✓ Clean | good |
+| Metric              | Value     | Status  |
+| ------------------- | --------- | ------- |
+| Registry Uptime     | 99.97%    | good    |
+| Webhook Processing  | 142ms avg | good    |
+| Pending Audit Items | 3         | warning |
+| Double-Count Checks | ✓ Clean   | good    |
 
 Below the grid: a compact "Recent Audit Events" feed (3 items, icon + title + timestamp).
 
 ### 3.11 Section — "Recent Activity"
 
 Reuse `AdminRecentActivity` component. Feed should include:
+
 - New user registrations (🔐)
 - Project stage changes (🌱)
 - Credit issuances (💚)
@@ -331,17 +344,21 @@ Role-specific operator view. The admin dashboard uses a **tab pattern** at the t
 
 ```typescript
 // At the top of AdminDashboard
-const isProjectManager = role === 'project_manager';
-const isMrvAdmin = role === 'mrv_admin';
-const isFinancialAdmin = role === 'financial_admin';
+const isProjectManager = role === "project_manager";
+const isMrvAdmin = role === "mrv_admin";
+const isFinancialAdmin = role === "financial_admin";
 
 const tabs = [
-  isProjectManager  && { key: 'projects',   label: 'Project Ops',   icon: Layers },
-  isMrvAdmin        && { key: 'mrv',         label: 'MRV & Credits', icon: Radio },
-  isFinancialAdmin  && { key: 'financials',  label: 'Financials',    icon: Banknote },
+  isProjectManager && { key: "projects", label: "Project Ops", icon: Layers },
+  isMrvAdmin && { key: "mrv", label: "MRV & Credits", icon: Radio },
+  isFinancialAdmin && {
+    key: "financials",
+    label: "Financials",
+    icon: Banknote,
+  },
 ].filter(Boolean);
 
-const [activeTab, setActiveTab] = useState(tabs[0]?.key ?? 'projects');
+const [activeTab, setActiveTab] = useState(tabs[0]?.key ?? "projects");
 ```
 
 Tab UI: pill-style tabs with `bg-[#2cc295] text-white` for active, `bg-gray-50 text-gray-500` for inactive. Tabs appear below HeroSection and above the KPIs.
@@ -349,6 +366,7 @@ Tab UI: pill-style tabs with `bg-[#2cc295] text-white` for active, `bg-gray-50 t
 ### 4.3 Hero Section configs
 
 **project_manager:**
+
 - Badge: "Project Manager"
 - Title: "Regional Project Operations"
 - CTA: "Field Assignments" → `/site-visits`
@@ -356,6 +374,7 @@ Tab UI: pill-style tabs with `bg-[#2cc295] text-white` for active, `bg-gray-50 t
 - Next steps: pending KYC count, overdue site visits
 
 **mrv_admin:**
+
 - Badge: "MRV Administrator"
 - Title: "Verification & Credit Engine"
 - CTA: "Verification Queue" → `/track-verification`
@@ -363,6 +382,7 @@ Tab UI: pill-style tabs with `bg-[#2cc295] text-white` for active, `bg-gray-50 t
 - Next steps: pending verifications, credit batches awaiting issuance
 
 **financial_admin:**
+
 - Badge: "Financial Administrator"
 - Title: "Payout & Contract Centre"
 - CTA: "Manage Payouts" → `/financials/payouts`
@@ -375,30 +395,32 @@ Tab UI: pill-style tabs with `bg-[#2cc295] text-white` for active, `bg-gray-50 t
 
 **KPIs — "My Portfolio":**
 
-| KPI | Value | Icon | Accent |
-|---|---|---|---|
-| Assigned Project Owners | Fetch `GET /api/v2/project-owners?limit=1` count | `Users` | green |
-| Projects Under Review | Mock `8` | `FileSearch` | amber |
-| Site Visits Scheduled | Mock `3 this week` | `Calendar` | blue |
-| KYC Approvals Pending | Mock `5` | `ShieldCheck` | rose |
+| KPI                     | Value                                                | Icon          | Accent |
+| ----------------------- | ---------------------------------------------------- | ------------- | ------ |
+| Assigned Project Owners | Fetch `GET /api/v2/project-developers?limit=1` count | `Users`       | green  |
+| Projects Under Review   | Mock `8`                                             | `FileSearch`  | amber  |
+| Site Visits Scheduled   | Mock `3 this week`                                   | `Calendar`    | blue   |
+| KYC Approvals Pending   | Mock `5`                                             | `ShieldCheck` | rose   |
 
 **Charts:**
 
 Left (3/5):
+
 - `MultiLineChart`: "Project Onboarding Rate" — monthly registered vs approved
   - labelA="Registered", labelB="Approved", colorA="#2cc295", colorB="#131927"
 
 Right (2/5):
+
 - `DonutChart`: "Projects by Stage" — registration/active/verification/completed
   - colors: amber / blue / purple / #2cc295
 
 **Table — "My Assigned Project Owners":**
 
-Fetch: `GET /api/v2/project-owners` (backend injects agentId for project_manager).
+Fetch: `GET /api/v2/project-developers` (backend injects agentId for project_manager).
 
 Columns: `Name`, `Code`, `Country`, `Verification`, `Projects`, `Action`.
 
-Actions: **View Profile** → `/project-owners/:userId` | **KYC Approve** (if pending).
+Actions: **View Profile** → `/project-developers/:userId` | **KYC Approve** (if pending).
 
 **Table — "Project Vetting Queue":**
 
@@ -407,6 +429,7 @@ Same structure as super_admin's project table but filtered to the manager's regi
 **Upcoming Site Visits card:**
 
 A standalone card (not a table) listing 3 upcoming visits:
+
 ```
 [ 📍 Brong-Ahafo Farm | Kwame Mensah | Tomorrow 9:00 AM | [View Map] ]
 [ 📍 Volta Basin Plot  | Abena Asare  | Thu 2:00 PM      | [View Map] ]
@@ -419,19 +442,21 @@ A standalone card (not a table) listing 3 upcoming visits:
 
 **KPIs — "Verification Engine":**
 
-| KPI | Value | Icon | Accent |
-|---|---|---|---|
-| Pending Verifications | `GET /api/v2/mrv/verifications/project/:id` count | `Radio` | amber |
-| Credits to Issue | Mock `14 batches ready` | `Leaf` | green |
-| Avg Confidence Score | Mock `98.2%` | `ScanSearch` | blue |
-| Flagged Readings | Mock `2` | `AlertTriangle` | rose |
+| KPI                   | Value                                             | Icon            | Accent |
+| --------------------- | ------------------------------------------------- | --------------- | ------ |
+| Pending Verifications | `GET /api/v2/mrv/verifications/project/:id` count | `Radio`         | amber  |
+| Credits to Issue      | Mock `14 batches ready`                           | `Leaf`          | green  |
+| Avg Confidence Score  | Mock `98.2%`                                      | `ScanSearch`    | blue   |
+| Flagged Readings      | Mock `2`                                          | `AlertTriangle` | rose   |
 
 **Charts:**
 
 Left (3/5):
+
 - `AreaChart`: "Net Credits Issued (Monthly)" — fetch from mrv_verification_result or use mock 12-month series. `color="#2cc295"`, unit="tCO₂e"
 
 Right (2/5):
+
 - `DonutChart`: "Verification Status Distribution"
   - `{ label: 'Success', value: 84, color: '#2cc295' }`
   - `{ label: 'Flagged', value: 10, color: '#f59e0b' }`
@@ -444,6 +469,7 @@ Fetch: `GET /api/v2/mrv/verifications/project/{projectId}` (use a platform-wide 
 Columns: `Verification ID (truncated)`, `Project`, `Status`, `Net Credits`, `Confidence`, `Anchored`, `Action`.
 
 Status badge:
+
 - `success` → `bg-[#2cc295]/10 text-[#178a74]`
 - `flagged` → `bg-amber-50 text-amber-700`
 - `failed` → `bg-rose-50 text-rose-600`
@@ -457,6 +483,7 @@ Same horizontal stepper from SuperAdminDashboard §3.9. Reuse the component.
 **Sensor Health widget:**
 
 A 2×2 grid (same style as SystemHealth):
+
 - Avg Upload Interval: `4.2 min`
 - Geo-fence Pass Rate: `98.1%`
 - Hardware Integrity: `97.4%`
@@ -468,16 +495,17 @@ A 2×2 grid (same style as SystemHealth):
 
 **KPIs — "Financial Overview":**
 
-| KPI | Value | Icon | Accent |
-|---|---|---|---|
-| Pending Payouts | `GET /api/v2/financials/payouts?status=pending` count | `Banknote` | amber |
-| Total Outstanding | Mock `$42,800` | `DollarSign` | rose |
-| Platform Revenue (MTD) | Mock `$18,400` | `TrendingUp` | green |
-| Active Contracts | `GET /api/v2/financials/contracts` count | `FileText` | blue |
+| KPI                    | Value                                                 | Icon         | Accent |
+| ---------------------- | ----------------------------------------------------- | ------------ | ------ |
+| Pending Payouts        | `GET /api/v2/financials/payouts?status=pending` count | `Banknote`   | amber  |
+| Total Outstanding      | Mock `$42,800`                                        | `DollarSign` | rose   |
+| Platform Revenue (MTD) | Mock `$18,400`                                        | `TrendingUp` | green  |
+| Active Contracts       | `GET /api/v2/financials/contracts` count              | `FileText`   | blue   |
 
 **Charts:**
 
 Full-width: `GroupedBarChart` — "Monthly Payout Disbursements vs Platform Revenue"
+
 - labelA="Disbursed", labelB="Revenue", colorA="#2cc295", colorB="#131927"
 - 6-month mock data
 
@@ -488,6 +516,7 @@ Fetch: `GET /api/v2/financials/payouts?limit=10` (mock if endpoint not returning
 Columns: `Ref`, `Project Owner`, `Amount`, `Currency`, `Method (MoMo/Bank)`, `Status`, `Created`, `Action`.
 
 Status badge:
+
 - `pending` → amber
 - `processing` → blue
 - `completed` → green
@@ -512,9 +541,9 @@ Corporate/institutional carbon management. This user has purchased credits or in
 ### 5.2 Role Detection
 
 ```typescript
-const isOrgAdmin = role === 'org_admin';
-const isSustainabilityManager = role === 'sustainability_manager';
-const isAuditor = role === 'org_auditor';
+const isOrgAdmin = role === "org_admin";
+const isSustainabilityManager = role === "sustainability_manager";
+const isAuditor = role === "org_auditor";
 ```
 
 Auditors get a **read-only** view — no action buttons, no CTAs that mutate data. Add a `data-readonly` indicator badge in the hero section for auditors.
@@ -522,18 +551,21 @@ Auditors get a **read-only** view — no action buttons, no CTAs that mutate dat
 ### 5.3 Hero Section configs
 
 **org_admin:**
+
 - Badge: "Organisation Admin"
 - Title: "Institutional Carbon Dashboard"
 - CTA: "Buy Credits" → `/marketplace`
 - Gradient: `#0d9488 → #115e59`
 
 **sustainability_manager:**
+
 - Badge: "Sustainability Manager"
 - Title: "ESG Performance Centre"
 - CTA: "Generate ESG Report" → `/compliance`
 - Gradient: `#059669 → #065f46`
 
 **org_auditor:**
+
 - Badge: "Compliance Auditor · Read Only"
 - Title: "Audit & Verification Access"
 - CTA: "View Audit Ledger" → `/compliance`
@@ -541,14 +573,15 @@ Auditors get a **read-only** view — no action buttons, no CTAs that mutate dat
 
 ### 5.4 KPI Section — "Carbon Portfolio"
 
-| KPI | Value | Icon | Accent |
-|---|---|---|---|
-| **Total CO₂e Offset** | `GET /api/v2/credits?currentOwnerId=userId` sum of quantities | `Globe` | green |
-| **Portfolio Value** | Mock `$84,000` | `DollarSign` | blue |
-| **ESG Score** | Mock `9.1 / 10` (computed from diversity + vintage + registry) | `BarChart2` | green |
-| **Net-Zero Progress** | Mock `80%` — derive from offset / annual target | `Target` | amber |
+| KPI                   | Value                                                          | Icon         | Accent |
+| --------------------- | -------------------------------------------------------------- | ------------ | ------ |
+| **Total CO₂e Offset** | `GET /api/v2/credits?currentOwnerId=userId` sum of quantities  | `Globe`      | green  |
+| **Portfolio Value**   | Mock `$84,000`                                                 | `DollarSign` | blue   |
+| **ESG Score**         | Mock `9.1 / 10` (computed from diversity + vintage + registry) | `BarChart2`  | green  |
+| **Net-Zero Progress** | Mock `80%` — derive from offset / annual target                | `Target`     | amber  |
 
 Trend indicators:
+
 - CO₂e: `+18% vs last quarter`
 - Portfolio value: `+11%`
 - ESG Score: `+0.4 pts`
@@ -561,11 +594,13 @@ A standalone, reusable gauge component. Props: `{ pct: number; goal: number; cur
 Visual: a semicircular arc gauge (the existing one in CompanyDashboard is acceptable — extract it as `NetZeroGauge.tsx`).
 
 Below the arc:
+
 ```
 {current} of {goal} {unit} goal reached
 ```
 
 Color transitions:
+
 - 0–49%: `#f59e0b` (amber)
 - 50–79%: `#2cc295` (brand primary)
 - 80–100%: `#178a74` (dark green)
@@ -577,25 +612,27 @@ Layout: **1/3 donut + 2/3 area + full-width net-zero row**.
 **Row 1:**
 
 Left (1/3): `DonutChart` — "Portfolio by Project Type"
+
 ```typescript
 data: [
-  { label: 'Regenerative Agriculture', value: 38, color: '#2cc295' },
-  { label: 'Renewable Energy',          value: 22, color: '#178a74' },
-  { label: 'Blue Carbon',               value: 28, color: '#131927' },
-  { label: 'Waste Management',          value: 12, color: '#94a3b8' },
-]
-centerLabel="4 types"
+  { label: "Regenerative Agriculture", value: 38, color: "#2cc295" },
+  { label: "Renewable Energy", value: 22, color: "#178a74" },
+  { label: "Blue Carbon", value: 28, color: "#131927" },
+  { label: "Waste Management", value: 12, color: "#94a3b8" },
+];
+centerLabel = "4 types";
 ```
 
 Right (2/3): `AreaChart` — "Monthly Offset Progress"
+
 ```typescript
 // 12-month series, values 0 → goal
 // Fetch: GET /api/v2/credits?currentOwnerId= — sum per month
 // Mock: progressive growth toward net-zero target
-title="Monthly Offset Progress"
-subtitle="Cumulative tCO₂e offset toward annual net-zero goal"
-color="#2cc295"
-unit=""
+title = "Monthly Offset Progress";
+subtitle = "Cumulative tCO₂e offset toward annual net-zero goal";
+color = "#2cc295";
+unit = "";
 ```
 
 **Row 2 — 3 cards side by side:**
@@ -605,6 +642,7 @@ Card A: `NetZeroGauge` component — current vs goal.
 Card B: `AreaChart` (small, embedded height 100px) — "Monthly Spend" — purchases in $ per month. `color="#3b82f6"`, `unit="$"`.
 
 Card C: Two quick-action buttons stacked:
+
 - "Explore Marketplace" → `/marketplace` — dark background card
 - "Download ESG Report" → `/compliance` — green background card
 
@@ -617,11 +655,13 @@ Columns: `Project Name`, `Type`, `Vintage`, `Credits (tCO₂e)`, `Value`, `ESG S
 ESG Score: inline pill — ≥9.0 green, 7.5–8.9 amber, <7.5 rose.
 
 Status:
+
 - `available` → `bg-[#2cc295]/10 text-[#178a74]`
 - `reserved` → `bg-blue-50 text-blue-600`
 - `retired` → `bg-slate-100 text-slate-500`
 
 Actions (hidden for auditors):
+
 - **Retire Credits** → opens confirm modal → `PATCH /api/v2/credits/:id/retire`
 - **View Proof** → opens a small panel showing `transactionHash` and `auditUri`
 
@@ -629,11 +669,11 @@ Actions (hidden for auditors):
 
 A 3-card row showing carbon emissions by scope:
 
-| Scope | Description | Offset | Status |
-|---|---|---|---|
-| Scope 1 | Direct emissions (combustion, process) | 420 tCO₂e | ✅ Covered |
-| Scope 2 | Purchased electricity and heat | 280 tCO₂e | 🔶 Partial |
-| Scope 3 | Value chain, travel, supply chain | 1,200 tCO₂e | ⏳ In Progress |
+| Scope   | Description                            | Offset      | Status         |
+| ------- | -------------------------------------- | ----------- | -------------- |
+| Scope 1 | Direct emissions (combustion, process) | 420 tCO₂e   | ✅ Covered     |
+| Scope 2 | Purchased electricity and heat         | 280 tCO₂e   | 🔶 Partial     |
+| Scope 3 | Value chain, travel, supply chain      | 1,200 tCO₂e | ⏳ In Progress |
 
 Each card: icon + scope label + offset amount + coverage status badge. Show a small horizontal progress bar for coverage percentage.
 
@@ -652,15 +692,18 @@ Below the table: "Invite Member" button → opens inline form (email + role drop
 A card grid (3 columns):
 
 Card 1 — "Latest ESG Report":
+
 - Date: Q1 2026
 - Coverage: Scope 1 + 2
 - Button: "Download PDF" → (stub — show sonner "PDF generation coming soon")
 
 Card 2 — "Retirement Certificates":
+
 - Count: 3 certificates issued
 - Button: "View All" → `/compliance`
 
 Card 3 — "Next Reporting Deadline":
+
 - Date: Sept 30, 2026
 - Status: "On track"
 - CTA: "Schedule Review"
@@ -668,6 +711,7 @@ Card 3 — "Next Reporting Deadline":
 ### 5.11 Recent Activity
 
 Feed shows:
+
 - Credit purchases (💚)
 - Credit retirements (🏆)
 - ESG reports generated (📊)
@@ -684,7 +728,7 @@ Feed shows:
 interface AlertStripProps {
   count: number;
   message: string;
-  type?: 'warning' | 'info' | 'error';
+  type?: "warning" | "info" | "error";
   ctaLabel?: string;
   ctaHref?: string;
 }
@@ -697,8 +741,8 @@ Colors: warning=amber, info=blue, error=rose.
 ```typescript
 interface ApprovalModalProps {
   item: { id: string; name: string } | null;
-  type: 'approve' | 'reject';
-  entityType: 'project' | 'user' | 'payout' | 'credit';
+  type: "approve" | "reject";
+  entityType: "project" | "user" | "payout" | "credit";
   onConfirm: (id: string) => Promise<void>;
   onClose: () => void;
 }
@@ -745,7 +789,7 @@ For every `useQuery` or `useMutation` call, use this pattern:
 ```typescript
 // Real data
 const { data, isLoading } = useQuery({
-  queryKey: ['key', filters],
+  queryKey: ["key", filters],
   queryFn: () => ServiceModule.method(filters),
   enabled: !!userId,
   staleTime: 30_000,
@@ -760,21 +804,22 @@ Never silently swallow errors. Every query must have an `isError` branch that sh
 
 ### 7.1 Real endpoints to wire now
 
-| Dashboard | Section | Endpoint |
-|---|---|---|
-| All | Projects list | `GET /api/v2/projects?createdBy=userId&limit=10` |
-| All | Currencies | `GET /api/v2/auth/currencies` |
-| Super Admin | Pending projects | `GET /api/v2/projects?projectStatus=draft` |
-| Super Admin | Project owners | `GET /api/v2/project-owners?limit=5` |
-| Admin (PM) | My project owners | `GET /api/v2/project-owners` (backend injects agentId) |
-| Admin (MRV) | Verifications | `GET /api/v2/mrv/verifications/project/:id` |
-| Admin (MRV) | Anchors | `GET /api/v2/mrv/anchors/project/:id` |
-| Org Admin | My credits | `GET /api/v2/credits?currentOwnerId=userId` |
-| Org Admin | Transactions | `GET /api/v2/credits/transactions?buyerId=userId` |
+| Dashboard   | Section           | Endpoint                                                   |
+| ----------- | ----------------- | ---------------------------------------------------------- |
+| All         | Projects list     | `GET /api/v2/projects?createdBy=userId&limit=10`           |
+| All         | Currencies        | `GET /api/v2/auth/currencies`                              |
+| Super Admin | Pending projects  | `GET /api/v2/projects?projectStatus=draft`                 |
+| Super Admin | Project owners    | `GET /api/v2/project-developers?limit=5`                   |
+| Admin (PM)  | My project owners | `GET /api/v2/project-developers` (backend injects agentId) |
+| Admin (MRV) | Verifications     | `GET /api/v2/mrv/verifications/project/:id`                |
+| Admin (MRV) | Anchors           | `GET /api/v2/mrv/anchors/project/:id`                      |
+| Org Admin   | My credits        | `GET /api/v2/credits?currentOwnerId=userId`                |
+| Org Admin   | Transactions      | `GET /api/v2/credits/transactions?buyerId=userId`          |
 
 ### 7.2 Mock data — use until endpoints are built
 
 Mark every mock data block with:
+
 ```typescript
 // MOCK — replace with GET /api/v2/financials/payouts when wired
 // TODO: remove mock once FinancialsService.listPayouts() is called from route
@@ -812,11 +857,11 @@ transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
 ### 8.2 Table row hover
 
 ```typescript
-className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+className = "hover:bg-gray-50/50 transition-colors cursor-pointer";
 ```
 
 Clicking a project row should `router.push('/project-profile/:id')`.
-Clicking a project owner row should `router.push('/project-owners/:userId')`.
+Clicking a project owner row should `router.push('/project-developers/:userId')`.
 
 ### 8.3 Approve/Reject button feedback
 
@@ -904,5 +949,5 @@ After generation, verify all of these:
 
 ---
 
-*Prompt authored: May 2026 · Crevy Platform · Foovante Global*
-*Target: Next.js 16 / React 19 / Tailwind v4 / Framer Motion*
+_Prompt authored: May 2026 · Crevy Platform · Foovante Global_
+_Target: Next.js 16 / React 19 / Tailwind v4 / Framer Motion_

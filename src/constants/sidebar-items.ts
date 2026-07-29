@@ -56,7 +56,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
         },
         {
           title: "Project Developers",
-          url: "/project-owners",
+          url: "/project-developers",
           icon: UserGroupIcon,
         },
       ],
@@ -106,7 +106,7 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
         },
         {
           title: "Project Developers",
-          url: "/project-owners",
+          url: "/project-developers",
           icon: UserGroupIcon,
         },
         { title: "Organizations", url: "/organizations", icon: Building02Icon },
@@ -245,12 +245,12 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {
           title: "My Project Developers",
-          url: "/project-owners",
+          url: "/project-developers",
           icon: UserGroupIcon,
         },
         {
           title: "Onboard Project Developer",
-          url: "/project-owners/register",
+          url: "/project-developers/register",
           icon: PropertyAddIcon,
         },
         { title: "Projects", url: "/projects", icon: ViewIcon },
@@ -282,12 +282,12 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
         { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
         {
           title: "My Project Developers",
-          url: "/project-owners",
+          url: "/project-developers",
           icon: UserGroupIcon,
         },
         {
           title: "Onboard Project Developer",
-          url: "/project-owners/register",
+          url: "/project-developers/register",
           icon: PropertyAddIcon,
         },
         { title: "Projects", url: "/projects", icon: ViewIcon },

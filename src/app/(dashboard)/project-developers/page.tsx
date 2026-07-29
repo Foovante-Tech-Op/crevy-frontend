@@ -145,7 +145,7 @@ export default function ProjectOwnersPage() {
   );
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ["project-owners", filters],
+    queryKey: ["project-developers", filters],
     queryFn: () => ProjectOwnerService.listProjectOwners(filters),
     staleTime: 30_000,
   });
@@ -213,16 +213,16 @@ export default function ProjectOwnersPage() {
         },
       },
       {
-        header: "Dossier",
+        header: "Details",
         align: "right",
         render: (owner) => (
-          <Link href={`/project-owners/${owner.userId}`}>
+          <Link href={`/project-developers/${owner.code}`}>
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-none text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted hover:cursor-pointer"
             >
-              <ExternalLink className="h-4 w-4" />
+              View <ExternalLink className="h-4 w-4" />
             </Button>
           </Link>
         ),
@@ -255,7 +255,7 @@ export default function ProjectOwnersPage() {
             </div>
 
             {(isSuperAdmin || user?.role === "project_manager") && (
-              <Link href="/project-owners/register">
+              <Link href="/project-developers/register">
                 <Button className="rounded-none bg-foreground hover:bg-brand text-[10px] font-bold uppercase tracking-widest transition-colors h-12 px-6">
                   <Plus className="h-4 w-4 mr-2" /> Onboard Entity
                 </Button>
@@ -447,7 +447,7 @@ export default function ProjectOwnersPage() {
               return (
                 <Link
                   key={owner.id}
-                  href={`/project-owners/${owner.userId}`}
+                  href={`/project-developers/${owner.code}`}
                   className="block group"
                 >
                   <div className="border border-border bg-background hover:border-foreground transition-colors h-full flex flex-col">
@@ -483,16 +483,6 @@ export default function ProjectOwnersPage() {
                       </p>
 
                       <div className="space-y-3 pt-4 border-t border-border">
-                        {owner.email && (
-                          <p className="text-[11px] font-mono text-muted-foreground truncate">
-                            {owner.email}
-                          </p>
-                        )}
-                        {owner.contactNumber && (
-                          <p className="text-[11px] font-mono text-muted-foreground">
-                            {owner.contactNumber}
-                          </p>
-                        )}
                         {owner.entityType && (
                           <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
                             <UsersIcon className="h-3 w-3" /> {owner.entityType}

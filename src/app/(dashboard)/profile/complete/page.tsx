@@ -101,7 +101,7 @@ export default function CompleteProfilePage() {
         }
 
         // Try to fetch existing profile
-        const response = await axiosClient.get(`/project-owners/${userId}`);
+        const response = await axiosClient.get(`/project-developers/${userId}`);
         if (response.data?.success && response.data?.data) {
           const data = response.data.data;
           const profileData: TCompleteProfile = {

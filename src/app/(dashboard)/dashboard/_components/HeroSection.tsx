@@ -13,6 +13,7 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth";
@@ -161,6 +162,39 @@ const HeroSection = ({ role, userName }: HeroSectionProps) => {
       nextSteps: [
         { icon: Clock, text: "Schedule upcoming site visits" },
         { icon: CheckCircle2, text: "Review field agent reports" },
+      ],
+      gradFrom: "#178a74",
+      gradTo: "#131927",
+    },
+    project_admin: {
+      title: "Project Administration",
+      desc: "Oversee the full project lifecycle — registration, classification, and readiness — across every developer on the platform.",
+      cta: { label: "View All Projects", url: "/projects", icon: Target },
+      badge: { text: "Project Admin", color: "bg-purple-50 text-purple-700" },
+      nextSteps: [
+        {
+          icon: Clock,
+          text: "Review projects awaiting classification confirmation",
+        },
+        {
+          icon: CheckCircle2,
+          text: "Audit assessment completion across active projects",
+        },
+      ],
+      gradFrom: "#178a74",
+      gradTo: "#131927",
+    },
+    field_agent: {
+      title: "Field Operations",
+      desc: "Register projects on behalf of your assigned developers, and keep site visit records current.",
+      cta: { label: "Site Visits", url: "/site-visits", icon: MapPin },
+      badge: { text: "Field Agent", color: "bg-amber-50 text-amber-700" },
+      nextSteps: [
+        { icon: Clock, text: "Log outcomes from your latest site visit" },
+        {
+          icon: CheckCircle2,
+          text: "Continue registration for an assigned developer",
+        },
       ],
       gradFrom: "#178a74",
       gradTo: "#131927",

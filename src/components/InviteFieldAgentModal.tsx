@@ -70,7 +70,7 @@ export function InviteFieldAgentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md p-0 rounded-none border border-slate-900 shadow-2xl gap-0 bg-white">
+      <DialogContent className="sm:max-w-2xl p-0 rounded-none border border-slate-900 shadow-2xl gap-0 bg-white">
         <DialogHeader className="p-8 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3 mb-4">
             <UserPlus size={20} className="text-slate-900" />
@@ -151,7 +151,7 @@ export function InviteFieldAgentModal({
             <Button
               type="submit"
               disabled={loading}
-              className="rounded-none bg-slate-900 hover:bg-emerald-900 text-white px-8 py-6 text-[10px] font-bold uppercase tracking-widest transition-colors"
+              className="rounded-none bg-foreground hover:bg-brand text-white px-8 py-6 text-[10px] font-bold uppercase tracking-widest transition-colors"
             >
               {loading ? (
                 <Loader2 className="animate-spin h-4 w-4 mr-2" />

@@ -86,7 +86,7 @@ export function AssignmentCheckModal({
     isFetchingNextPage: isFetchingMoreOwners,
     isLoading: isLoadingOwners,
   } = useInfiniteQuery({
-    queryKey: ["project-owners-dropdown", debouncedSearch, selectedAdminId],
+    queryKey: ["project-developers-dropdown", debouncedSearch, selectedAdminId],
     queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
       ProjectOwnerService.listProjectOwners({
         search: debouncedSearch,
@@ -120,7 +120,7 @@ export function AssignmentCheckModal({
   if (!role || role === "project_owner") return null;
 
   const handleOnboardRedirect = () => {
-    router.push("/project-owners/register");
+    router.push("/project-developers/register");
   };
 
   const handleFinalProceed = () => {
@@ -193,7 +193,7 @@ export function AssignmentCheckModal({
                 <Button
                   type="button"
                   onClick={handleOnboardRedirect}
-                  className="w-full py-6 rounded-none bg-foreground hover:bg-emerald-700 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-6 rounded-none bg-foreground hover:bg-brand text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"
                 >
                   Onboard Developer <ArrowRight className="w-4 h-4" />
                 </Button>

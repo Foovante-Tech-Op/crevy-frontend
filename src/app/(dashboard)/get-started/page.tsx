@@ -92,7 +92,7 @@ const SYSTEM_FEATURES: Record<string, FeatureCard> = {
     icon: Activity,
     buttonText: "View pipeline",
     variant: "secondary",
-    href: "/pipeline",
+    href: "/track-verification",
   },
 
   // Buyer / Organization Features
@@ -128,7 +128,7 @@ const SYSTEM_FEATURES: Record<string, FeatureCard> = {
     icon: Users,
     buttonText: "Manage agents",
     variant: "secondary",
-    href: "/admin/agents",
+    href: "/field-agents",
   },
   manage_devs: {
     id: "manage_devs",

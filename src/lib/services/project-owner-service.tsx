@@ -13,7 +13,6 @@ export type ProjectOwnerFilters = {
 
 export type ProjectOwnerRecord = {
   id: string;
-  userId: string;
   code: string;
   verificationStatus: "pending" | "verified" | "rejected";
   onboardedBy: string | null;
@@ -26,11 +25,64 @@ export type ProjectOwnerRecord = {
   momoDetails: { network: string; number: string; accountName?: string } | null;
   createdAt: string;
   updatedAt: string;
-  // Joined from user table
+  // project_developer's own name column — for entityType 'individual' this
+  // is the person's name; for 'cooperative'/'company' this is the entity
+  // name (e.g. "Cocoa Coop Ltd"), NOT any individual member's name.
   name: string;
+  entityType: "individual" | "cooperative" | "company" | null;
+  // NOTE: email/contactNumber/userId are intentionally NOT part of the list
+  // response — the list endpoint doesn't join project_developer_member/user
+  // (that join only happens on the code-based detail fetch below, since a
+  // cooperative/company can have many members and "the" email/phone for a
+  // multi-member entity isn't a single well-defined value at list level).
+};
+
+export type ProjectOwnerMember = {
+  id: string;
+  userId: string;
+  role: "owner" | "admin" | "member";
+  hasOnboarded: boolean;
+  joinedAt: string;
+  firstName: string | null;
+  lastName: string | null;
   email: string | null;
   contactNumber: string | null;
-  entityType: string | null;
+  isActive: boolean;
+};
+
+export type ProjectOwnerSite = {
+  id: string;
+  projectId: string;
+  projectCode: string | null;
+  projectName: string | null;
+  kind: "farm_plot" | "project_site";
+  centroid: { lat: number; lng: number } | null;
+} & (
+  | {
+      kind: "farm_plot";
+      plotId: string;
+      enrolledAreaHectares: string;
+      status: string;
+      enrolledDate: string;
+      farmPlotId: string;
+      country: string;
+      region: string;
+      village: string | null;
+      boundary: unknown;
+      areaHectares: string;
+    }
+  | {
+      kind: "project_site";
+      siteType: string;
+      facilityName: string | null;
+      address: string | null;
+      areaOrCapacity: string | null;
+    }
+);
+
+export type ProjectOwnerDetail = ProjectOwnerRecord & {
+  members: ProjectOwnerMember[];
+  sites: ProjectOwnerSite[];
 };
 
 export type ProjectOwnerListResponse = {
@@ -84,7 +136,7 @@ export const ProjectOwnerService = {
     const params = Object.fromEntries(
       Object.entries(filters).filter(([, v]) => v !== undefined && v !== ""),
     );
-    const response = await axiosClient.get("/project-owners", { params });
+    const response = await axiosClient.get("/project-developers", { params });
     return response.data;
   },
 
@@ -96,14 +148,31 @@ export const ProjectOwnerService = {
   onboardProjectOwner: async (
     payload: ProjectOwnerOnboardPayload,
   ): Promise<{ success: boolean; message: string; data: any }> => {
-    const response = await axiosClient.post("/project-owners/onboard", payload);
+    const response = await axiosClient.post(
+      "/project-developers/onboard",
+      payload,
+    );
     return response.data;
   },
 
   getProjectOwner: async (
     userId: string,
   ): Promise<{ success: boolean; data: ProjectOwnerRecord }> => {
-    const response = await axiosClient.get(`/project-owners/${userId}`);
+    const response = await axiosClient.get(`/project-developers/${userId}`);
+    return response.data;
+  },
+
+  /**
+   * Detail-screen fetch, keyed on the registry code (e.g. PD-GH-000001)
+   * shown throughout the UI — not the raw UUID. Response includes the full
+   * member roster; render a single inline member block when entityType is
+   * 'individual', or a data table (one row per member, linking to that
+   * member's /user-management/:userId profile) for 'cooperative'/'company'.
+   */
+  getProjectOwnerByCode: async (
+    code: string,
+  ): Promise<{ success: boolean; data: ProjectOwnerDetail }> => {
+    const response = await axiosClient.get(`/project-developers/code/${code}`);
     return response.data;
   },
 };

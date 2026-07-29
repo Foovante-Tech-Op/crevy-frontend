@@ -72,7 +72,9 @@ const energySchema = z.object({
   powerSources: z
     .array(z.enum(["renewable", "grid", "gas", "unsure"]))
     .optional(),
-  electricityBill: z.enum(["30-60", "60-120", "120-250", "250+"]).optional(),
+  electricityBill: z
+    .enum(["30-60", "60-120", "120-250", "250-500", "500+"])
+    .optional(),
 });
 
 const lifestyleSchema = z.object({
@@ -196,10 +198,11 @@ const POWER_SOURCE_OPTIONS = [
 ];
 
 const BILL_OPTIONS = [
-  { id: "30-60", label: "$30 - $60" },
-  { id: "60-120", label: "$60 - $120" },
-  { id: "120-250", label: "$120 - $250" },
-  { id: "250+", label: "$250+" },
+  { id: "30-60", label: "GHc30 - GHc60" },
+  { id: "60-120", label: "GHc60 - GHc120" },
+  { id: "120-250", label: "GHc120 - GHc250" },
+  { id: "250-500", label: "GHc250 - GHc500" },
+  { id: "500+", label: "GHc500+" },
 ];
 
 const DIET_OPTIONS = [
@@ -213,7 +216,8 @@ const BILL_RANGE_TO_KWH: Record<string, number> = {
   "30-60": 200,
   "60-120": 450,
   "120-250": 900,
-  "250+": 1600,
+  "250-500": 1600,
+  "500+": 2500,
 };
 
 const FREQUENCY_TO_MONTHLY_KM: Record<string, number> = {
@@ -232,7 +236,19 @@ const FLIGHT_BRACKETS: Record<string, { short: number; long: number }> = {
 
 const TREES_PER_TCO2E = 25.4;
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+// Pie/line palette derived purely from the theme tokens (brand, foreground, background)
+// so charts stay on-brand instead of using arbitrary hardcoded colors.
+const PIE_COLORS = [
+  "var(--brand)",
+  "var(--foreground)",
+  "color-mix(in oklch, var(--brand) 55%, var(--background))",
+  "color-mix(in oklch, var(--foreground) 45%, var(--background))",
+  "color-mix(in oklch, var(--brand) 70%, var(--foreground))",
+];
+const GRID_COLOR =
+  "color-mix(in oklch, var(--foreground) 12%, var(--background))";
+const AXIS_COLOR =
+  "color-mix(in oklch, var(--foreground) 55%, var(--background))";
 
 // Map frontend diet types to backend CarbonFootprintInputs diet types
 const DIET_TYPE_MAP: Record<string, string> = {
@@ -242,14 +258,47 @@ const DIET_TYPE_MAP: Record<string, string> = {
   high_meat: "meat_heavy",
 };
 
-function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
-  if (!result) return null;
+/**
+ * Unified results + history view.
+ *
+ * One dataset drives everything: the line chart plots every past calculation,
+ * and clicking (or tapping) a point on that line — or a row in the list below
+ * it — swaps which calculation's summary + category pie chart are shown above.
+ * A freshly-run calculation is just the newest point, selected by default.
+ */
+function CalculationInsights({
+  calculations,
+  selectedId,
+  onSelect,
+}: {
+  calculations: CarbonFootprintResult[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  if (calculations.length === 0) {
+    return (
+      <Card className="border border-slate-200 bg-white shadow-none">
+        <CardContent className="p-8 text-center">
+          <History className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-slate-900 mb-2">
+            No history yet
+          </h3>
+          <p className="text-base text-slate-600">
+            Complete your first calculation to begin tracking changes over time.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const totalTco2e = Number(result.totalCo2eKg) / 1000;
+  const selected =
+    calculations.find((calc) => calc.id === selectedId) ?? calculations[0];
+
+  const totalTco2e = Number(selected.totalCo2eKg) / 1000;
   const treesEquivalent = totalTco2e * TREES_PER_TCO2E;
 
   const categoryTotals: Record<string, number> = {};
-  result.breakdown.forEach((item) => {
+  selected.breakdown.forEach((item) => {
     categoryTotals[item.category] =
       (categoryTotals[item.category] || 0) + item.co2eKg;
   });
@@ -259,15 +308,56 @@ function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
     value: Number(value.toFixed(2)),
   }));
 
+  // Oldest → newest for the trend line; each point carries its calculation id
+  // so clicking through the line can drive the summary + pie above it.
+  const chartData = calculations
+    .slice()
+    .reverse()
+    .map((calc) => ({
+      id: calc.id,
+      date: new Date(calc.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      co2e: Number(calc.totalCo2eKg),
+    }));
+
+  const handleChartClick = (state: any) => {
+    const point = state?.activePayload?.[0]?.payload;
+    if (point?.id) onSelect(point.id);
+  };
+
+  const renderDot = (props: any) => {
+    const { cx, cy, payload, index } = props;
+    const isSelected = payload.id === selected.id;
+    return (
+      <circle
+        key={`dot-${payload.id ?? index}`}
+        cx={cx}
+        cy={cy}
+        r={isSelected ? 7 : 4}
+        fill={isSelected ? "var(--brand)" : "var(--foreground)"}
+        stroke="var(--background)"
+        strokeWidth={2}
+        style={{ cursor: "pointer" }}
+        onClick={() => onSelect(payload.id)}
+        role="button"
+      />
+    );
+  };
+
   return (
     <div className="space-y-8">
-      <Card className="border border-slate-800 bg-white p-0 shadow-none">
+      {/* Summary + breakdown for whichever point is selected */}
+      <Card className="border border-slate-800 bg-background p-0 shadow-none rounded-none">
         <CardContent className="p-10">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-center">
+          <div className="grid gap-8 items-center">
             <div className="space-y-6">
               <span className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                 <Leaf className="w-4 h-4" />
-                Estimated annual impact
+                {selected.id === calculations[0]?.id
+                  ? "Most recent calculation"
+                  : "Selected calculation"}
               </span>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-3">
@@ -275,20 +365,20 @@ function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
                 </p>
                 <div className="font-mono text-6xl font-extrabold text-brand tabular-nums">
                   {totalTco2e.toFixed(1)}{" "}
-                  <span className="text-2xl text-slate-900">t CO2e</span>
+                  <span className="text-2xl text-foreground">t CO2e</span>
                 </div>
               </div>
               <p className="text-base text-slate-600 font-light leading-relaxed">
-                This estimate is based on your household, transport, energy and
-                dietary choices. Use it as a directional score for where to
-                improve.
+                This estimate is based on the household, transport, energy and
+                dietary choices submitted for this calculation. Click any point
+                on the timeline below to compare a past run.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="border border-slate-200 bg-slate-50 p-5">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     Tree equivalent
                   </p>
-                  <p className="mt-3 font-mono text-3xl font-bold text-slate-900 tabular-nums">
+                  <p className="mt-3 font-mono text-3xl font-bold text-foreground tabular-nums">
                     {treesEquivalent.toFixed(1)}
                   </p>
                   <p className="mt-2 text-xs font-mono uppercase tracking-widest text-slate-500">
@@ -299,11 +389,15 @@ function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     Period
                   </p>
-                  <p className="mt-3 font-mono text-3xl font-bold text-slate-900 tabular-nums">
-                    {result.periodLabel}
+                  <p className="mt-3 font-mono text-3xl font-bold text-foreground tabular-nums">
+                    {selected.periodLabel}
                   </p>
                   <p className="mt-2 text-xs font-mono uppercase tracking-widest text-slate-500">
-                    as reported by the calculation service
+                    {new Date(selected.createdAt).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </p>
                 </div>
               </div>
@@ -325,13 +419,12 @@ function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
                         `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                       outerRadius={90}
-                      fill="#10b981"
                       dataKey="value"
                     >
                       {pieData.map((entry, index) => (
                         <Cell
                           key={entry.name}
-                          fill={COLORS[index % COLORS.length]}
+                          fill={PIE_COLORS[index % PIE_COLORS.length]}
                         />
                       ))}
                     </Pie>
@@ -348,8 +441,97 @@ function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
         </CardContent>
       </Card>
 
+      {/* Trend line — click any point to change what's shown above */}
+      <Card className="border border-slate-200 bg-background shadow-none">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-foreground">
+              Your calculation history
+            </h3>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Click a point to compare
+            </span>
+          </div>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart
+              data={chartData}
+              margin={{ left: -20, right: 0, top: 10, bottom: 0 }}
+              onClick={handleChartClick}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
+              <XAxis
+                dataKey="date"
+                stroke={AXIS_COLOR}
+                tick={{ fill: AXIS_COLOR }}
+              />
+              <YAxis
+                stroke={AXIS_COLOR}
+                tick={{ fill: AXIS_COLOR }}
+                label={{
+                  value: "kg CO2e",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: AXIS_COLOR,
+                }}
+              />
+              <Tooltip
+                formatter={(value) => `${Number(value).toFixed(1)} kg CO2e`}
+                contentStyle={{
+                  background: "var(--background)",
+                  border: "1px solid var(--border)",
+                  color: "var(--foreground)",
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="co2e"
+                stroke="var(--brand)"
+                strokeWidth={3}
+                dot={renderDot}
+                activeDot={renderDot}
+                cursor="pointer"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="mt-8 space-y-3">
+            {calculations.slice(0, 6).map((calc) => {
+              const isSelected = calc.id === selected.id;
+              return (
+                <button
+                  key={calc.id}
+                  type="button"
+                  onClick={() => onSelect(calc.id)}
+                  className={cn(
+                    "w-full flex justify-between gap-4 border p-4 text-left transition-colors",
+                    isSelected
+                      ? "border-brand bg-brand/10"
+                      : "border-slate-200 bg-slate-50 hover:border-slate-800",
+                  )}
+                >
+                  <div>
+                    <p className="font-mono font-bold text-foreground tabular-nums">
+                      {Number(calc.totalCo2eKg).toFixed(1)} kg CO2e
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {new Date(calc.createdAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <span className="text-sm font-mono uppercase tracking-widest text-slate-500">
+                    {calc.regionCode}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="border border-slate-200 bg-slate-50 p-8">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">
+        <h3 className="text-xl font-bold text-foreground mb-4">
           Interpretation
         </h3>
         <p className="text-base text-slate-600 font-light leading-relaxed">
@@ -363,98 +545,13 @@ function ResultsPanel({ result }: { result: CarbonFootprintResult | null }) {
   );
 }
 
-function HistoryPanel({
-  calculations,
-}: {
-  calculations: CarbonFootprintResult[];
-}) {
-  if (calculations.length === 0) {
-    return (
-      <Card className="border border-slate-200 bg-white shadow-none">
-        <CardContent className="p-8 text-center">
-          <History className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-900 mb-2">
-            No history yet
-          </h3>
-          <p className="text-base text-slate-600">
-            Complete your first calculation to begin tracking changes over time.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const chartData = calculations
-    .slice()
-    .reverse()
-    .map((calc) => ({
-      date: new Date(calc.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-      co2e: Number(calc.totalCo2eKg),
-    }));
-
-  return (
-    <Card className="border border-slate-200 bg-white shadow-none">
-      <CardContent className="p-8">
-        <h3 className="text-2xl font-bold text-slate-900 mb-6">
-          Recent calculations
-        </h3>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart
-            data={chartData}
-            margin={{ left: -20, right: 0, top: 10, bottom: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis
-              label={{ value: "kg CO2e", angle: -90, position: "insideLeft" }}
-            />
-            <Tooltip
-              formatter={(value) => `${Number(value).toFixed(1)} kg CO2e`}
-            />
-            <Line
-              type="monotone"
-              dataKey="co2e"
-              stroke="#10b981"
-              strokeWidth={3}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="mt-8 space-y-3">
-          {calculations.slice(0, 4).map((calc) => (
-            <div
-              key={calc.id}
-              className="flex justify-between gap-4 border border-slate-200 bg-slate-50 p-4"
-            >
-              <div>
-                <p className="font-mono font-bold text-slate-900 tabular-nums">
-                  {Number(calc.totalCo2eKg).toFixed(1)} kg CO2e
-                </p>
-                <p className="text-sm text-slate-500">
-                  {new Date(calc.createdAt).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-              <span className="text-sm font-mono uppercase tracking-widest text-slate-500">
-                {calc.regionCode}
-              </span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function CarbonCalculator() {
   const [currentStep, setCurrentStep] = useState(1);
   const [result, setResult] = useState<CarbonFootprintResult | null>(null);
   const [history, setHistory] = useState<CarbonFootprintResult[]>([]);
+  const [selectedCalculationId, setSelectedCalculationId] = useState<
+    string | null
+  >(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CalculatorFormData>({
@@ -502,6 +599,24 @@ export default function CarbonCalculator() {
     loadHistory();
   }, [loadHistory]);
 
+  // Default the selection to the most recent calculation once history loads,
+  // without stomping on a selection the user already made by clicking a point.
+  useEffect(() => {
+    if (!selectedCalculationId && history.length > 0) {
+      setSelectedCalculationId(history[0].id);
+    }
+  }, [history, selectedCalculationId]);
+
+  // Scroll the unified results/history view into place once a calculation
+  // completes, so the new point is visible without extra navigation.
+  useEffect(() => {
+    if (currentStep === 4) {
+      document
+        .getElementById("calculation-insights")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentStep]);
+
   const createPayload = (data: CalculatorFormData): CarbonFootprintInputs => {
     const payload: CarbonFootprintInputs = {};
 
@@ -529,8 +644,12 @@ export default function CarbonCalculator() {
     }
     if (data.transport?.flights) {
       const bracket = FLIGHT_BRACKETS[data.transport.flights];
-      transport.flightsShortHaulPerYear = bracket.short;
-      transport.flightsLongHaulPerYear = bracket.long;
+      if (bracket.short > 0) {
+        transport.flightsShortHaulPerYear = bracket.short;
+      }
+      if (bracket.long > 0) {
+        transport.flightsLongHaulPerYear = bracket.long;
+      }
     }
     if (Object.keys(transport).length > 0) {
       payload.transport = transport;
@@ -563,9 +682,17 @@ export default function CarbonCalculator() {
       });
 
       setResult(response);
+      // The new calculation immediately becomes "most recent" in the unified
+      // results/history view — prepend it optimistically so there's no flash
+      // of stale data while we refresh from the backend below.
+      setHistory((prev) => [
+        response,
+        ...prev.filter((calc) => calc.id !== response.id),
+      ]);
+      setSelectedCalculationId(response.id);
       toast.success("Carbon footprint calculated successfully!");
       setCurrentStep(4);
-      await loadHistory();
+      loadHistory();
     } catch (error: any) {
       toast.error(error?.message || "Failed to calculate footprint");
     } finally {
@@ -633,8 +760,8 @@ export default function CarbonCalculator() {
     <div className="min-h-screen bg-white text-slate-900 font-sans">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-white border-b border-slate-200">
-        <div className="absolute right-0 top-20 h-[420px] w-[420px] bg-brand/20" />
-        <div className="container mx-auto max-w-7xl px-6 py-24 relative">
+        <div className="absolute right-0 top-20 h-[420px] w-[420px] bg-brand/40" />
+        <div className="container mx-auto max-w-7xl px-6 pt-14 pb-18 relative">
           <div className="grid gap-14 lg:grid-cols-[1.1fr_0.9fr] items-center">
             <div className="space-y-8">
               <span className="inline-flex items-center gap-3 px-4 py-2 border border-slate-300 bg-slate-50 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -654,7 +781,7 @@ export default function CarbonCalculator() {
               </div>
             </div>
 
-            <Card className="border border-slate-800 bg-white shadow-none">
+            <Card className="border border-slate-800 bg-white shadow-none rounded-none">
               <CardContent className="p-8 md:p-10">
                 <div className="space-y-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -691,7 +818,7 @@ export default function CarbonCalculator() {
       {/* Form Section */}
       <section className="relative z-10 -mt-24 px-6 pb-24">
         <div className="container mx-auto max-w-5xl">
-          <Card className="border border-slate-200 bg-white shadow-none">
+          <Card className="border border-slate-200 bg-white shadow-none rounded-none lg:mt-8">
             <CardContent className="p-8 md:p-10">
               <Form {...form}>
                 <form
@@ -937,12 +1064,19 @@ export default function CarbonCalculator() {
                               option.id as any,
                             );
                             return (
-                              <button
+                              <div
                                 key={option.id}
-                                type="button"
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => togglePowerSource(option.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    togglePowerSource(option.id);
+                                  }
+                                }}
                                 className={cn(
-                                  "border p-5 text-left transition-colors",
+                                  "border p-5 text-left transition-colors cursor-pointer",
                                   checked
                                     ? "border-brand bg-brand/10 text-slate-900"
                                     : "border-slate-300 bg-white hover:border-slate-800",
@@ -960,7 +1094,7 @@ export default function CarbonCalculator() {
                                     <p className="font-bold">{option.label}</p>
                                   </div>
                                 </div>
-                              </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -1032,15 +1166,19 @@ export default function CarbonCalculator() {
                   )}
 
                   {currentStep === 4 && result && (
-                    <div className="space-y-8">
-                      <ResultsPanel result={result} />
-                      <div className="border border-slate-200 bg-slate-50 p-8">
-                        <h3 className="text-xl font-bold text-slate-900 mb-4">
-                          Your latest calculation
+                    <div className="border border-slate-200 bg-slate-50 p-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                          Calculation complete
+                        </p>
+                        <h3 className="text-2xl font-bold text-foreground">
+                          {(Number(result.totalCo2eKg) / 1000).toFixed(1)} t
+                          CO2e estimated for {result.periodLabel}
                         </h3>
-                        <p className="text-base text-slate-600 font-light leading-relaxed">
-                          If you update any answers and press Recalculate, we'll
-                          refresh your estimate with the latest inputs.
+                        <p className="mt-2 text-base text-slate-600 font-light leading-relaxed max-w-xl">
+                          Your full breakdown and history trend are shown below,
+                          with this run selected. Update any answers and press
+                          Re-run to add a new data point.
                         </p>
                       </div>
                     </div>
@@ -1049,7 +1187,7 @@ export default function CarbonCalculator() {
                   <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                     <Button
                       variant="outline"
-                      className="h-16 border-slate-300 text-slate-700 hover:bg-slate-100 font-bold uppercase tracking-[0.2em] text-[10px]"
+                      className="h-16 border-slate-300 text-slate-700 hover:bg-slate-100 font-bold uppercase tracking-[0.2em] text-[10px] rounded-none"
                       onClick={handleBack}
                       disabled={currentStep === 1}
                     >
@@ -1058,7 +1196,7 @@ export default function CarbonCalculator() {
 
                     <Button
                       type="button"
-                      className="h-16 bg-brand px-8 text-slate-900 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-slate-900 hover:text-white transition-colors"
+                      className="h-16 bg-brand rounded-none px-8 text-slate-900 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-slate-900 hover:text-white transition-colors"
                       onClick={
                         currentStep === 4
                           ? () => form.handleSubmit(onSubmit)()
@@ -1077,9 +1215,13 @@ export default function CarbonCalculator() {
             </CardContent>
           </Card>
 
-          {currentStep === 4 && history.length > 0 && (
-            <div className="mt-10">
-              <HistoryPanel calculations={history} />
+          {history.length > 0 && (
+            <div className="mt-10" id="calculation-insights">
+              <CalculationInsights
+                calculations={history}
+                selectedId={selectedCalculationId}
+                onSelect={setSelectedCalculationId}
+              />
             </div>
           )}
         </div>

@@ -114,7 +114,7 @@ const LoginPage = () => {
           {/* Content Ledger */}
           <div className="absolute z-10 bottom-0 left-0 w-full p-12 xl:p-16 flex flex-col justify-end h-full">
             <div className="mb-auto mt-8">
-              <Globe size={48} className="text-slate-800" strokeWidth={1} />
+              <Globe size={48} className="text-brand" strokeWidth={1} />
             </div>
 
             <div className="max-w-2xl border-l-2 border-brand pl-8 mb-16">

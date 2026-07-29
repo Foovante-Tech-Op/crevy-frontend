@@ -1,4 +1,5 @@
 # Crevy PWA — Field Agent Offline Guide
+
 ### Progressive Web App Implementation for Remote Area Operations
 
 > **Why this matters:** Field agents deploying in rural Ghana, Volta Basin, and other low-connectivity regions need to onboard project owners and capture GPS + document data without internet access. This guide transforms the existing Next.js 16 App Router application into a fully offline-capable PWA, implementing local-first data storage, a submission queue, background sync, and installability on Android and iOS.
@@ -29,17 +30,17 @@
 
 ## 1. What Gets Offline Support
 
-| Feature | Offline capability | Storage |
-|---|---|---|
-| Project owner registration form | ✅ Full — save draft, queue submit | IndexedDB |
-| New project form (3 steps) | ✅ Full — auto-save draft every 30s | IndexedDB |
-| Document / photo capture | ✅ Full — store as base64, queue upload | IndexedDB |
-| GPS coordinate capture | ✅ Full — Web Geolocation API works offline | In-memory / form |
-| Dashboard (read) | ✅ Stale data shown when offline | Service Worker cache |
-| Project owner list | ✅ Last fetched data shown when offline | Service Worker cache |
-| Auth (login) | ❌ Requires network — redirect to offline notice | — |
-| Credit purchases | ❌ Requires network — financial transactions | — |
-| Real-time MRV data | ❌ Requires network | — |
+| Feature                         | Offline capability                               | Storage              |
+| ------------------------------- | ------------------------------------------------ | -------------------- |
+| Project owner registration form | ✅ Full — save draft, queue submit               | IndexedDB            |
+| New project form (3 steps)      | ✅ Full — auto-save draft every 30s              | IndexedDB            |
+| Document / photo capture        | ✅ Full — store as base64, queue upload          | IndexedDB            |
+| GPS coordinate capture          | ✅ Full — Web Geolocation API works offline      | In-memory / form     |
+| Dashboard (read)                | ✅ Stale data shown when offline                 | Service Worker cache |
+| Project owner list              | ✅ Last fetched data shown when offline          | Service Worker cache |
+| Auth (login)                    | ❌ Requires network — redirect to offline notice | —                    |
+| Credit purchases                | ❌ Requires network — financial transactions     | —                    |
+| Real-time MRV data              | ❌ Requires network                              | —                    |
 
 ---
 
@@ -163,7 +164,7 @@ Create `public/manifest.json`:
       "name": "Register Project Owner",
       "short_name": "Onboard",
       "description": "Onboard a new project owner",
-      "url": "/project-owners/register",
+      "url": "/project-developers/register",
       "icons": [{ "src": "/icons/pwa/icon-96x96.png", "sizes": "96x96" }]
     },
     {
@@ -204,8 +205,8 @@ declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
-  skipWaiting:     true,
-  clientsClaim:    true,
+  skipWaiting: true,
+  clientsClaim: true,
   navigationPreload: false,
 
   runtimeCaching: [
@@ -248,21 +249,21 @@ const serwist = new Serwist({
     {
       matcher: ({ request, url }) =>
         request.method === "GET" &&
-        (url.pathname.startsWith("/api/v2/project-owners") ||
-         url.pathname.startsWith("/api/v2/projects") ||
-         url.pathname.startsWith("/api/v2/partners") ||
-         url.pathname.startsWith("/api/v2/auth/currencies")),
+        (url.pathname.startsWith("/api/v2/project-developers") ||
+          url.pathname.startsWith("/api/v2/projects") ||
+          url.pathname.startsWith("/api/v2/partners") ||
+          url.pathname.startsWith("/api/v2/auth/currencies")),
       handler: "NetworkFirst",
       options: {
-        cacheName:   "api-reads",
+        cacheName: "api-reads",
         networkTimeoutSeconds: 5,
-        expiration:  { maxEntries: 100, maxAgeSeconds: 60 * 60 }, // 1 hour
+        expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 }, // 1 hour
         cacheableResponse: { statuses: [0, 200] },
       },
     },
 
     // ── Dashboard pages: Network First → serve cached HTML ────────────
-    // This lets field agents open /dashboard, /project-owners, /new-project
+    // This lets field agents open /dashboard, /project-developers, /new-project
     // while offline and see their last-viewed state.
     {
       matcher: ({ request }) => request.mode === "navigate",
@@ -346,8 +347,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
-      { protocol: "https", hostname: "res.cloudinary.com",  pathname: "/**" },
-      { protocol: "https", hostname: "images.pexels.com",   pathname: "/**" },
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
+      { protocol: "https", hostname: "images.pexels.com", pathname: "/**" },
     ],
   },
 
@@ -359,7 +360,7 @@ const nextConfig: NextConfig = {
         source: "/sw.js",
         headers: [
           { key: "Service-Worker-Allowed", value: "/" },
-          { key: "Cache-Control",          value: "no-cache" },
+          { key: "Cache-Control", value: "no-cache" },
         ],
       },
     ];
@@ -367,9 +368,18 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return [
-      { source: "/api/auth/:path*", destination: `${process.env.NEXT_PUBLIC_API_URL}/api/auth/:path*` },
-      { source: "/api/v1/:path*",   destination: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/:path*`   },
-      { source: "/api/v2/:path*",   destination: `${process.env.NEXT_PUBLIC_API_URL}/api/v2/:path*`   },
+      {
+        source: "/api/auth/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/auth/:path*`,
+      },
+      {
+        source: "/api/v1/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/:path*`,
+      },
+      {
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/v2/:path*`,
+      },
     ];
   },
 };
@@ -496,64 +506,64 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 export interface DraftRecord {
-  id:          string;   // e.g. "project-owner-draft" | "project-draft-{tempId}"
-  type:        "project-owner" | "project";
-  step:        number;   // which step the user was on
-  data:        unknown;  // the raw form values (TUserRegistrationInput | TCreateProject)
-  savedAt:     number;   // Date.now()
+  id: string; // e.g. "project-owner-draft" | "project-draft-{tempId}"
+  type: "project-owner" | "project";
+  step: number; // which step the user was on
+  data: unknown; // the raw form values (TUserRegistrationInput | TCreateProject)
+  savedAt: number; // Date.now()
   // Document blobs stored separately in document-queue
 }
 
 export interface QueuedSubmission {
-  id:          string;          // uuidv4 generated client-side
-  type:        "create-project-owner" | "create-project" | "upload-document";
-  url:         string;          // e.g. "/api/v2/project-owners/onboard"
-  method:      "POST" | "PUT" | "PATCH";
-  body:        unknown;         // serialisable payload (no File objects — use documentId)
-  headers?:    Record<string, string>;
-  queuedAt:    number;          // Date.now()
-  attempts:    number;          // sync retry count
-  lastAttempt: number | null;   // Date.now() of last attempt
-  error:       string | null;   // last error message
+  id: string; // uuidv4 generated client-side
+  type: "create-project-owner" | "create-project" | "upload-document";
+  url: string; // e.g. "/api/v2/project-developers/onboard"
+  method: "POST" | "PUT" | "PATCH";
+  body: unknown; // serialisable payload (no File objects — use documentId)
+  headers?: Record<string, string>;
+  queuedAt: number; // Date.now()
+  attempts: number; // sync retry count
+  lastAttempt: number | null; // Date.now() of last attempt
+  error: string | null; // last error message
 }
 
 export interface QueuedDocument {
-  id:          string;          // matches body.documentId in a QueuedSubmission
-  projectTempId: string;        // links to the draft project
-  documentType:  string;        // land_ownership | community_consent | etc.
-  fileName:    string;
-  mimeType:    string;
-  base64:      string;          // base64-encoded file content
-  fileSize:    number;
-  queuedAt:    number;
+  id: string; // matches body.documentId in a QueuedSubmission
+  projectTempId: string; // links to the draft project
+  documentType: string; // land_ownership | community_consent | etc.
+  fileName: string;
+  mimeType: string;
+  base64: string; // base64-encoded file content
+  fileSize: number;
+  queuedAt: number;
 }
 
 export interface OfflineCacheRecord {
-  id:      string;
-  type:    "project-owner-list" | "project-list" | "currencies";
-  data:    unknown;
+  id: string;
+  type: "project-owner-list" | "project-list" | "currencies";
+  data: unknown;
   cachedAt: number;
 }
 
 interface CrevyDB extends DBSchema {
   drafts: {
-    key:     string;
-    value:   DraftRecord;
+    key: string;
+    value: DraftRecord;
     indexes: { "by-type": string };
   };
   "submission-queue": {
-    key:     string;
-    value:   QueuedSubmission;
+    key: string;
+    value: QueuedSubmission;
     indexes: { "by-type": string; "by-queued-at": number };
   };
   "document-queue": {
-    key:     string;
-    value:   QueuedDocument;
+    key: string;
+    value: QueuedDocument;
     indexes: { "by-project": string };
   };
   "offline-cache": {
-    key:     string;
-    value:   OfflineCacheRecord;
+    key: string;
+    value: OfflineCacheRecord;
     indexes: { "by-type": string };
   };
 }
@@ -572,16 +582,22 @@ export async function getDB(): Promise<IDBPDatabase<CrevyDB>> {
       draftsStore.createIndex("by-type", "type");
 
       // Submission queue store
-      const queueStore = db.createObjectStore("submission-queue", { keyPath: "id" });
-      queueStore.createIndex("by-type",      "type");
+      const queueStore = db.createObjectStore("submission-queue", {
+        keyPath: "id",
+      });
+      queueStore.createIndex("by-type", "type");
       queueStore.createIndex("by-queued-at", "queuedAt");
 
       // Document (file) queue
-      const docStore = db.createObjectStore("document-queue", { keyPath: "id" });
+      const docStore = db.createObjectStore("document-queue", {
+        keyPath: "id",
+      });
       docStore.createIndex("by-project", "projectTempId");
 
       // Offline cache
-      const cacheStore = db.createObjectStore("offline-cache", { keyPath: "id" });
+      const cacheStore = db.createObjectStore("offline-cache", {
+        keyPath: "id",
+      });
       cacheStore.createIndex("by-type", "type");
     },
   });
@@ -606,20 +622,24 @@ export async function deleteDraft(id: string): Promise<void> {
   await db.delete("drafts", id);
 }
 
-export async function listDrafts(type: DraftRecord["type"]): Promise<DraftRecord[]> {
+export async function listDrafts(
+  type: DraftRecord["type"],
+): Promise<DraftRecord[]> {
   const db = await getDB();
   return db.getAllFromIndex("drafts", "by-type", type);
 }
 
 // ─── Submission queue helpers ─────────────────────────────────────────────────
 
-export async function enqueueSubmission(item: Omit<QueuedSubmission, "attempts" | "lastAttempt" | "error">): Promise<void> {
+export async function enqueueSubmission(
+  item: Omit<QueuedSubmission, "attempts" | "lastAttempt" | "error">,
+): Promise<void> {
   const db = await getDB();
   await db.put("submission-queue", {
     ...item,
-    attempts:    0,
+    attempts: 0,
     lastAttempt: null,
-    error:       null,
+    error: null,
   });
 }
 
@@ -628,7 +648,10 @@ export async function listQueue(): Promise<QueuedSubmission[]> {
   return db.getAllFromIndex("submission-queue", "by-queued-at");
 }
 
-export async function updateQueueItem(id: string, updates: Partial<QueuedSubmission>): Promise<void> {
+export async function updateQueueItem(
+  id: string,
+  updates: Partial<QueuedSubmission>,
+): Promise<void> {
   const db = await getDB();
   const existing = await db.get("submission-queue", id);
   if (existing) await db.put("submission-queue", { ...existing, ...updates });
@@ -646,7 +669,9 @@ export async function enqueueDocument(doc: QueuedDocument): Promise<void> {
   await db.put("document-queue", doc);
 }
 
-export async function getDocumentsByProject(projectTempId: string): Promise<QueuedDocument[]> {
+export async function getDocumentsByProject(
+  projectTempId: string,
+): Promise<QueuedDocument[]> {
   const db = await getDB();
   return db.getAllFromIndex("document-queue", "by-project", projectTempId);
 }
@@ -658,12 +683,18 @@ export async function removeDocument(id: string): Promise<void> {
 
 // ─── Offline cache helpers ────────────────────────────────────────────────────
 
-export async function setCachedData(id: string, type: OfflineCacheRecord["type"], data: unknown): Promise<void> {
+export async function setCachedData(
+  id: string,
+  type: OfflineCacheRecord["type"],
+  data: unknown,
+): Promise<void> {
   const db = await getDB();
   await db.put("offline-cache", { id, type, data, cachedAt: Date.now() });
 }
 
-export async function getCachedData(id: string): Promise<OfflineCacheRecord | undefined> {
+export async function getCachedData(
+  id: string,
+): Promise<OfflineCacheRecord | undefined> {
   const db = await getDB();
   return db.get("offline-cache", id);
 }
@@ -698,7 +729,10 @@ const MAX_ATTEMPTS = 5;
 const RETRY_DELAY_MS = [1_000, 5_000, 15_000, 60_000, 300_000]; // exponential
 
 export async function drainSubmissionQueue(
-  onProgress?: (item: QueuedSubmission, status: "success" | "failed" | "retrying") => void
+  onProgress?: (
+    item: QueuedSubmission,
+    status: "success" | "failed" | "retrying",
+  ) => void,
 ): Promise<{ succeeded: number; failed: number }> {
   const queue = await listQueue();
   let succeeded = 0;
@@ -713,12 +747,12 @@ export async function drainSubmissionQueue(
 
     try {
       await axiosClient.request({
-        url:    item.url,
+        url: item.url,
         method: item.method,
-        data:   item.body,
+        data: item.body,
         headers: {
-          "Content-Type":    "application/json",
-          "X-Offline-Sync":  "true",  // lets backend log these differently
+          "Content-Type": "application/json",
+          "X-Offline-Sync": "true", // lets backend log these differently
           ...item.headers,
         },
       });
@@ -738,9 +772,11 @@ export async function drainSubmissionQueue(
       const newAttempts = item.attempts + 1;
 
       await updateQueueItem(item.id, {
-        attempts:    newAttempts,
+        attempts: newAttempts,
         lastAttempt: Date.now(),
-        error:       isNetworkError ? "Network unavailable" : (err.response?.data?.message ?? err.message),
+        error: isNetworkError
+          ? "Network unavailable"
+          : (err.response?.data?.message ?? err.message),
       });
 
       if (isNetworkError) {
@@ -796,11 +832,14 @@ export async function requestBackgroundSync(): Promise<void> {
 "use client";
 
 import { useEffect, useState } from "react";
-import { drainSubmissionQueue, requestBackgroundSync } from "@/lib/offline/sync";
+import {
+  drainSubmissionQueue,
+  requestBackgroundSync,
+} from "@/lib/offline/sync";
 
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(
-    typeof navigator !== "undefined" ? navigator.onLine : true
+    typeof navigator !== "undefined" ? navigator.onLine : true,
   );
 
   useEffect(() => {
@@ -814,11 +853,11 @@ export function useOnlineStatus() {
       setIsOnline(false);
     };
 
-    window.addEventListener("online",  handleOnline);
+    window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener("online",  handleOnline);
+      window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
@@ -838,16 +877,13 @@ import { saveDraft, loadDraft, deleteDraft } from "@/lib/offline/db";
 import type { DraftRecord } from "@/lib/offline/db";
 
 interface UseDraftOptions {
-  id:       string;
-  type:     DraftRecord["type"];
+  id: string;
+  type: DraftRecord["type"];
   /** How often to auto-save in milliseconds. Default: 30000 */
   interval?: number;
 }
 
-export function useDraft<T>(
-  options: UseDraftOptions,
-  getValue: () => T,
-) {
+export function useDraft<T>(options: UseDraftOptions, getValue: () => T) {
   const { id, type, interval = 30_000 } = options;
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -889,14 +925,21 @@ export function useDraft<T>(
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { listQueue, enqueueSubmission, type QueuedSubmission } from "@/lib/offline/db";
-import { drainSubmissionQueue, requestBackgroundSync } from "@/lib/offline/sync";
+import {
+  listQueue,
+  enqueueSubmission,
+  type QueuedSubmission,
+} from "@/lib/offline/db";
+import {
+  drainSubmissionQueue,
+  requestBackgroundSync,
+} from "@/lib/offline/sync";
 import { useOnlineStatus } from "./use-online-status";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 export function useSubmissionQueue() {
-  const isOnline   = useOnlineStatus();
+  const isOnline = useOnlineStatus();
   const [queue, setQueue] = useState<QueuedSubmission[]>([]);
   const [syncing, setSyncing] = useState(false);
 
@@ -919,8 +962,12 @@ export function useSubmissionQueue() {
         }
       })
         .then(({ succeeded, failed }) => {
-          if (succeeded > 0) toast.success(`${succeeded} item(s) synced successfully.`);
-          if (failed > 0)    toast.error(`${failed} item(s) could not be synced. They will retry automatically.`);
+          if (succeeded > 0)
+            toast.success(`${succeeded} item(s) synced successfully.`);
+          if (failed > 0)
+            toast.error(
+              `${failed} item(s) could not be synced. They will retry automatically.`,
+            );
         })
         .finally(() => {
           setSyncing(false);
@@ -933,32 +980,42 @@ export function useSubmissionQueue() {
    * Submit a request. If online, calls the API directly.
    * If offline, saves to the queue and registers a background sync.
    */
-  const submit = useCallback(async (
-    type: QueuedSubmission["type"],
-    url:  string,
-    method: QueuedSubmission["method"],
-    body: unknown,
-  ): Promise<{ success: boolean; queued: boolean; data?: unknown }> => {
-    if (isOnline) {
-      // Try directly
-      const { axiosClient } = await import("@/lib/axiosClient");
-      const response = await axiosClient.request({ url, method, data: body });
-      return { success: true, queued: false, data: response.data };
-    }
+  const submit = useCallback(
+    async (
+      type: QueuedSubmission["type"],
+      url: string,
+      method: QueuedSubmission["method"],
+      body: unknown,
+    ): Promise<{ success: boolean; queued: boolean; data?: unknown }> => {
+      if (isOnline) {
+        // Try directly
+        const { axiosClient } = await import("@/lib/axiosClient");
+        const response = await axiosClient.request({ url, method, data: body });
+        return { success: true, queued: false, data: response.data };
+      }
 
-    // Offline — add to queue
-    const id = uuidv4();
-    await enqueueSubmission({ id, type, url, method, body, queuedAt: Date.now() });
-    await requestBackgroundSync();
-    await refreshQueue();
+      // Offline — add to queue
+      const id = uuidv4();
+      await enqueueSubmission({
+        id,
+        type,
+        url,
+        method,
+        body,
+        queuedAt: Date.now(),
+      });
+      await requestBackgroundSync();
+      await refreshQueue();
 
-    toast.info("Saved offline. Will sync automatically when you reconnect.", {
-      duration: 6000,
-      icon: "📡",
-    });
+      toast.info("Saved offline. Will sync automatically when you reconnect.", {
+        duration: 6000,
+        icon: "📡",
+      });
 
-    return { success: true, queued: true };
-  }, [isOnline, refreshQueue]);
+      return { success: true, queued: true };
+    },
+    [isOnline, refreshQueue],
+  );
 
   return { queue, syncing, submit, refreshQueue };
 }
@@ -970,7 +1027,7 @@ export function useSubmissionQueue() {
 
 ### How to add auto-save to the project owner registration form
 
-In `src/app/(dashboard)/project-owners/register/page.tsx` (or wherever the onboarding form lives), add:
+In `src/app/(dashboard)/project-developers/register/page.tsx` (or wherever the onboarding form lives), add:
 
 ```typescript
 "use client";
@@ -1003,14 +1060,14 @@ export default function RegisterProjectOwnerPage() {
   const onSubmit = async (data: TProjectOwnerOnboarding) => {
     const result = await submit(
       "create-project-owner",
-      "/api/v2/project-owners/onboard",
+      "/api/v2/project-developers/onboard",
       "POST",
       data,
     );
 
     if (result.success && !result.queued) {
       await clear();          // delete draft on successful sync
-      router.push("/project-owners");
+      router.push("/project-developers");
     }
     // If queued, we do NOT clear the draft — it acts as a record of what was submitted
   };
@@ -1159,7 +1216,7 @@ import { enqueueDocument, type QueuedDocument } from "./db";
 export function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload  = () => resolve((reader.result as string).split(",")[1]);
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -1167,9 +1224,9 @@ export function fileToBase64(file: File): Promise<string> {
 
 /** Save a document file to the offline queue */
 export async function saveDocumentOffline(
-  file:           File,
-  documentType:   string,
-  projectTempId:  string,
+  file: File,
+  documentType: string,
+  projectTempId: string,
 ): Promise<string> {
   const base64 = await fileToBase64(file);
   const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -1178,11 +1235,11 @@ export async function saveDocumentOffline(
     id,
     projectTempId,
     documentType,
-    fileName:  file.name,
-    mimeType:  file.type,
-    fileSize:  file.size,
+    fileName: file.name,
+    mimeType: file.type,
+    fileSize: file.size,
     base64,
-    queuedAt:  Date.now(),
+    queuedAt: Date.now(),
   });
 
   return id; // returned so it can be stored in form state
@@ -1228,18 +1285,18 @@ const handleFileChange = async (docTypeId, e, multiple) => {
 
 ### Pages that need the `useSubmissionQueue` hook instead of direct API calls
 
-| Page | Current API call | Change needed |
-|---|---|---|
-| `project-owners/register/page.tsx` | `UserService.registerUser(data)` | Replace with `submit("create-project-owner", ...)` |
-| `new-project/page.tsx` | `ProjectService.createProject(data)` | Replace with `submit("create-project", ...)` |
-| `new-project/page.tsx` | `ProjectService.uploadDocument(...)` | Replace with `saveDocumentOffline(...)` when offline |
+| Page                                   | Current API call                     | Change needed                                        |
+| -------------------------------------- | ------------------------------------ | ---------------------------------------------------- |
+| `project-developers/register/page.tsx` | `UserService.registerUser(data)`     | Replace with `submit("create-project-owner", ...)`   |
+| `new-project/page.tsx`                 | `ProjectService.createProject(data)` | Replace with `submit("create-project", ...)`         |
+| `new-project/page.tsx`                 | `ProjectService.uploadDocument(...)` | Replace with `saveDocumentOffline(...)` when offline |
 
 ### Pages that benefit from the `useDraft` hook
 
-| Page | Draft ID | Form type |
-|---|---|---|
-| `project-owners/register/page.tsx` | `"project-owner-draft"` | `TProjectOwnerOnboarding` |
-| `new-project/page.tsx` | `"project-draft"` | `TCreateProject` |
+| Page                                   | Draft ID                | Form type                 |
+| -------------------------------------- | ----------------------- | ------------------------- |
+| `project-developers/register/page.tsx` | `"project-owner-draft"` | `TProjectOwnerOnboarding` |
+| `new-project/page.tsx`                 | `"project-draft"`       | `TCreateProject`          |
 
 ---
 
@@ -1281,7 +1338,7 @@ npx pwa-asset-generator public/icons/Crevy.png public/icons/pwa \
 
 1. Open DevTools → **Application** tab → **Service Workers**
 2. Tick **"Offline"** checkbox to simulate no network
-3. Navigate to `/project-owners/register` — the page should load from cache
+3. Navigate to `/project-developers/register` — the page should load from cache
 4. Fill out and submit the form — should show "Saved offline" toast
 5. Untick **"Offline"** — should see "Back online — syncing…" banner
 6. Open **Application → IndexedDB → crevy-offline** to inspect stored data
@@ -1297,6 +1354,7 @@ pnpm build && pnpm start
 ```
 
 Key Lighthouse PWA checks:
+
 - ✅ Installable (manifest + SW registered)
 - ✅ PWA Optimised (HTTPS, viewport, theme-color)
 - ✅ Offline page served (SW returns cached HTML when offline)
@@ -1304,10 +1362,12 @@ Key Lighthouse PWA checks:
 ### Manual install test
 
 **Android (Chrome):**
+
 - Visit the app → Chrome shows "Add to Home screen" banner
 - Or: Chrome menu → "Install app"
 
 **iOS (Safari):**
+
 - Visit the app → Share → "Add to Home Screen"
 - Note: iOS does not support Background Sync — the app-layer drain on `online` event is the fallback
 
@@ -1330,7 +1390,7 @@ Key Lighthouse PWA checks:
 [ ] src/hooks/use-submission-queue.ts created
 [ ] src/components/offline/OfflineBanner.tsx created
 [ ] src/components/offline/SyncListener.tsx created
-[ ] project-owners/register/page.tsx — useDraft + useSubmissionQueue wired
+[ ] project-developers/register/page.tsx — useDraft + useSubmissionQueue wired
 [ ] new-project/page.tsx — useDraft + useSubmissionQueue wired
 [ ] Step3_Documents.tsx — offline document save wired
 [ ] HTTPS configured on production (required for SW + Background Sync)
@@ -1342,5 +1402,5 @@ Key Lighthouse PWA checks:
 
 ---
 
-*Guide authored: June 2026 · Crevy Platform · Foovante Global*
-*Target: Next.js 16 / React 19 / Serwist / idb*
+_Guide authored: June 2026 · Crevy Platform · Foovante Global_
+_Target: Next.js 16 / React 19 / Serwist / idb_

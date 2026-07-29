@@ -308,7 +308,10 @@ export const createProjectDefaultValues: TCreateProject = {
   totalAreaHectares: 0,
   facilityName: "",
   address: "",
-  currency: { code: "", name: "" },
+  // No longer user-selectable at registration (see Step1_ProjectProfile.tsx) —
+  // every project settles in USD by default. Revisit if multi-currency
+  // settlement becomes a real product requirement.
+  currency: { code: "USD", name: "US Dollar" },
   description: "",
   projectTags: [],
   sdgs: [],

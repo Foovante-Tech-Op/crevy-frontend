@@ -110,7 +110,7 @@ const getUnifiedValue = (obj: any, snakeKey: string, camelKey: string) =>
 
 export default function AllProjectsPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isPending: isUserPending } = useUser();
   const [viewType, setViewType] = useState<"list" | "grid">("list");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [globalFilter, setGlobalFilter] = useState("");
@@ -145,6 +145,12 @@ export default function AllProjectsPage() {
 
   const projects = data?.data ?? [];
   const nextCursor = data?.nextCursor;
+  // The query below is `enabled: !!user`, so before `user` resolves,
+  // react-query hasn't started fetching and `isLoading` is `false` (not
+  // because data loaded, but because it never fired) — without folding
+  // that in here, the "No Assets Located" empty state flashes before the
+  // real fetch even begins.
+  const showLoading = isLoading || isUserPending;
 
   const columns = useMemo<ColumnDef<Project>[]>(
     () => [
@@ -279,17 +285,17 @@ export default function AllProjectsPage() {
               >
                 <ExternalLink className="h-3.5 w-3.5 mr-2 text-slate-400" />{" "}
                 {row.original.assessmentCompletion === "complete"
-                  ? "View Dossier"
+                  ? "View Details"
                   : "Resume Registration"}
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none">
+              {/* <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest cursor-pointer py-2.5 rounded-none">
                 <Activity className="h-3.5 w-3.5 mr-2 text-slate-400" />{" "}
                 Telemetry Data
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-slate-100" />
               <DropdownMenuItem className="text-xs font-bold uppercase tracking-widest text-brand-700 focus:bg-brand-50 focus:text-brand-800 cursor-pointer py-2.5 rounded-none">
                 <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Verify Protocol
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         ),
@@ -400,7 +406,7 @@ export default function AllProjectsPage() {
           </div>
         </div>
 
-        {isLoading ? (
+        {showLoading ? (
           <div className="py-32 flex flex-col items-center justify-center border border-slate-200 bg-white">
             <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-900 rounded-none animate-spin mb-4" />
             <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
@@ -563,8 +569,8 @@ export default function AllProjectsPage() {
 
         <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-200">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Ledger Returns:{" "}
-            <span className="text-slate-900">{projects.length} Assets</span>
+            Total:{" "}
+            <span className="text-slate-900">{projects.length} Projects</span>
           </p>
           <div className="flex items-center gap-2">
             <Button
