@@ -305,7 +305,7 @@ const NewProject = () => {
 
       <div
         className={cn(
-          "mx-auto px-4 sm:px-6 lg:px-10 py-8 md:py-12 flex flex-col gap-8 lg:gap-14 transition-all duration-300",
+          "mx-auto px-4 sm:px-6 lg:px-2 py-8 md:py-12 flex flex-col gap-4 transition-all duration-300",
           isMethodologySelection
             ? "max-w-[1600px] lg:flex-col"
             : "max-w-[1400px] lg:flex-row",

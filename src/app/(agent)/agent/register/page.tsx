@@ -166,6 +166,11 @@ export default function RegisterDeveloperPage() {
   const canProceedStep1 =
     draft.developerName.trim().length >= 2 && draft.phone.trim().length >= 6;
 
+  const handleCancel = () => {
+    clearDraft();
+    router.push("/agent");
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
@@ -233,7 +238,7 @@ export default function RegisterDeveloperPage() {
       </div>
 
       {step === 1 && (
-        <Card>
+        <Card className="rounded-none">
           <CardContent className="py-6 space-y-5">
             <h2 className="text-lg font-semibold text-slate-900">
               Who are you registering?
@@ -300,17 +305,17 @@ export default function RegisterDeveloperPage() {
       )}
 
       {step === 2 && (
-        <Card>
+        <Card className="rounded-none">
           <CardContent className="py-6 space-y-5">
             <h2 className="text-lg font-semibold text-slate-900">
-              Where is the farm?
+              Where is the farm/project site?
             </h2>
             <Button
               type="button"
               variant="outline"
               onClick={handleCaptureLocation}
               disabled={locating}
-              className="w-full h-12"
+              className="w-full h-12 rounded-none"
             >
               {locating
                 ? "Getting your location…"
@@ -339,7 +344,7 @@ export default function RegisterDeveloperPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="area">
-                Rough farm size in hectares (optional)
+                Rough site size in hectares (optional)
               </Label>
               <Input
                 id="area"
@@ -358,7 +363,7 @@ export default function RegisterDeveloperPage() {
       )}
 
       {step === 3 && (
-        <Card>
+        <Card className="rounded-none">
           <CardContent className="py-6 space-y-5">
             <h2 className="text-lg font-semibold text-slate-900">
               Photo & project type
@@ -396,7 +401,7 @@ export default function RegisterDeveloperPage() {
       )}
 
       {step === 4 && (
-        <Card>
+        <Card className="rounded-none">
           <CardContent className="py-6 space-y-4">
             <h2 className="text-lg font-semibold text-slate-900">
               Review & submit
@@ -437,12 +442,21 @@ export default function RegisterDeveloperPage() {
 
       {/* Nav buttons */}
       <div className="flex gap-3">
-        {step > 1 && (
+        {step === 1 ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            className="flex-1 h-12 rounded-none border-red-200 text-red-700 hover:bg-red-50"
+          >
+            Cancel
+          </Button>
+        ) : (
           <Button
             type="button"
             variant="outline"
             onClick={() => goToStep(step - 1)}
-            className="flex-1 h-12"
+            className="flex-1 h-12 rounded-none"
           >
             Back
           </Button>
@@ -452,7 +466,7 @@ export default function RegisterDeveloperPage() {
             type="button"
             onClick={() => goToStep(step + 1)}
             disabled={step === 1 && !canProceedStep1}
-            className="flex-1 h-12 bg-slate-900 hover:bg-slate-800"
+            className="flex-1 h-12 bg-foreground hover:bg-slate-800 rounded-none"
           >
             Next
           </Button>
@@ -461,7 +475,7 @@ export default function RegisterDeveloperPage() {
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex-1 h-12 bg-slate-900 hover:bg-slate-800"
+            className="flex-1 h-12 bg-brand hover:bg-brand/90 rounded-none"
           >
             {submitting ? "Submitting…" : "Submit"}
           </Button>

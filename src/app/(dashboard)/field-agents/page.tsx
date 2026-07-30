@@ -272,7 +272,7 @@ export default function FieldAgentsPage() {
             <div className="flex items-center gap-3 shrink-0">
               <Button
                 onClick={() => setIsInviteModalOpen(true)}
-                className="rounded-none bg-slate-900 hover:bg-emerald-900 text-white text-[10px] font-bold uppercase tracking-widest"
+                className="rounded-none bg-foreground hover:bg-brand text-white text-[10px] font-bold uppercase tracking-widest"
               >
                 <UserPlus className="h-3.5 w-3.5 mr-2" /> Invite Field Agent
               </Button>

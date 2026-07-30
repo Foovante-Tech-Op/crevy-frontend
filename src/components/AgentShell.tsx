@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, ListChecks, UserCircle } from "lucide-react";
+import { Calculator, Home, ListChecks, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
@@ -14,7 +14,12 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/agent", label: "Home", icon: Home },
-  { href: "/agent/registrations", label: "My Registrations", icon: ListChecks },
+  {
+    href: "/agent/registrations",
+    label: "My Registrations",
+    icon: ListChecks,
+  },
+  { href: "/agent/calculator", label: "Calculator", icon: Calculator },
   { href: "/agent/profile", label: "Profile", icon: UserCircle },
 ];
 
@@ -31,7 +36,9 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
             className="font-sans font-bold text-lg text-slate-900"
           >
             Crevy{" "}
-            <span className="text-slate-400 font-normal text-sm">Field</span>
+            <span className="text-brand font-semibold text-xs">
+              Field Agent
+            </span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map((item) => {
@@ -41,10 +48,10 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                    "px-4 py-2 text-sm font-medium rounded-none transition-colors",
                     active
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100",
+                      ? "bg-brand text-white"
+                      : "text-slate-600 hover:bg-slate-200",
                   )}
                 >
                   {item.label}
@@ -62,7 +69,7 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
 
       {/* Bottom tab bar — mobile/tablet only */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-200 safe-area-inset-bottom">
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-4">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href;
             const Icon = item.icon;
@@ -72,11 +79,11 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 py-3 min-h-[56px] transition-colors",
-                  active ? "text-slate-900" : "text-slate-400",
+                  active ? "text-foreground" : "text-slate-400",
                 )}
               >
                 <Icon className="h-6 w-6" strokeWidth={active ? 2.5 : 2} />
-                <span className="text-[11px] font-medium">{item.label}</span>
+                <span className="text-[10px] font-medium">{item.label}</span>
               </Link>
             );
           })}

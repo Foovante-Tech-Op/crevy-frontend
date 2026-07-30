@@ -46,7 +46,7 @@ export default function MyRegistrationsPage() {
           placeholder="Search by name or code..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
+          className="w-full rounded-none border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
         />
       </div>
 
@@ -56,9 +56,9 @@ export default function MyRegistrationsPage() {
             key={s}
             type="button"
             onClick={() => setStatus(s)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-1.5 rounded-none text-xs font-medium whitespace-nowrap transition-colors ${
               status === s
-                ? "bg-slate-900 text-white"
+                ? "bg-foreground text-white"
                 : "bg-white text-slate-600 border border-slate-200"
             }`}
           >
@@ -70,7 +70,7 @@ export default function MyRegistrationsPage() {
       {isLoading ? (
         <div className="text-sm text-slate-400 py-12 text-center">Loading…</div>
       ) : developers.length === 0 ? (
-        <Card>
+        <Card className="rounded-none">
           <CardContent className="py-10 flex flex-col items-center text-center gap-2">
             <UserRound className="h-8 w-8 text-slate-300" strokeWidth={1.5} />
             <p className="text-slate-500 text-sm">
@@ -81,7 +81,7 @@ export default function MyRegistrationsPage() {
       ) : (
         <div className="space-y-2">
           {developers.map((dev) => (
-            <Card key={dev.id}>
+            <Card key={dev.id} className="rounded-none">
               <CardContent className="py-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-medium text-slate-900 truncate">

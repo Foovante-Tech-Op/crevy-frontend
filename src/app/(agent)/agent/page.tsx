@@ -30,11 +30,11 @@ export default function AgentHomePage() {
     <div className="space-y-6">
       <Link
         href="/agent/register"
-        className="block rounded-xl bg-slate-900 hover:bg-slate-800 transition-colors text-white p-6"
+        className="block rounded-none bg-foreground hover:bg-slate-800 transition-colors text-white p-6"
       >
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10">
-            <PlusCircle className="h-6 w-6" />
+            <PlusCircle className="h-6 w-6 animate-ping" />
           </div>
           <div>
             <div className="font-semibold text-lg leading-tight">
@@ -57,7 +57,7 @@ export default function AgentHomePage() {
             Loading…
           </div>
         ) : recent.length === 0 ? (
-          <Card>
+          <Card className="rounded-none">
             <CardContent className="py-10 flex flex-col items-center text-center gap-2">
               <UserRound className="h-8 w-8 text-slate-300" strokeWidth={1.5} />
               <p className="text-slate-500 text-sm">
@@ -69,7 +69,7 @@ export default function AgentHomePage() {
         ) : (
           <div className="space-y-2">
             {recent.map((dev) => (
-              <Card key={dev.id}>
+              <Card key={dev.id} className="rounded-none">
                 <CardContent className="py-4 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-medium text-slate-900 truncate">

@@ -11,7 +11,6 @@ import * as z from "zod";
 import GalleryBackground from "@/components/GalleryBackground";
 import { CountryDropdown } from "@/components/ui/country-dropdown";
 import { Form } from "@/components/ui/form";
-import { authClient } from "@/lib/auth";
 import { axiosClient } from "@/lib/axiosClient";
 
 // ── Validation Schema Definition ──
@@ -33,6 +32,23 @@ const adminSetupSchema = z
 
 type TAdminSetupForm = z.infer<typeof adminSetupSchema>;
 
+/**
+ * F2 — Invitation acceptance page.
+ *
+ * Owns the form (first/last name, country, password) and calls the
+ * server-side /auth/register/invite endpoint to create the user. Crucially,
+ * this page does NOT call authClient.signUp.email() directly — that would
+ * create the better-auth user in the browser and immediately set a session
+ * cookie, which would auto-log the user in before they ever see /login. We
+ * send the entire payload (token + name + password) to the backend, which
+ * creates the user via auth.api.signUpEmail (no Set-Cookie forwarded), and
+ * on success we redirect to /login so the user can sign in normally.
+ *
+ * The phone number (if any) is pre-filled from the verify-token response —
+ * invitation.verifyToken() now returns the invite's `phone` column (the
+ * backend was updated to include it; the previous version only returned
+ * the email/role, so this field used to always be blank).
+ */
 function AdminSetupTerminal() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +61,7 @@ function AdminSetupTerminal() {
     name: string;
     id: string;
   } | null>(null);
+  const [prefilledPhone, setPrefilledPhone] = useState<string>("");
 
   const form = useForm<TAdminSetupForm>({
     resolver: zodResolver(adminSetupSchema),
@@ -62,10 +79,14 @@ function AdminSetupTerminal() {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = form;
 
-  // Verify invitation parameters prior to rendering profile options
+  // Verify invitation parameters prior to rendering profile options.
+  // NOTE: contactNumber is pre-filled from the verify response when the
+  // invitation captured a phone (e.g. field-agent invites); org-admin /
+  // project-admin invites may not have one and the field stays empty.
   useEffect(() => {
     if (!token) {
       toast.error("Missing invitation token.");
@@ -76,65 +97,53 @@ function AdminSetupTerminal() {
     axiosClient
       .get(`/auth/invite/verify/${token}`)
       .then((res) => {
-        console.log("---- ", res.data.data);
+        const data = res.data?.data;
+        if (!data) {
+          throw new Error("Invalid invite payload");
+        }
+        setAssignedEmail(data.email ?? null);
+        setAssignedRole(data.role ?? null);
 
-        setAssignedEmail(res.data.data.email);
-        setAssignedRole(res.data.data.role); // Captures assigned authorization role
+        // Pre-fill phone if the invite carried one — `phone` is on the
+        // invitation row and is now returned by verifyToken.
+        if (data.phone) {
+          setPrefilledPhone(data.phone);
+          setValue("contactNumber", data.phone);
+        }
       })
       .catch(() => toast.error("Invalid or expired invitation link."))
       .finally(() => setVerifying(false));
-  }, [token]);
+  }, [token, setValue]);
 
   const onValidSubmit = async (formData: TAdminSetupForm) => {
-    if (!assignedEmail) return;
+    if (!assignedEmail || !token) return;
 
     setLoading(true);
     try {
-      // 1. Account generation cycle
-      const { data: signUpData, error: signUpError } =
-        await authClient.signUp.email({
-          email: assignedEmail,
-          password: formData.password,
-          name: `${formData.firstName} ${formData.lastName}`,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          profileCompleted: true,
-          countryOfOperation: formData.country || undefined,
-        } as any);
+      // Single server-side call: backend creates the better-auth user,
+      // assigns the role/org membership, sets emailVerified, and (if this
+      // is a field-agent invite) sets assignedBy. NO Set-Cookie is forwarded
+      // to the browser, so the user is NOT auto-logged-in. They are sent
+      // to /login to sign in normally — same contract as the public
+      // /register flow.
+      await axiosClient.post("/auth/register/invite", {
+        token,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        password: formData.password,
+        contactNumber: formData.contactNumber || undefined,
+        countryOfOperation: formData.country || undefined,
+      });
 
-      if (signUpError || !signUpData?.user) {
-        throw new Error(
-          signUpError?.message || "Failed to create account identity.",
-        );
-      }
-
-      const userId = signUpData.user.id;
-
-      // 2. Commit token verification to secure access paths
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v2/auth/register/invite`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, userId }),
-        },
-      );
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(
-          errData.message || "Failed to complete organizational setup.",
-        );
-      }
-
-      toast.success("Account setup complete. Access granted.");
-      router.push("/dashboard");
+      toast.success("Account setup complete. Please sign in to continue.");
+      router.push("/login");
     } catch (error: any) {
       console.error("[AdminSetupTerminal] Error:", error);
-      toast.error(
-        error.message ||
-          "An unexpected error occurred during account creation.",
-      );
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "An unexpected error occurred during account creation.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -280,13 +289,18 @@ function AdminSetupTerminal() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Contact Number Input */}
+            {/* Contact Number Input — pre-filled from the invite when present */}
             <div className="space-y-2">
               <label
                 htmlFor="contactNumber"
                 className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block"
               >
                 Contact Number
+                {prefilledPhone && (
+                  <span className="ml-2 normal-case tracking-normal text-slate-300">
+                    (pre-filled from invite)
+                  </span>
+                )}
               </label>
               <div className="relative border-b border-slate-200 focus-within:border-slate-900 transition-colors">
                 <Phone className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-900" />

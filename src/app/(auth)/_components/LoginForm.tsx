@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Mail } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -15,7 +14,6 @@ import { signInSchema, type TSignInInput } from "@/types/user.types";
 const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
   const [loginType, setLoginType] = useState<"email" | "phone">("email");
   const [loading, setLoading] = useState<boolean>(false);
-  const router = useRouter();
 
   const form = useForm<zod.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -50,6 +48,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
           // if isVerified isn't already present here.
           let verifiedStatus = ctx.data?.user?.emailVerified;
           let email = ctx.data?.user?.email;
+          let role = (ctx.data?.user as any)?.role;
 
           console.log(
             "signIn response",
@@ -58,30 +57,43 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
             verifiedStatus,
           );
 
-          if (verifiedStatus === undefined) {
+          if (verifiedStatus === undefined || role === undefined) {
             const { data: freshSession } = await authClient.getSession();
             verifiedStatus = (freshSession?.user as any)?.emailVerified;
             email = freshSession?.user?.email ?? email;
+            role = (freshSession?.user as any)?.role ?? role;
           }
 
-          // NOTE: no router.refresh() here. Calling refresh() immediately
-          // before push() races the two transitions — refresh() re-renders
-          // the CURRENT route (still /login) and can cancel the pending
-          // push, which is why the redirect was silently failing. Since
-          // we're navigating to a brand new route entirely, push() alone
-          // already fetches fresh server data for the destination.
+          // NOTE: this uses a hard navigation (window.location.href) rather
+          // than router.push(). Safari has a well-known quirk where a
+          // Set-Cookie received by one fetch() isn't guaranteed to be visible
+          // to an immediately-following fetch() in the same task (here, the
+          // getSession() call right above, and/or the RSC fetch a client-side
+          // router.push() makes to the destination route) — Chrome commits
+          // cookies to the jar synchronously enough that this race never
+          // shows up there, which is exactly why this looked fine in Chrome
+          // and silently went nowhere in Safari. A hard navigation forces a
+          // brand-new top-level document request, which always sees the
+          // latest cookie jar, so the destination's server-side session check
+          // (getServerSession in (dashboard)/layout.tsx etc.) reliably sees
+          // the just-created session regardless of browser.
+          //
+          // Field agents go straight to their dedicated /agent app rather
+          // than /get-started (an admin-dashboard-route-group page) — the
+          // (dashboard) layout would bounce them to /agent anyway, but
+          // routing there directly avoids the extra hop/flash.
           if (verifiedStatus === false) {
-            router.push(
-              `/verify-email?email=${encodeURIComponent(email || "")}`,
-            );
+            window.location.href = `/verify-email?email=${encodeURIComponent(email || "")}`;
+          } else if (role === "field_agent") {
+            window.location.href = "/agent";
           } else {
-            router.push("/get-started");
+            window.location.href = "/get-started";
           }
 
-          // finally, reset the form so that if the user logs out and returns to
-          // the login page, the form is pristine and ready for a new attempt.
-          form.reset();
-          setLoading(false);
+          // No form.reset()/setLoading(false) after this — a hard navigation
+          // is about to tear down this component entirely, so updating its
+          // state here would either no-op or (worse) log a harmless-but-noisy
+          // "setState on unmounted component" warning in some browsers.
         },
         onError: (ctx: any) => {
           toast.error("Protocol Error", {

@@ -62,6 +62,15 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     }
   }
 
+  // F3 — Field agents have their own dedicated (agent) app. Mirror the
+  // redirect that (agent)/layout.tsx does in reverse: any field_agent who
+  // lands on a /dashboard/* URL (via bookmark, typed URL, or stale link)
+  // is sent straight to /agent instead of seeing the admin dashboard,
+  // which is meaningless (and broken) for their role.
+  if (user.role === "field_agent") {
+    redirect("/agent");
+  }
+
   return (
     <DashboardLayoutClient user={user}>
       <div className="flex-1">{children}</div>

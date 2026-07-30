@@ -23,6 +23,14 @@ interface InviteFieldAgentModalProps {
   onInvited?: () => void;
 }
 
+/** Normalize the email on the client before sending. Mirrors the
+ *  server-side `normalizeEmail` in FieldAgentService — so a paste of
+ *  `  John@Example.COM ` and `john@example.com` are treated identically
+ *  by the duplicate-prevention checks. Trim happens here (good UX, the
+ *  input loses any accidental whitespace); lowercasing happens here too
+ *  (also fixes iOS auto-capitalize behavior on email fields). */
+const normalizeEmailClient = (raw: string) => raw.trim().toLowerCase();
+
 export function InviteFieldAgentModal({
   isOpen,
   onClose,
@@ -47,22 +55,28 @@ export function InviteFieldAgentModal({
     try {
       const result = await FieldAgentService.inviteFieldAgent({
         fullName: data.fullName,
-        email: data.email,
+        email: normalizeEmailClient(data.email),
         phone: data.phone || undefined,
       });
 
       toast.success(
         result?.data?.reinvited
           ? "Invitation resent successfully"
-          : `Invite sent to ${data.email}`,
+          : `Invite sent to ${normalizeEmailClient(data.email)}`,
       );
       reset();
       onInvited?.();
       onClose();
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Failed to invite field agent",
-      );
+      // Surface the backend's specific message verbatim — these are
+      // hand-written to be helpful (e.g. "already a registered field
+      // agent", "Please wait 47s before resending") rather than the
+      // generic axios fallback.
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to invite field agent";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -78,7 +92,7 @@ export function InviteFieldAgentModal({
               Field Operations
             </span>
           </div>
-          <DialogTitle className="text-3xl font-serif text-slate-900 tracking-tight leading-none mb-2">
+          <DialogTitle className="text-3xl font-sans text-slate-900 tracking-tight leading-none mb-2">
             Invite Field Agent
           </DialogTitle>
           <DialogDescription className="text-slate-500 font-light text-sm">
