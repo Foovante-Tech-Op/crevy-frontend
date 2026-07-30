@@ -30,7 +30,7 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top bar — visible at all widths, doubles as nav on desktop */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-350 mx-auto px-4 h-16 flex items-center justify-between">
           <Link
             href="/agent"
             className="font-sans font-bold text-lg text-slate-900"
@@ -63,7 +63,7 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6 pb-24 md:pb-6">
+      <main className="flex-1 max-w-350 w-full mx-auto px-4 py-6 pb-24 md:pb-6">
         {children}
       </main>
 
