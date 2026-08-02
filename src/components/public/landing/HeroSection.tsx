@@ -85,6 +85,7 @@ export function HeroSection({
     if (videoRef.current) {
       videoRef.current.src = activeContent.src;
       videoRef.current.load();
+      videoRef.current.setAttribute("fetchpriority", "high");
       if (!shouldReduceMotion) {
         videoRef.current.play().catch(console.warn);
       }
@@ -103,8 +104,6 @@ export function HeroSection({
           muted
           autoPlay={!shouldReduceMotion}
           preload="auto"
-          // biome-ignore lint: fetchPriority is a valid DOM attribute, not yet in the JSX typing set we use
-          fetchPriority="high"
           // Purely decorative ambience — the same content is conveyed through the
           // headline/description text next to it, so we hide it from assistive
           // technology rather than pretend it needs captions.

@@ -122,27 +122,97 @@ export default function RegisterDeveloperPage() {
   const update = (patch: Partial<TDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
 
-  const handleCaptureLocation = () => {
-    if (!navigator.geolocation) {
+  const queryGeolocationPermission = async () => {
+    if (typeof navigator === "undefined" || !navigator.permissions) return null;
+    try {
+      const status = await navigator.permissions.query({ name: "geolocation" });
+      return status.state;
+    } catch {
+      return null;
+    }
+  };
+
+  const getCurrentPosition = (options: PositionOptions) =>
+    new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+
+  const handleCaptureLocation = async () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
       toast.error("Location services aren't available on this device");
       return;
     }
+
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        update({
-          lat: pos.coords.latitude.toString(),
-          lng: pos.coords.longitude.toString(),
-        });
-        setLocating(false);
-        toast.success("Location captured");
-      },
-      () => {
-        setLocating(false);
-        toast.error("Couldn't get location — check location permissions");
-      },
-      { enableHighAccuracy: true, timeout: 15000 },
-    );
+
+    const permissionState = await queryGeolocationPermission();
+    if (permissionState === "denied") {
+      setLocating(false);
+      toast.error(
+        "Location access is blocked. Please enable location permissions in your browser or device settings.",
+      );
+      return;
+    }
+
+    const primaryOptions: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 60000,
+    };
+
+    const fallbackOptions: PositionOptions = {
+      enableHighAccuracy: false,
+      timeout: 30000,
+      maximumAge: 120000,
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      if (error.code === error.PERMISSION_DENIED) {
+        toast.error(
+          "Location permission denied. Allow location access and try again.",
+        );
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        toast.error(
+          "Location unavailable. Try again outdoors or ensure your device's GPS/location services are enabled.",
+        );
+      } else if (error.code === error.TIMEOUT) {
+        toast.error(
+          "Location lookup timed out. Try again in a moment with a stronger signal.",
+        );
+      } else {
+        toast.error("Couldn't get location — please try again.");
+      }
+    };
+
+    try {
+      const pos = await getCurrentPosition(primaryOptions);
+      update({
+        lat: pos.coords.latitude.toString(),
+        lng: pos.coords.longitude.toString(),
+      });
+      toast.success("Location captured");
+    } catch (err) {
+      const geoError = err as GeolocationPositionError;
+      if (
+        geoError?.code === geoError.TIMEOUT ||
+        geoError?.code === geoError.POSITION_UNAVAILABLE
+      ) {
+        try {
+          const pos = await getCurrentPosition(fallbackOptions);
+          update({
+            lat: pos.coords.latitude.toString(),
+            lng: pos.coords.longitude.toString(),
+          });
+          toast.success("Location captured using fallback GPS accuracy");
+        } catch {
+          handleError(geoError);
+        }
+      } else {
+        handleError(geoError);
+      }
+    } finally {
+      setLocating(false);
+    }
   };
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
