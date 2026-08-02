@@ -1,9 +1,11 @@
 "use client";
 
+import { Locate, MapPinned, Navigation, NotebookPen } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,11 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { GHANA_REGIONS, matchGhanaRegion } from "@/constants/ghana-regions";
+import { axiosClient } from "@/lib/axiosClient";
 import {
   AgentDeveloperService,
   type TRegisterDeveloperInput,
 } from "@/lib/services/field-agent-service";
 import { StorageService } from "@/lib/services/storage-service";
+import { cn } from "@/lib/utils";
 
 // F3 — Register developer wizard.
 //
@@ -33,12 +38,27 @@ import { StorageService } from "@/lib/services/storage-service";
 //
 // No boundary drawing here — per the earlier mapping/tools decision, plot
 // boundaries are captured later (precise GPS walk or drawn boundary) once
-// connectivity/equipment allows. This step only grabs a centroid via the
-// phone's GPS, which the backend stores with boundaryCollectionMethod:
-// 'buffered_centroid' (low-confidence, by design).
+// connectivity/equipment allows. This step only grabs a centroid, which
+// the backend stores with boundaryCollectionMethod: 'buffered_centroid'
+// (low-confidence, by design) — true regardless of *how* the centroid
+// itself was obtained (live GPS vs. an agent marking a remembered spot on
+// the map vs. typed-in coordinates), since none of those are a walked
+// boundary either.
+//
+// Two location-capture contexts, one flow: an agent might be standing in
+// the field right now, or filling this in later from handwritten notes
+// taken on-site (patchy connectivity, dead phone, paper-first habit —
+// whatever the reason). Those need genuinely different UI: live device
+// GPS is only meaningful when the agent is actually there, so it's simply
+// not offered in the "from notes" path (offering it there would silently
+// capture wherever the agent happens to be sitting later, e.g. their own
+// home, and label it as the farm's location).
 
 const DRAFT_KEY = "crevy_agent_register_draft";
 const TOTAL_STEPS = 4;
+
+type TCaptureMode = "on_site" | "from_notes";
+type TNotesLocationMode = "coords" | "map";
 
 type TDraft = {
   developerName: string;
@@ -46,6 +66,8 @@ type TDraft = {
   email: string;
   entityType: "individual" | "cooperative" | "company";
   farmOrProjectType: string;
+  captureMode: TCaptureMode;
+  notesLocationMode: TNotesLocationMode;
   region: string;
   village: string;
   lat: string;
@@ -60,6 +82,8 @@ const EMPTY_DRAFT: TDraft = {
   email: "",
   entityType: "individual",
   farmOrProjectType: "",
+  captureMode: "on_site",
+  notesLocationMode: "coords",
   region: "",
   village: "",
   lat: "",
@@ -121,6 +145,24 @@ export default function RegisterDeveloperPage() {
 
   const update = (patch: Partial<TDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
+
+  // Best-effort: fills in Region from the coordinates if the agent hasn't
+  // already typed one in themselves. Never overwrites a region they've
+  // already set — this is a convenience prefill, not a correction.
+  const tryAutoFillRegion = async (lat: number, lng: number) => {
+    try {
+      const response = await axiosClient.get("/geo/reverse", {
+        params: { lat, lng },
+      });
+      const resolvedRegion: string | undefined = response.data?.data?.region;
+      const matched = matchGhanaRegion(resolvedRegion);
+      if (matched) {
+        setDraft((d) => (d.region ? d : { ...d, region: matched }));
+      }
+    } catch {
+      // Non-fatal — region stays whatever the agent picks manually.
+    }
+  };
 
   const queryGeolocationPermission = async () => {
     if (typeof navigator === "undefined" || !navigator.permissions) return null;
@@ -184,12 +226,17 @@ export default function RegisterDeveloperPage() {
       }
     };
 
-    try {
-      const pos = await getCurrentPosition(primaryOptions);
+    const applyPosition = (pos: GeolocationPosition) => {
       update({
         lat: pos.coords.latitude.toString(),
         lng: pos.coords.longitude.toString(),
       });
+      tryAutoFillRegion(pos.coords.latitude, pos.coords.longitude);
+    };
+
+    try {
+      const pos = await getCurrentPosition(primaryOptions);
+      applyPosition(pos);
       toast.success("Location captured");
     } catch (err) {
       const geoError = err as GeolocationPositionError;
@@ -199,10 +246,7 @@ export default function RegisterDeveloperPage() {
       ) {
         try {
           const pos = await getCurrentPosition(fallbackOptions);
-          update({
-            lat: pos.coords.latitude.toString(),
-            lng: pos.coords.longitude.toString(),
-          });
+          applyPosition(pos);
           toast.success("Location captured using fallback GPS accuracy");
         } catch {
           handleError(geoError);
@@ -376,32 +420,173 @@ export default function RegisterDeveloperPage() {
 
       {step === 2 && (
         <Card className="rounded-none">
-          <CardContent className="py-6 space-y-5">
+          <CardContent className="py-6 space-y-6">
             <h2 className="text-lg font-semibold text-slate-900">
               Where is the farm/project site?
             </h2>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCaptureLocation}
-              disabled={locating}
-              className="w-full h-12 rounded-none"
-            >
-              {locating
-                ? "Getting your location…"
-                : draft.lat
-                  ? "Location captured ✓ — recapture"
-                  : "Capture GPS location"}
-            </Button>
+
+            {/* Capture context toggle */}
             <div className="space-y-2">
-              <Label htmlFor="region">Region</Label>
-              <Input
-                id="region"
-                placeholder="e.g. Eastern Region"
+              <Label>How are you entering this?</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => update({ captureMode: "on_site" })}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 border p-3 text-center transition-colors",
+                    draft.captureMode === "on_site"
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 bg-white text-slate-700",
+                  )}
+                >
+                  <Navigation className="h-4 w-4" />
+                  <span className="text-xs font-medium leading-tight">
+                    I'm at the site now
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => update({ captureMode: "from_notes" })}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 border p-3 text-center transition-colors",
+                    draft.captureMode === "from_notes"
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 bg-white text-slate-700",
+                  )}
+                >
+                  <NotebookPen className="h-4 w-4" />
+                  <span className="text-xs font-medium leading-tight">
+                    Entering from notes
+                  </span>
+                </button>
+              </div>
+              <p className="text-xs text-slate-400">
+                {draft.captureMode === "on_site"
+                  ? "We'll use this device's GPS to capture the exact spot you're standing on."
+                  : "For filling this in later — e.g. from handwritten notes taken on a visit. We won't use this device's current location, since that's wherever you are right now, not the site."}
+              </p>
+            </div>
+
+            {draft.captureMode === "on_site" ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCaptureLocation}
+                disabled={locating}
+                className="w-full h-12 rounded-none"
+              >
+                <Locate className="h-4 w-4 mr-2" />
+                {locating
+                  ? "Getting your location…"
+                  : draft.lat
+                    ? "Location captured ✓ — recapture"
+                    : "Capture GPS location"}
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                {/* Notes sub-mode: exact remembered coordinates vs. rough map pin */}
+                <div className="space-y-2">
+                  <Label>Do you have exact coordinates written down?</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => update({ notesLocationMode: "coords" })}
+                      className={cn(
+                        "border p-3 text-center text-xs font-medium transition-colors",
+                        draft.notesLocationMode === "coords"
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 bg-white text-slate-700",
+                      )}
+                    >
+                      Yes, type them in
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => update({ notesLocationMode: "map" })}
+                      className={cn(
+                        "border p-3 text-center text-xs font-medium transition-colors",
+                        draft.notesLocationMode === "map"
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 bg-white text-slate-700",
+                      )}
+                    >
+                      No, mark it on a map
+                    </button>
+                  </div>
+                </div>
+
+                {draft.notesLocationMode === "coords" ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="lat">Latitude</Label>
+                      <Input
+                        id="lat"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="6.1234"
+                        value={draft.lat}
+                        onChange={(e) => update({ lat: e.target.value })}
+                        className="h-12 text-base"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lng">Longitude</Label>
+                      <Input
+                        id="lng"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="-0.6543"
+                        value={draft.lng}
+                        onChange={(e) => update({ lng: e.target.value })}
+                        className="h-12 text-base"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <MapPinned className="h-3.5 w-3.5 text-slate-400" />
+                      Drag the map so the crosshair sits on the site
+                    </Label>
+                    <SpatialCoordinatePicker
+                      mode="write"
+                      latitude={draft.lat}
+                      longitude={draft.lng}
+                      className="w-full h-64"
+                      onChange={({ lat, lng, region }) => {
+                        setDraft((d) => {
+                          const matched = matchGhanaRegion(region);
+                          return {
+                            ...d,
+                            lat,
+                            lng,
+                            region: d.region ? d.region : matched || d.region,
+                          };
+                        });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Region</Label>
+              <Select
                 value={draft.region}
-                onChange={(e) => update({ region: e.target.value })}
-                className="h-12 text-base"
-              />
+                onValueChange={(v) => update({ region: v })}
+              >
+                <SelectTrigger className="h-12 text-base">
+                  <SelectValue placeholder="Select a region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GHANA_REGIONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="village">Village / town (optional)</Label>
@@ -458,6 +643,13 @@ export default function RegisterDeveloperPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="farmType">Farm / project type (optional)</Label>
+              <p className="text-xs text-slate-400">
+                What is the site actually used for? A quick note is enough —
+                e.g. "cocoa farming", "oil palm and plantain", "poultry waste
+                composting facility", "small solar installation". This is just a
+                field note for context; the formal project category gets chosen
+                later during full project registration.
+              </p>
               <Input
                 id="farmType"
                 placeholder="e.g. Cocoa agroforestry"
@@ -484,7 +676,18 @@ export default function RegisterDeveloperPage() {
                 ["Registering as", draft.entityType],
                 ["Region", draft.region || "—"],
                 ["Village", draft.village || "—"],
-                ["Location", draft.lat ? "Captured ✓" : "Not captured"],
+                [
+                  "Location",
+                  draft.lat
+                    ? `Captured ✓ (${
+                        draft.captureMode === "on_site"
+                          ? "on-site GPS"
+                          : draft.notesLocationMode === "coords"
+                            ? "typed coordinates"
+                            : "marked on map"
+                      })`
+                    : "Not captured",
+                ],
                 [
                   "Photo",
                   draft.idPhotoObjectKey ? "Attached ✓" : "Not attached",

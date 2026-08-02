@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 import { type Column, DataTable } from "@/components/DataTable";
-import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
+import { LocationMap } from "@/components/SpatialCoordinatePicker";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -243,10 +243,14 @@ function SitesTab({ sites }: { sites: ProjectOwnerSite[] }) {
     <div className="space-y-6">
       <div className="border border-slate-200 bg-white">
         <div className="h-96">
-          <SpatialCoordinatePicker
+          {/* Read-only overview — shows roughly where this developer's sites
+              are, doesn't let anyone reposition anything (there's nothing
+              here to reposition: it's an average of potentially several
+              sites, not any one site's actual location). */}
+          <LocationMap
             latitude={mapCenter?.lat ?? ""}
             longitude={mapCenter?.lng ?? ""}
-            onChange={() => {}}
+            className="w-full h-full"
           />
         </div>
       </div>
@@ -461,6 +465,20 @@ export default function ProjectDeveloperDetailPage({
               <InfoRow
                 label="Onboarded At"
                 value={new Date(developer.onboardedAt).toLocaleDateString()}
+              />
+              <InfoRow
+                label="Site Activity Note"
+                value={developer.siteActivityNote}
+              />
+              <InfoRow
+                label="On-site Contact Phone"
+                value={developer.contactPhone}
+                mono
+              />
+              <InfoRow
+                label="On-site Contact Email"
+                value={developer.contactEmail}
+                mono
               />
               <InfoRow
                 label="Bank Details"

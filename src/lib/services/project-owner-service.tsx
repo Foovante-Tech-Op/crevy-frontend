@@ -30,6 +30,19 @@ export type ProjectOwnerRecord = {
   // name (e.g. "Cocoa Coop Ltd"), NOT any individual member's name.
   name: string;
   entityType: "individual" | "cooperative" | "company" | null;
+  // On-site captured contact info + field-agent note — only ever populated
+  // when a field agent registers this developer before any user account
+  // exists for them (see AgentDeveloperService.registerDeveloper on the
+  // backend). null for admin-onboarded/self-registered developers, whose
+  // contact info lives on the member's `user` row instead.
+  contactPhone: string | null;
+  contactEmail: string | null;
+  registeredByAgentId: string | null;
+  // Free-text field note on what the site is actually used for, captured
+  // by the registering agent on-site (e.g. "cocoa agroforestry", "poultry
+  // waste composting facility") — NOT the formal project-type taxonomy
+  // chosen later during full project registration.
+  siteActivityNote: string | null;
   // NOTE: email/contactNumber/userId are intentionally NOT part of the list
   // response — the list endpoint doesn't join project_developer_member/user
   // (that join only happens on the code-based detail fetch below, since a
