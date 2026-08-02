@@ -22,10 +22,10 @@ export function ScrollingMarquee() {
           animation: marquee 40s linear infinite;
         }
       `}</style>
-      <div className="marquee-container">
+      <div className="marquee-container" aria-hidden="true">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="flex items-center space-x-8 px-4">
-            <span className="text-slate-500 font-mono font-bold text-[10px] uppercase tracking-[0.2em] whitespace-nowrap">
+            <span className="text-slate-700 font-mono font-bold text-[10px] uppercase tracking-[0.2em] whitespace-nowrap">
               LIVE REGISTRY ✦ VERIFIED ASSETS ✦ NO DOUBLE COUNTING ✦ IMMUTABLE
               LEDGER ✦ INSTITUTIONAL GRADE ✦ CORE CARBON PRINCIPLES ✦
             </span>

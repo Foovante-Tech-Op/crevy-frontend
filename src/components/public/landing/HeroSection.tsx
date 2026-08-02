@@ -102,6 +102,19 @@ export function HeroSection({
           playsInline
           muted
           autoPlay={!shouldReduceMotion}
+          preload="auto"
+          // biome-ignore lint: fetchPriority is a valid DOM attribute, not yet in the JSX typing set we use
+          fetchPriority="high"
+          // Purely decorative ambience — the same content is conveyed through the
+          // headline/description text next to it, so we hide it from assistive
+          // technology rather than pretend it needs captions.
+          aria-hidden="true"
+          tabIndex={-1}
+          // Rendering the first slide's src directly (instead of only assigning
+          // it in the effect below) means the LCP resource is present in the
+          // initial markup, which is what lets the browser discover and
+          // prioritize it immediately instead of waiting on JS to run.
+          src={CAROUSEL_DATA[0].src}
           onEnded={() =>
             setActiveIndex((prev) => (prev + 1) % CAROUSEL_DATA.length)
           }
@@ -147,7 +160,7 @@ export function HeroSection({
           >
             <Link
               href="/register"
-              className="w-full sm:w-auto bg-brand text-white px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-brand/90 transition-colors text-center"
+              className="w-full sm:w-auto bg-brand text-[#0A2540] px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-brand/90 transition-colors text-center"
             >
               Join Us
             </Link>
@@ -166,6 +179,8 @@ export function HeroSection({
               <button
                 type="button"
                 key={item.id}
+                aria-label={`View ${item.tag} slide`}
+                aria-current={activeIndex === index}
                 className="flex-1 h-1 bg-slate-800 relative cursor-pointer group"
                 onClick={() => setActiveIndex(index)}
               >
@@ -181,7 +196,7 @@ export function HeroSection({
               </button>
             ))}
           </div>
-          <p className="text-[10px] font-mono text-slate-500 shrink-0 w-12 text-right">
+          <p className="text-[10px] font-mono text-slate-300 shrink-0 w-12 text-right">
             0{activeIndex + 1} / 0{CAROUSEL_DATA.length}
           </p>
         </div>
@@ -217,9 +232,9 @@ export function TrustLayerSection({
 
           {/* Infographic Process Block */}
           <div className="lg:col-span-8 p-8 md:p-10">
-            <p className="text-[10px] uppercase tracking-[0.2em] mb-8">
+            <h2 className="text-[10px] uppercase tracking-[0.2em] mb-8">
               The Serial Number Promise
-            </p>
+            </h2>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               {[
@@ -245,7 +260,7 @@ export function TrustLayerSection({
                       size={24}
                       className="text-brand mb-4 group-hover:text-slate-900 transition-colors"
                     />
-                    <h4 className="font-bold text-sm mb-1">{step.label}</h4>
+                    <h3 className="font-bold text-sm mb-1">{step.label}</h3>
                     <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500">
                       {step.desc}
                     </span>
@@ -257,21 +272,21 @@ export function TrustLayerSection({
         </div>
 
         {/* ── Auditor Logos ── */}
-        <div className="pt-4 mt-6 border-t border-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 shrink-0">
+        <div className="pt-4 mt-6 border-t border-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 grayscale hover:grayscale-0 transition-all duration-500">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-700 shrink-0">
             Frameworks & Compliance:
           </p>
-          <div className="flex flex-wrap gap-6 md:gap-12 text-xs md:text-xl font-bold text-slate-400">
-            <span className="hover:text-white transition-colors cursor-default">
+          <div className="flex flex-wrap gap-6 md:gap-12 text-xs md:text-xl font-bold text-slate-600">
+            <span className="hover:text-slate-900 transition-colors cursor-default">
               [ ICVCM Aligned ]
             </span>
-            {/* <span className="hover:text-white transition-colors cursor-default">
+            {/* <span className="hover:text-slate-900 transition-colors cursor-default">
               [ CORSIA Ready ]
             </span> */}
-            <span className="hover:text-white transition-colors cursor-default">
+            <span className="hover:text-slate-900 transition-colors cursor-default">
               [ Gold Standard ]
             </span>
-            <span className="hover:text-white transition-colors cursor-default">
+            <span className="hover:text-slate-900 transition-colors cursor-default">
               [ Verra ]
             </span>
           </div>

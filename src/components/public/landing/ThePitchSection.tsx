@@ -133,7 +133,7 @@ function PitchBlock({ tag, headline, painPoint, bullets, cta, align }: any) {
                 <Check size={14} strokeWidth={3} />
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-1">{b.title}</h4>
+                <h3 className="font-bold text-slate-900 mb-1">{b.title}</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
                   {b.desc}
                 </p>

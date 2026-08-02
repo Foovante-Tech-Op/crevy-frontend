@@ -67,13 +67,13 @@ export function PublicFooter() {
           <div className="max-w-3xl">
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#0A2540] tracking-tight leading-[1.1] mb-6">
               Engineering the{" "}
-              <span className="italic text-brand">financial layer</span> of
+              <span className="italic text-[#B8560F]">financial layer</span> of
               Africa's climate future.
             </h2>
           </div>
           <Link
             href="/support"
-            className="group flex items-center gap-4 bg-brand hover:bg-[#FF751F] text-[#F8F8F9] px-8 py-4 font-semibold text-[11px] uppercase tracking-[0.25em] transition-all shrink-0 rounded-none shadow-lg shadow-brand/20"
+            className="group flex items-center gap-4 bg-brand hover:bg-[#FF751F] text-[#0A2540] px-8 py-4 font-semibold text-[11px] uppercase tracking-[0.25em] transition-all shrink-0 rounded-none shadow-lg shadow-brand/20"
           >
             Initiate Contact{" "}
             <ArrowRight
@@ -119,9 +119,9 @@ export function PublicFooter() {
 
           {/* Platform Links */}
           <div className="lg:col-span-3">
-            <h4 className="text-[#0A2540] font-semibold text-[13px] sm:text-[14px] uppercase tracking-[0.25em] mb-8 border-b border-[#0A2540]/10 pb-3">
+            <h3 className="text-[#0A2540] font-semibold text-[13px] sm:text-[14px] uppercase tracking-[0.25em] mb-8 border-b border-[#0A2540]/10 pb-3">
               Platform Architecture
-            </h4>
+            </h3>
             <ul className="space-y-4">
               {FOOTER_LINKS.platform.map((link) => (
                 <li key={link.title}>
@@ -144,9 +144,9 @@ export function PublicFooter() {
 
           {/* Governance Links */}
           <div className="lg:col-span-3">
-            <h4 className="text-[#0A2540] font-semibold text-[13px] sm:text-[14px] uppercase tracking-[0.25em] mb-8 border-b border-[#0A2540]/10 pb-3">
+            <h3 className="text-[#0A2540] font-semibold text-[13px] sm:text-[14px] uppercase tracking-[0.25em] mb-8 border-b border-[#0A2540]/10 pb-3">
               Corporate Governance
-            </h4>
+            </h3>
             <ul className="space-y-4">
               {FOOTER_LINKS.governance.map((link) => (
                 <li key={link.title}>

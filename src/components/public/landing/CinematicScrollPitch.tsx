@@ -100,6 +100,7 @@ export function CinematicScrollPitch({
             ═══════════════════════════════════════════ */}
         <motion.div
           style={{ opacity: marqueeOpacity }}
+          aria-hidden="true"
           className="absolute inset-0 flex flex-col justify-center gap-8 md:gap-16 pointer-events-none z-0 overflow-hidden"
         >
           <style jsx>{`
@@ -157,6 +158,8 @@ export function CinematicScrollPitch({
             muted
             loop
             playsInline
+            aria-hidden="true"
+            tabIndex={-1}
           />
 
           {/* Darkening overlay */}
@@ -257,6 +260,8 @@ function StaticPitchFallback() {
         muted
         loop
         playsInline
+        aria-hidden="true"
+        tabIndex={-1}
       />
       <div className="absolute inset-0 bg-slate-950/70" />
 

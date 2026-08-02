@@ -38,7 +38,7 @@ export default function AgentHomePage() {
           </div>
           <div>
             <div className="font-semibold text-lg leading-tight">
-              Register a new developer
+              Registrations
             </div>
             <div className="text-sm text-slate-300">
               Start the on-site registration form
