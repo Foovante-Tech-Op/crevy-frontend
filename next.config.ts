@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "react-circle-flags.pages.dev",
+        pathname: "/**",
+      },
     ],
     unoptimized: true,
   },
@@ -32,6 +37,11 @@ const nextConfig: NextConfig = {
   // Cloudinary for hero/section videos, and same-origin for the API rewrite.
   async headers() {
     const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "";
+    // The bucket origin presigned upload URLs point at — StorageService.uploadFile
+    // PUTs files directly here from the browser (see storage-service.tsx), so it
+    // needs its own connect-src entry or the browser silently blocks the upload.
+    const storageUploadOrigin =
+      process.env.NEXT_PUBLIC_STORAGE_UPLOAD_ORIGIN || "";
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
@@ -39,10 +49,19 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://images.unsplash.com https://res.cloudinary.com https://images.pexels.com https://picsum.photos",
+      "img-src 'self' data: blob: https://images.unsplash.com https://res.cloudinary.com https://images.pexels.com https://picsum.photos https://react-circle-flags.pages.dev",
       "media-src 'self' https://res.cloudinary.com",
       "font-src 'self' data:",
-      `connect-src 'self' https://res.cloudinary.com ${apiOrigin}`.trim(),
+      // https://*.mapbox.com covers both api.mapbox.com (styles/sprites/
+      // glyphs/vector+raster tiles) and events.mapbox.com (usage telemetry
+      // mapbox-gl sends by default) — Mapbox GL JS fetches all of this via
+      // fetch()/XHR, which CSP gates under connect-src, not img-src, even
+      // for raster tile imagery.
+      // worker-src blob: is separate from script-src — mapbox-gl spins up
+      // Web Workers via blob: URLs for tile parsing, and 'self' alone
+      // doesn't cover that even with script-src's 'unsafe-eval'/'unsafe-inline'.
+      `connect-src 'self' https://res.cloudinary.com https://*.mapbox.com ${apiOrigin} ${storageUploadOrigin}`.trim(),
+      "worker-src 'self' blob:",
     ].join("; ");
 
     return [

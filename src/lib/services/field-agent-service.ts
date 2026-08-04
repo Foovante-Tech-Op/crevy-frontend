@@ -71,6 +71,14 @@ export interface TRegisterDeveloperInput {
   entityType?: "individual" | "cooperative" | "company";
   farmOrProjectType?: string;
   idPhotoUrl?: string;
+  // Lead-contact capability capture — only meaningful (and only sent) for
+  // entityType 'cooperative' | 'company', where the lead also becomes a
+  // project_developer_member (role 'owner'). hasEmailAccess gates whether
+  // an account gets created at all; agentManagesAccount is required
+  // consent, asked regardless.
+  hasEmailAccess?: boolean;
+  hasWebAccess?: boolean;
+  agentManagesAccount?: boolean;
   location?: {
     region: string;
     village?: string;
@@ -113,6 +121,7 @@ export const AgentDeveloperService = {
 };
 
 // ── Developer claim (for project developers to accept invites) ─────────────────
+// Long-token URL flow — entityType 'individual' only, no member row.
 
 export const DeveloperClaimService = {
   acceptInvite: async (data: {
@@ -122,6 +131,24 @@ export const DeveloperClaimService = {
     lastName: string;
   }) => {
     const response = await axiosClient.post("/developer/accept-invite", data);
+    return response.data;
+  },
+};
+
+// ── Member claim (redeeming a short claim code) ─────────────────────────────
+// For cooperative/company members (and their lead contact) — distinct from
+// DeveloperClaimService above: a short numeric code (SMS-friendly, 14-day
+// validity) instead of a long URL token, and updates a pre-created
+// project_developer_member row instead of creating a new one.
+
+export const MemberClaimService = {
+  claimAccount: async (data: {
+    code: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) => {
+    const response = await axiosClient.post("/developer/claim", data);
     return response.data;
   },
 };

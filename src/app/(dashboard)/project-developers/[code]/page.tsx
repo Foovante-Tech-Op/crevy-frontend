@@ -1,21 +1,24 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ExternalLink,
   Loader2,
   MapPin,
+  UserPlus,
   UserRound,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
+import { AddMemberModal } from "@/components/AddMemberModal";
 import { type Column, DataTable } from "@/components/DataTable";
 import { LocationMap } from "@/components/SpatialCoordinatePicker";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { axiosClient } from "@/lib/axiosClient";
 import {
   type ProjectOwnerMember,
   ProjectOwnerService,
@@ -276,7 +279,9 @@ export default function ProjectDeveloperDetailPage({
 }) {
   const { code } = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("details");
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["project-developer-detail", code],
@@ -285,6 +290,21 @@ export default function ProjectDeveloperDetailPage({
   });
 
   const developer = data?.data;
+
+  // Best-effort — the developer's primary captured location (if any),
+  // used to pre-fill/gray-out Region & Village in the Add Member modal so
+  // every member isn't asked to re-enter the same area.
+  const { data: plotsRes } = useQuery({
+    queryKey: ["project-developer-plots", developer?.id],
+    queryFn: async () => {
+      const res = await axiosClient.get("/farm-plots", {
+        params: { projectOwnerId: developer?.id, limit: 1 },
+      });
+      return res.data as { data: any[] };
+    },
+    enabled: !!developer?.id,
+  });
+  const primaryPlot = plotsRes?.data?.[0];
 
   if (isLoading) {
     return (
@@ -368,19 +388,51 @@ export default function ProjectDeveloperDetailPage({
       ),
     },
     {
+      header: "Account",
+      render: (member) => (
+        <div className="flex flex-col gap-1">
+          <span
+            className={cn(
+              "px-2 py-1 text-[9px] font-bold uppercase tracking-widest border inline-block w-fit",
+              member.hasEmailAccess
+                ? "bg-brand-50 border-brand-200 text-brand-800"
+                : "bg-slate-50 border-slate-200 text-slate-500",
+            )}
+          >
+            {member.hasEmailAccess ? "Has account" : "Roster only"}
+          </span>
+          <span
+            className={cn(
+              "px-2 py-1 text-[9px] font-bold uppercase tracking-widest border inline-block w-fit",
+              member.agentManagesAccount
+                ? "bg-amber-50 border-amber-200 text-amber-800"
+                : "bg-slate-50 border-slate-200 text-slate-400",
+            )}
+          >
+            {member.agentManagesAccount ? "Agent consented" : "No consent"}
+          </span>
+        </div>
+      ),
+    },
+    {
       header: "Profile",
       align: "right",
-      render: (member) => (
-        <Link href={`/user-management/${member.userId}`}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
-          >
-            View <ExternalLink className="h-4 w-4" />
-          </Button>
-        </Link>
-      ),
+      render: (member) =>
+        member.userId ? (
+          <Link href={`/user-management/${member.userId}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              View <ExternalLink className="h-4 w-4" />
+            </Button>
+          </Link>
+        ) : (
+          <span className="text-[10px] font-mono text-slate-300">
+            No account
+          </span>
+        ),
     },
   ];
 
@@ -426,6 +478,18 @@ export default function ProjectDeveloperDetailPage({
                 </div>
               </div>
             </div>
+
+            {/* Add Members button — only relevant for cooperatives and
+                companies. An 'individual' entity can only ever have one
+                member (the person themselves), so the button is hidden. */}
+            {!isIndividual && (
+              <Button
+                onClick={() => setAddMemberOpen(true)}
+                className="rounded-none bg-slate-900 hover:bg-brand text-white text-[10px] font-bold uppercase tracking-widest transition-colors h-12 px-6 shrink-0"
+              >
+                <UserPlus className="h-4 w-4 mr-2" /> Add Member
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -530,18 +594,20 @@ export default function ProjectDeveloperDetailPage({
                       label="Joined"
                       value={new Date(soleMember.joinedAt).toLocaleDateString()}
                     />
-                    <div className="pt-4">
-                      <Link href={`/user-management/${soleMember.userId}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-none text-xs"
-                        >
-                          View Full Profile{" "}
-                          <ExternalLink className="h-4 w-4 ml-1" />
-                        </Button>
-                      </Link>
-                    </div>
+                    {soleMember.userId && (
+                      <div className="pt-4">
+                        <Link href={`/user-management/${soleMember.userId}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-none text-xs"
+                          >
+                            View Full Profile{" "}
+                            <ExternalLink className="h-4 w-4 ml-1" />
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <p className="text-sm text-slate-400 py-4">
@@ -553,16 +619,26 @@ export default function ProjectDeveloperDetailPage({
               /* ── Cooperative / company: a data table of every member, each
                    row linking to that member's own profile. ── */
               <div className="border border-slate-200 bg-white p-6">
-                <h2 className="text-lg font-sans font-bold text-slate-950 mb-4">
-                  Members{" "}
-                  <span className="text-slate-400 font-normal">
-                    ({developer.members.length})
-                  </span>
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-sans font-bold text-slate-950">
+                    Members{" "}
+                    <span className="text-slate-400 font-normal">
+                      ({developer.members.length})
+                    </span>
+                  </h2>
+                  <Button
+                    onClick={() => setAddMemberOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-none border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-900 hover:border-slate-900 transition-colors"
+                  >
+                    <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Add Member
+                  </Button>
+                </div>
                 <DataTable
                   columns={memberColumns}
                   data={developer.members}
-                  emptyMessage="No members have been added to this entity yet."
+                  emptyMessage="No members have been added to this entity yet. Use the button above to register the first member."
                   currentPage={1}
                   totalPages={1}
                   onPageChange={() => {}}
@@ -577,6 +653,27 @@ export default function ProjectDeveloperDetailPage({
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* ── Add Member Modal ── */}
+      {!isIndividual && (
+        <AddMemberModal
+          isOpen={addMemberOpen}
+          onClose={() => setAddMemberOpen(false)}
+          projectDeveloperId={developer.id}
+          sharedLocation={
+            primaryPlot
+              ? { region: primaryPlot.region, village: primaryPlot.village }
+              : null
+          }
+          onSuccess={() => {
+            // Invalidate the detail query so the member table refreshes
+            // immediately after the modal closes.
+            queryClient.invalidateQueries({
+              queryKey: ["project-developer-detail", code],
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

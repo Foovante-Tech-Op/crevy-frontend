@@ -1,6 +1,14 @@
 "use client";
 
-import { Locate, MapPinned, Navigation, NotebookPen } from "lucide-react";
+import {
+  Locate,
+  Mail,
+  MapPinned,
+  Navigation,
+  NotebookPen,
+  ShieldCheck,
+  Wifi,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -8,6 +16,7 @@ import { toast } from "sonner";
 import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -66,6 +75,12 @@ type TDraft = {
   email: string;
   entityType: "individual" | "cooperative" | "company";
   farmOrProjectType: string;
+  // Lead-contact capability capture — only asked/used for entityType !==
+  // 'individual' (see Step 1). The lead becomes a project_developer_member
+  // (role 'owner') exactly like any member added later via AddMemberModal.
+  hasEmailAccess: boolean;
+  hasWebAccess: boolean;
+  agentManagesAccount: boolean;
   captureMode: TCaptureMode;
   notesLocationMode: TNotesLocationMode;
   region: string;
@@ -82,6 +97,9 @@ const EMPTY_DRAFT: TDraft = {
   email: "",
   entityType: "individual",
   farmOrProjectType: "",
+  hasEmailAccess: false,
+  hasWebAccess: false,
+  agentManagesAccount: false,
   captureMode: "on_site",
   notesLocationMode: "coords",
   region: "",
@@ -146,21 +164,26 @@ export default function RegisterDeveloperPage() {
   const update = (patch: Partial<TDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
 
-  // Best-effort: fills in Region from the coordinates if the agent hasn't
-  // already typed one in themselves. Never overwrites a region they've
-  // already set — this is a convenience prefill, not a correction.
-  const tryAutoFillRegion = async (lat: number, lng: number) => {
+  // Best-effort: fills in Region and Village from the coordinates if the
+  // agent hasn't already typed them in themselves. Never overwrites a
+  // value they've already set — this is a convenience prefill, not a
+  // correction.
+  const tryAutoFillLocation = async (lat: number, lng: number) => {
     try {
       const response = await axiosClient.get("/geo/reverse", {
         params: { lat, lng },
       });
       const resolvedRegion: string | undefined = response.data?.data?.region;
+      const resolvedLocality: string | undefined =
+        response.data?.data?.locality;
       const matched = matchGhanaRegion(resolvedRegion);
-      if (matched) {
-        setDraft((d) => (d.region ? d : { ...d, region: matched }));
-      }
+      setDraft((d) => ({
+        ...d,
+        region: d.region ? d.region : matched || d.region,
+        village: d.village ? d.village : resolvedLocality || d.village,
+      }));
     } catch {
-      // Non-fatal — region stays whatever the agent picks manually.
+      // Non-fatal — region/village stay whatever the agent picks manually.
     }
   };
 
@@ -231,7 +254,7 @@ export default function RegisterDeveloperPage() {
         lat: pos.coords.latitude.toString(),
         lng: pos.coords.longitude.toString(),
       });
-      tryAutoFillRegion(pos.coords.latitude, pos.coords.longitude);
+      tryAutoFillLocation(pos.coords.latitude, pos.coords.longitude);
     };
 
     try {
@@ -278,7 +301,11 @@ export default function RegisterDeveloperPage() {
   };
 
   const canProceedStep1 =
-    draft.developerName.trim().length >= 2 && draft.phone.trim().length >= 6;
+    draft.developerName.trim().length >= 2 &&
+    draft.phone.trim().length >= 6 &&
+    (draft.entityType === "individual" ||
+      !draft.hasEmailAccess ||
+      !!draft.email.trim());
 
   const handleCancel = () => {
     clearDraft();
@@ -297,6 +324,13 @@ export default function RegisterDeveloperPage() {
         idPhotoUrl: draft.idPhotoObjectKey
           ? (StorageService.resolveUrl(draft.idPhotoObjectKey) as string)
           : undefined,
+        ...(draft.entityType !== "individual"
+          ? {
+              hasEmailAccess: draft.hasEmailAccess,
+              hasWebAccess: draft.hasWebAccess,
+              agentManagesAccount: draft.agentManagesAccount,
+            }
+          : {}),
         location:
           draft.region && draft.lat && draft.lng
             ? {
@@ -379,22 +413,6 @@ export default function RegisterDeveloperPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">
-                Email (optional)
-                <span className="text-slate-400 font-normal normal-case">
-                  {" — we'll send them a link to manage their project online"}
-                </span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="farmer@example.com"
-                value={draft.email}
-                onChange={(e) => update({ email: e.target.value })}
-                className="h-12 text-base"
-              />
-            </div>
-            <div className="space-y-2">
               <Label>Registering as</Label>
               <Select
                 value={draft.entityType}
@@ -414,6 +432,122 @@ export default function RegisterDeveloperPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {draft.entityType === "individual" ? (
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  Email (optional)
+                  <span className="text-slate-400 font-normal normal-case">
+                    {" — we'll send them a link to manage their project online"}
+                  </span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="farmer@example.com"
+                  value={draft.email}
+                  onChange={(e) => update({ email: e.target.value })}
+                  className="h-12 text-base"
+                />
+              </div>
+            ) : (
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  About {draft.developerName.trim() || "this contact"}
+                  {"'s access"}
+                </p>
+                <div className="p-4 bg-slate-50 border border-slate-200">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="hasEmailAccess"
+                      checked={draft.hasEmailAccess}
+                      onCheckedChange={(checked) =>
+                        update({ hasEmailAccess: !!checked })
+                      }
+                      className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
+                    />
+                    <div>
+                      <label
+                        htmlFor="hasEmailAccess"
+                        className="text-sm font-medium text-slate-800 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Mail className="h-3.5 w-3.5" /> Has an active email
+                        account
+                      </label>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {draft.hasEmailAccess
+                          ? "They'll get an account and a 14-day setup code by email + SMS to choose their own password."
+                          : "No account will be created — just a roster entry, with a plain SMS confirming they've been registered."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {draft.hasEmailAccess && (
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="farmer@example.com"
+                      value={draft.email}
+                      onChange={(e) => update({ email: e.target.value })}
+                      className="h-12 text-base"
+                    />
+                  </div>
+                )}
+
+                <div className="p-4 bg-slate-50 border border-slate-200">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="hasWebAccess"
+                      checked={draft.hasWebAccess}
+                      onCheckedChange={(checked) =>
+                        update({ hasWebAccess: !!checked })
+                      }
+                      className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
+                    />
+                    <div>
+                      <label
+                        htmlFor="hasWebAccess"
+                        className="text-sm font-medium text-slate-800 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Wifi className="h-3.5 w-3.5" /> Can get online
+                        (smartphone / computer)
+                      </label>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Independent of email access — used to plan outreach.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-amber-50 border border-amber-200">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="agentManagesAccount"
+                      checked={draft.agentManagesAccount}
+                      onCheckedChange={(checked) =>
+                        update({ agentManagesAccount: !!checked })
+                      }
+                      className="mt-0.5 rounded-none border-amber-300 data-[state=checked]:bg-amber-900 data-[state=checked]:border-amber-900"
+                    />
+                    <div>
+                      <label
+                        htmlFor="agentManagesAccount"
+                        className="text-sm font-medium text-amber-900 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5" /> Consents to you
+                        managing their account on their behalf
+                      </label>
+                      <p className="text-xs text-amber-800/70 mt-1">
+                        Ask this explicitly — required for the record.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -553,7 +687,7 @@ export default function RegisterDeveloperPage() {
                       latitude={draft.lat}
                       longitude={draft.lng}
                       className="w-full h-64"
-                      onChange={({ lat, lng, region }) => {
+                      onChange={({ lat, lng, region, locality }) => {
                         setDraft((d) => {
                           const matched = matchGhanaRegion(region);
                           return {
@@ -561,6 +695,9 @@ export default function RegisterDeveloperPage() {
                             lat,
                             lng,
                             region: d.region ? d.region : matched || d.region,
+                            village: d.village
+                              ? d.village
+                              : locality || d.village,
                           };
                         });
                       }}
@@ -674,6 +811,23 @@ export default function RegisterDeveloperPage() {
                 ["Phone", draft.phone],
                 ["Email", draft.email || "—"],
                 ["Registering as", draft.entityType],
+                ...(draft.entityType !== "individual"
+                  ? ([
+                      [
+                        "Their account",
+                        draft.hasEmailAccess
+                          ? "Setup code by email + SMS"
+                          : "No account — roster entry + SMS acknowledgement",
+                      ],
+                      ["Can get online", draft.hasWebAccess ? "Yes" : "No"],
+                      [
+                        "Manages account on their behalf",
+                        draft.agentManagesAccount
+                          ? "Consented"
+                          : "Not consented",
+                      ],
+                    ] as const)
+                  : []),
                 ["Region", draft.region || "—"],
                 ["Village", draft.village || "—"],
                 [

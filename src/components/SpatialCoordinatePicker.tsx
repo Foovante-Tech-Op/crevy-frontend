@@ -9,15 +9,22 @@ import {
   Move,
   Navigation,
 } from "lucide-react";
-import maplibregl from "maplibre-gl";
+import mapboxgl from "mapbox-gl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { axiosClient } from "@/lib/axiosClient";
-import { FALLBACK_MAP_STYLE, MAP_STYLE } from "@/lib/map-style";
+import {
+  FALLBACK_MAP_STYLE,
+  MAP_STYLE,
+  MAPBOX_ACCESS_TOKEN,
+} from "@/lib/map-style";
 import { cn } from "@/lib/utils";
-import "maplibre-gl/dist/maplibre-gl.css";
+import "mapbox-gl/dist/mapbox-gl.css";
+
+mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
 type ReverseGeocodeInfo = {
   region?: string;
+  locality?: string;
   countryCode?: string;
   label?: string;
 };
@@ -46,9 +53,15 @@ function approxDistanceMeters(
   return Math.sqrt(x * x + y * y) * R;
 }
 
-// Below this, region/country is essentially guaranteed unchanged, so a new
+// Below this, region/locality is essentially guaranteed unchanged, so a new
 // lookup isn't worth the request — reuse the last resolved result instead.
 const MOVEMENT_GATE_METERS = 30;
+
+// Below this, an incoming lat/lng prop is treated as "the same position we
+// ourselves last emitted" rather than a genuinely new external position —
+// see the recenter effect for why this has to be a distance tolerance
+// rather than exact equality.
+const SELF_ECHO_TOLERANCE_METERS = 5;
 
 interface SpatialPickerProps {
   latitude: string;
@@ -71,6 +84,7 @@ interface SpatialPickerProps {
     lat: string;
     lng: string;
     region?: string;
+    locality?: string;
     countryCode?: string;
   }) => void;
   defaultCountryCenter?: [number, number];
@@ -97,8 +111,8 @@ export function SpatialCoordinatePicker({
   const isReadOnly = mode === "read";
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
   // Counts tile-load failures on the primary style so a single transient
   // blip doesn't trigger a fallback switch, but a real outage (CDN down)
   // does. Not React state — this only needs to gate a one-time setStyle()
@@ -132,10 +146,10 @@ export function SpatialCoordinatePicker({
   const geocodeCacheRef = useRef<Map<string, ReverseGeocodeInfo>>(new Map());
   // The position (and result) of the last lookup we actually performed —
   // network or cache hit, doesn't matter. Used by the movement gate below:
-  // region/country practically never changes over a few tens of meters, so
-  // there's no need to re-resolve on every single moveend while dragging
-  // continuously through brand-new territory (where the cache above can't
-  // help, since every cell is new).
+  // region/locality practically never changes over a few tens of meters,
+  // so there's no need to re-resolve on every single moveend while
+  // dragging continuously through brand-new territory (where the cache
+  // above can't help, since every cell is new).
   const lastResolvedRef = useRef<{
     lat: number;
     lng: number;
@@ -158,10 +172,10 @@ export function SpatialCoordinatePicker({
   // real identifying User-Agent (browsers silently strip custom ones) and
   // enforces Nominatim's ~1 req/sec fair-use budget across every user of
   // the app, not per-tab. This is a nice-to-have auto-fill, not a hard
-  // requirement — region/country stay manually editable regardless, so any
-  // failure here should degrade quietly rather than interrupt the person
-  // filling in the form. Deliberately does NOT use console.error: in
-  // Next's dev overlay, console.error pops a full-screen red error page
+  // requirement — region/locality stay manually editable regardless, so
+  // any failure here should degrade quietly rather than interrupt the
+  // person filling in the form. Deliberately does NOT use console.error:
+  // in Next's dev overlay, console.error pops a full-screen red error page
   // even for an error that's already safely caught and handled here —
   // console.warn still shows up in devtools for anyone debugging, without
   // the intrusive overlay. Only relevant in "write" mode.
@@ -182,6 +196,7 @@ export function SpatialCoordinatePicker({
         if (result) {
           const info: ReverseGeocodeInfo = {
             region: result.region,
+            locality: result.locality,
             countryCode: result.countryCode,
             label: result.label || "",
           };
@@ -208,20 +223,21 @@ export function SpatialCoordinatePicker({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = new maplibregl.Map({
+    const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE as any,
+      style: MAP_STYLE,
       center: [initialLng, initialLat],
       zoom: latitude && longitude ? 13 : 5,
+      maxZoom: 21,
       trackResize: true,
     });
 
     map.addControl(
-      new maplibregl.NavigationControl({ showCompass: false }),
+      new mapboxgl.NavigationControl({ showCompass: false }),
       "top-right",
     );
 
-    // MapLibre emits 'error' per failed tile/resource request rather than
+    // mapbox-gl emits 'error' per failed tile/resource request rather than
     // throwing — without a listener these are completely silent. Requires
     // 3 cumulative failures (not 1) before falling back, so a single
     // dropped request on a flaky connection doesn't unnecessarily abandon
@@ -240,7 +256,7 @@ export function SpatialCoordinatePicker({
         console.warn(
           "[SpatialCoordinatePicker] Primary map tiles failing repeatedly — switching to fallback tiles.",
         );
-        map.setStyle(FALLBACK_MAP_STYLE as any);
+        map.setStyle(FALLBACK_MAP_STYLE);
         setUsingFallbackTiles(true);
       }
     });
@@ -249,7 +265,7 @@ export function SpatialCoordinatePicker({
       // Static marker pinned at the given coordinates. The map can still
       // be panned/zoomed to look around, but the marker itself never moves
       // and nothing is reverse-geocoded — this view is for display only.
-      const marker = new maplibregl.Marker({ color: "#0f172a" }).setLngLat([
+      const marker = new mapboxgl.Marker({ color: "#0f172a" }).setLngLat([
         initialLng,
         initialLat,
       ]);
@@ -290,7 +306,7 @@ export function SpatialCoordinatePicker({
             geocodeCacheKey(latNum, lngNum),
           );
           // 2. Otherwise, moved only a short distance since the last lookup
-          //    (anywhere, not just this cell)? Region/country won't have
+          //    (anywhere, not just this cell)? Region/locality won't have
           //    changed — reuse that result rather than re-querying.
           const nearLast =
             !cached &&
@@ -312,6 +328,7 @@ export function SpatialCoordinatePicker({
               lat: latStr,
               lng: lngStr,
               region: reused.region || "",
+              locality: reused.locality || "",
               countryCode: reused.countryCode || "",
             });
             return;
@@ -333,6 +350,7 @@ export function SpatialCoordinatePicker({
             lat: latStr,
             lng: lngStr,
             region: geoInfo?.region || "",
+            locality: geoInfo?.locality || "",
             countryCode: geoInfo?.countryCode || "",
           });
         }, 700);
@@ -368,37 +386,43 @@ export function SpatialCoordinatePicker({
   // when the controlled lat/lng props change from OUTSIDE this component
   // (e.g. "Capture GPS location" jumping to a new point).
   //
-  // The lastEmittedRef check is the actual glitch fix: every drag ends by
-  // calling onChange with the map's own current position, which the parent
-  // then feeds straight back in as the latitude/longitude props. Without
-  // this check, that round-trip alone would re-enter this effect and
-  // flyTo() the map back to "itself" on every drag — and because
-  // performReverseGeocode is async, a late-resolving lookup could deliver
-  // an *older* position after the user had already dragged further,
-  // snapping the map backward and resetting the zoom to 14 mid-interaction
-  // (the "auto-zooms in and auto-pans around" glitch). Skipping recenter
-  // whenever the incoming coords match what we ourselves last emitted
-  // means flyTo() only ever fires for genuinely external position changes.
+  // This compares the incoming prop against what WE OURSELVES last emitted
+  // (lastEmittedRef), not against the map's live center — that distinction
+  // is the actual fix for "zooming in snaps back out". Every drag/zoom ends
+  // by calling onChange with the map's position at that moment, which the
+  // parent feeds straight back in as props. Fast continuous interactions
+  // (a scroll-wheel zoom fires many moveend events well faster than
+  // React's render/effect cycle, and Mapbox zooms toward the cursor, not
+  // the exact center, so each step shifts position slightly too) mean
+  // that by the time this effect actually runs for a given prop update,
+  // the user may have already zoomed further and the LIVE map center has
+  // moved on past the position that update was requested for. Comparing
+  // against that live center then makes a self-triggered echo look like
+  // an external change, and flyTo() yanks the map back to the stale
+  // position while resetting zoom to 14 — mid-gesture, repeatedly. Diffing
+  // against our own emission history instead of live map state sidesteps
+  // that race entirely: anything within a few meters of something we sent
+  // up ourselves is treated as an echo and skipped, however far the map
+  // has actually moved on since.
   useEffect(() => {
     if (isReadOnly || !mapRef.current) return;
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
     if (
       lastEmittedRef.current &&
-      lastEmittedRef.current.lat === latitude &&
-      lastEmittedRef.current.lng === longitude
+      approxDistanceMeters(
+        lat,
+        lng,
+        parseFloat(lastEmittedRef.current.lat),
+        parseFloat(lastEmittedRef.current.lng),
+      ) < SELF_ECHO_TOLERANCE_METERS
     ) {
       return;
     }
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
-      const center = mapRef.current.getCenter();
-      if (
-        center.lat.toFixed(6) !== lat.toFixed(6) ||
-        center.lng.toFixed(6) !== lng.toFixed(6)
-      ) {
-        mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
-      }
-    }
+
+    mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
   }, [latitude, longitude, isReadOnly]);
 
   // Read mode: move the marker (and recenter on it) when lat/lng change.
@@ -433,6 +457,14 @@ export function SpatialCoordinatePicker({
           : (className ?? "w-full h-64"),
       )}
     >
+      {!MAPBOX_ACCESS_TOKEN && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-100 text-center p-4">
+          <p className="text-xs text-slate-500 font-mono">
+            Map unavailable — NEXT_PUBLIC_MAPBOX_TOKEN isn't configured.
+          </p>
+        </div>
+      )}
+
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {usingFallbackTiles && (
@@ -446,9 +478,9 @@ export function SpatialCoordinatePicker({
       {!isReadOnly && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="relative flex items-center justify-center">
-            <div className="w-8 h-px bg-slate-950 absolute" />
-            <div className="h-8 w-px bg-slate-950 absolute" />
-            <div className="w-3 h-3 border border-slate-950 rounded-full bg-white/40 backdrop-blur-xs" />
+            <div className="w-8 h-px bg-white shadow-[0_0_2px_rgba(0,0,0,0.8)] absolute" />
+            <div className="h-8 w-px bg-white shadow-[0_0_2px_rgba(0,0,0,0.8)] absolute" />
+            <div className="w-3 h-3 border-2 border-white rounded-full bg-black/20 backdrop-blur-xs shadow-[0_0_2px_rgba(0,0,0,0.8)]" />
           </div>
         </div>
       )}

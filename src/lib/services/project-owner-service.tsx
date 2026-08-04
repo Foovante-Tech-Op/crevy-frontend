@@ -52,15 +52,24 @@ export type ProjectOwnerRecord = {
 
 export type ProjectOwnerMember = {
   id: string;
-  userId: string;
+  userId: string | null;
   role: "owner" | "admin" | "member";
   hasOnboarded: boolean;
   joinedAt: string;
+  // Populated from `user` when userId is set; from the member row's own
+  // firstName/lastName columns when it isn't (an account-less roster
+  // entry — see hasEmailAccess below).
   firstName: string | null;
   lastName: string | null;
   email: string | null;
   contactNumber: string | null;
   isActive: boolean;
+  // On-site capability capture — see project_developer_member model.
+  // hasEmailAccess is what gated whether userId got set at all.
+  hasEmailAccess: boolean;
+  hasWebAccess: boolean;
+  agentManagesAccount: boolean;
+  agentManagesAccountConsentedAt: string | null;
 };
 
 export type ProjectOwnerSite = {
@@ -134,6 +143,34 @@ export type ProjectOwnerOnboardPayload = {
   } | null;
 };
 
+// Payload for POST /project-developers/:id/members — adding ONE additional
+// member to an existing cooperative/company. Mirrors the `members[]` entry
+// shape from onboarding, plus the same optional per-member farmPlot shape
+// used in onboarding/complete-profile.
+//
+// No password field — agent-set passwords are a security risk (the agent
+// would know the account's credential). Instead: hasEmailAccess gates
+// whether an account gets created at all (email required exactly when
+// true); if it is, the person gets a 14-day claim code by email + SMS to
+// set their own real password. agentManagesAccount is required consent,
+// asked explicitly regardless of email/web access.
+export type AddProjectOwnerMemberPayload = {
+  firstName: string;
+  lastName: string;
+  contactNumber: string;
+  hasEmailAccess: boolean;
+  email?: string | null;
+  hasWebAccess: boolean;
+  agentManagesAccount: boolean;
+  role?: "admin" | "member";
+  farmPlot?: {
+    region: string;
+    village?: string | null;
+    centroid: { lat: number; lng: number };
+    areaHectares: number;
+  } | null;
+};
+
 export const ProjectOwnerService = {
   /**
    * List project owners.
@@ -186,6 +223,26 @@ export const ProjectOwnerService = {
     code: string,
   ): Promise<{ success: boolean; data: ProjectOwnerDetail }> => {
     const response = await axiosClient.get(`/project-developers/code/${code}`);
+    return response.data;
+  },
+
+  /**
+   * Add a member to an existing cooperative/company project developer
+   * (the "invite the rest later" path — onboarding can create the lead +
+   * some members up front, this covers adding more afterward). Rejected
+   * server-side for entityType 'individual'. If `farmPlot` is supplied,
+   * the member's own parcel is captured in the same request and attributed
+   * to them via farm_plot.memberId, while still rolling up under this same
+   * project developer.
+   */
+  addMember: async (
+    projectDeveloperId: string,
+    payload: AddProjectOwnerMemberPayload,
+  ): Promise<{ success: boolean; message: string; data: any }> => {
+    const response = await axiosClient.post(
+      `/project-developers/${projectDeveloperId}/members`,
+      payload,
+    );
     return response.data;
   },
 };

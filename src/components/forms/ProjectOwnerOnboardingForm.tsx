@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import CustomInput from "@/components/CustomInput";
+import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
@@ -87,6 +88,8 @@ export default function ProjectOwnerOnboardingForm() {
   const watchedFirstName = form.watch("firstName");
   const watchedLastName = form.watch("lastName");
   const watchedPaymentMethod = form.watch("paymentMethod");
+  const watchedLatitude = form.watch("latitude");
+  const watchedLongitude = form.watch("longitude");
 
   // Sync contact number to momo number if toggled
   useEffect(() => {
@@ -529,7 +532,11 @@ export default function ProjectOwnerOnboardingForm() {
                       </p>
                       <p className="text-xs text-slate-500 font-mono leading-relaxed">
                         Raw coordinates required for initial dMRV satellite
-                        targeting and baseline biomass calculations.
+                        targeting and baseline biomass calculations. Type them
+                        in directly if known, or position the map below — Region
+                        and Local Settlement auto-fill from wherever the
+                        crosshair lands (won't overwrite anything already typed
+                        above).
                       </p>
                     </div>
                   </div>
@@ -552,6 +559,29 @@ export default function ProjectOwnerOnboardingForm() {
                       disabled={loading}
                     />
                   </div>
+
+                  <SpatialCoordinatePicker
+                    mode="write"
+                    latitude={watchedLatitude || ""}
+                    longitude={watchedLongitude || ""}
+                    className="w-full h-72"
+                    onChange={({ lat, lng, region, locality }) => {
+                      form.setValue("latitude", lat, { shouldValidate: true });
+                      form.setValue("longitude", lng, {
+                        shouldValidate: true,
+                      });
+                      if (region && !form.getValues("region")) {
+                        form.setValue("region", region, {
+                          shouldValidate: true,
+                        });
+                      }
+                      if (locality && !form.getValues("village")) {
+                        form.setValue("village", locality, {
+                          shouldValidate: true,
+                        });
+                      }
+                    }}
+                  />
 
                   <CustomInput
                     name="areaHectares"

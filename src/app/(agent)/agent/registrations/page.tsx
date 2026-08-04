@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Search, UserRound } from "lucide-react";
+import { ChevronRight, Search, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -81,25 +82,30 @@ export default function MyRegistrationsPage() {
       ) : (
         <div className="space-y-2">
           {developers.map((dev) => (
-            <Card key={dev.id} className="rounded-none">
-              <CardContent className="py-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-medium text-slate-900 truncate">
-                    {dev.name}
+            <Link key={dev.id} href={`/agent/developers/${dev.code}`}>
+              <Card className="rounded-none hover:border-slate-400 transition-colors">
+                <CardContent className="py-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium text-slate-900 truncate">
+                      {dev.name}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {dev.code} · {dev.entityType} ·{" "}
+                      {format(new Date(dev.createdAt), "dd MMM yyyy")}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-400">
-                    {dev.code} · {dev.entityType} ·{" "}
-                    {format(new Date(dev.createdAt), "dd MMM yyyy")}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge
+                      variant="outline"
+                      className={STATUS_STYLES[dev.verificationStatus] || ""}
+                    >
+                      {dev.verificationStatus}
+                    </Badge>
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
                   </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={STATUS_STYLES[dev.verificationStatus] || ""}
-                >
-                  {dev.verificationStatus}
-                </Badge>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

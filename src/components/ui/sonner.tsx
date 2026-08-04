@@ -29,7 +29,19 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
+          // Square corners, matching the rest of the app's rounded-none
+          // convention (cards, buttons, inputs).
+          "--border-radius": "0px",
+          // Success: black bg, white text — deliberately monochrome/high-
+          // contrast rather than the default green, to match the app's
+          // black-and-white-first visual language.
+          "--success-bg": "#0f172a",
+          "--success-text": "#ffffff",
+          "--success-border": "#0f172a",
+          // Error: red bg, white text.
+          "--error-bg": "#dc2626",
+          "--error-text": "#ffffff",
+          "--error-border": "#dc2626",
         } as React.CSSProperties
       }
       {...props}

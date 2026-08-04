@@ -1,94 +1,39 @@
 // src/lib/map-style.ts
 
 /**
- * Single shared basemap style for every map in the app.
- *
- * Previously this pointed at MapTiler's hosted "Streets" style, gated behind
- * NEXT_PUBLIC_MAPTILER_KEY. That had two compounding problems in practice:
- *   1. Tile/style requests would start failing after the map had already
- *      initialized (quota exhaustion, a domain-restricted key, etc.) — the
- *      very first view often loads fine off browser/CDN cache, then goes
- *      blank as soon as you pan or zoom into anything uncached.
- *   2. Because the interactive picker's reverse-geocode lookup fires on the
- *      map's `moveend` event, a map that's stuck retrying failed tile
- *      requests can stop firing `moveend` cleanly, which made reverse
- *      geocoding look broken too — even though geocoding itself (Nominatim)
- *      was never the thing actually failing.
- *
- * We now render the basemap as a plain MapLibre raster style pointed at
- * CARTO's Voyager tiles instead: free, keyless, no quota/domain-restriction
- * failure mode, and visually vibrant (colored road hierarchy, green
- * vegetation, blue water) rather than one of CARTO's grayscale variants
- * (Positron/Dark Matter), which we deliberately avoid — the product wants a
- * map that reads as a clear visual break from the rest of the (mostly
- * monochrome) UI, not another muted panel.
- *
- * Every map in the product should import MAP_STYLE from here rather than
- * each component picking its own tiles/style, so the whole app shares one
- * visual language for maps. No environment variable is required anymore.
+ * Mapbox access token, read once at module load. Every map in the app
+ * shares this — see SpatialCoordinatePicker.tsx, the sole place that
+ * actually constructs a mapboxgl.Map.
  */
-export const MAP_STYLE = {
-  version: 8,
-  sources: {
-    "carto-voyager": {
-      type: "raster",
-      tiles: [
-        "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        "https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-      ],
-      tileSize: 256,
-      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-      maxzoom: 20,
-    },
-  },
-  layers: [
-    {
-      id: "carto-voyager-layer",
-      type: "raster",
-      source: "carto-voyager",
-      minzoom: 0,
-      maxzoom: 20,
-    },
-  ],
-} as const;
+export const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 /**
- * Kept for backward compatibility with existing imports — same value as
- * MAP_STYLE. Prefer MAP_STYLE in new code; this alias just avoids a
- * breaking rename for anything still importing MAP_STYLE_URL.
+ * Primary style: Mapbox's Satellite Streets — high-resolution satellite
+ * imagery with a vibrant road/place/label overlay on top. Chosen
+ * specifically because field agents need to zoom into actual land parcels
+ * (crop rows, tree cover, structures, field edges) well enough to position
+ * a site accurately and, eventually, trace a boundary around it — a plain
+ * vector "streets" style shows roads and place names but not the land
+ * itself, which is the whole point here. It's also simply the most vibrant,
+ * visually distinctive option available, which matters for a map meant to
+ * read as a clear break from the rest of the (mostly monochrome) UI.
+ *
+ * Previously this pointed at CARTO Voyager raster tiles via a hand-rolled
+ * MapLibre style spec (free, keyless, but plain street-map only — no
+ * imagery). Switched providers entirely to Mapbox for the imagery-detail
+ * requirement above; mapbox-gl's API is a near-drop-in replacement for
+ * maplibre-gl (MapLibre is itself a fork of pre-v2 Mapbox GL JS), so this
+ * only required changes in SpatialCoordinatePicker.tsx, not every call site.
  */
-export const MAP_STYLE_URL = MAP_STYLE;
+export const MAP_STYLE = "mapbox://styles/mapbox/satellite-streets-v12";
 
 /**
- * Independent secondary fallback — a different tile provider/CDN entirely
- * (OSM's own standard raster tiles), used only if CARTO's tiles themselves
- * start failing outright. Genuinely independent rather than retrying the
- * same failing source.
+ * Fallback if satellite-streets tiles start failing outright (e.g. a
+ * transient Mapbox imagery-tile outage) — Mapbox's standard vector
+ * "Streets" style. Deliberately still Mapbox/same token rather than a
+ * different provider entirely: satellite imagery is the heavier of the two
+ * to fetch, so a plain vector style is meaningfully more likely to succeed
+ * even under the same network conditions, while keeping one consistent
+ * provider/token to reason about.
  */
-export const FALLBACK_MAP_STYLE = {
-  version: 8,
-  sources: {
-    "osm-standard": {
-      type: "raster",
-      tiles: [
-        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      ],
-      tileSize: 256,
-      attribution: "&copy; OpenStreetMap contributors",
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: "osm-standard-layer",
-      type: "raster",
-      source: "osm-standard",
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-} as const;
+export const FALLBACK_MAP_STYLE = "mapbox://styles/mapbox/streets-v12";
