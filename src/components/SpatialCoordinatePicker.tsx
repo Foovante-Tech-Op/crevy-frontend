@@ -113,6 +113,7 @@ export function SpatialCoordinatePicker({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const onChangeRef = useRef(onChange);
   // Counts tile-load failures on the primary style so a single transient
   // blip doesn't trigger a fallback switch, but a real outage (CDN down)
   // does. Not React state — this only needs to gate a one-time setStyle()
@@ -156,6 +157,10 @@ export function SpatialCoordinatePicker({
     info: ReverseGeocodeInfo;
   } | null>(null);
   const isMountedRef = useRef(true);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -220,6 +225,10 @@ export function SpatialCoordinatePicker({
     [],
   );
 
+  // Deliberately only re-initializes on mode change (a fresh map instance
+  // per mode) — lat/lng updates while mounted are handled by the effects
+  // below instead of tearing down and rebuilding the map.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally mode-only, see comment above
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -228,7 +237,7 @@ export function SpatialCoordinatePicker({
       style: MAP_STYLE,
       center: [initialLng, initialLat],
       zoom: latitude && longitude ? 13 : 5,
-      maxZoom: 21,
+      maxZoom: 22,
       trackResize: true,
     });
 
@@ -297,7 +306,7 @@ export function SpatialCoordinatePicker({
 
           if (Number.isNaN(latNum) || Number.isNaN(lngNum)) {
             lastEmittedRef.current = { lat: latStr, lng: lngStr };
-            onChange?.({ lat: latStr, lng: lngStr });
+            onChangeRef.current?.({ lat: latStr, lng: lngStr });
             return;
           }
 
@@ -319,12 +328,12 @@ export function SpatialCoordinatePicker({
             ) < MOVEMENT_GATE_METERS;
 
           const reused =
-            cached ?? (nearLast ? lastResolvedRef.current!.info : null);
+            cached ?? (nearLast ? lastResolvedRef.current?.info : null);
 
           if (reused) {
             setResolvedLocation(reused.label || "");
             lastEmittedRef.current = { lat: latStr, lng: lngStr };
-            onChange?.({
+            onChangeRef.current?.({
               lat: latStr,
               lng: lngStr,
               region: reused.region || "",
@@ -346,7 +355,7 @@ export function SpatialCoordinatePicker({
           // actually is now.
           if (requestId !== geocodeRequestIdRef.current) return;
           lastEmittedRef.current = { lat: latStr, lng: lngStr };
-          onChange?.({
+          onChangeRef.current?.({
             lat: latStr,
             lng: lngStr,
             region: geoInfo?.region || "",
@@ -372,15 +381,7 @@ export function SpatialCoordinatePicker({
     // per mode) — lat/lng updates while mounted are handled by the effects
     // below instead of tearing down and rebuilding the map.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isReadOnly,
-    initialLng,
-    longitude,
-    onChange,
-    performReverseGeocode,
-    latitude,
-    initialLat,
-  ]);
+  }, [isReadOnly]);
 
   // Write mode: recenter the map (crosshair stays put, map moves under it)
   // when the controlled lat/lng props change from OUTSIDE this component
@@ -422,7 +423,10 @@ export function SpatialCoordinatePicker({
       return;
     }
 
-    mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
+    mapRef.current.flyTo({
+      center: [lng, lat],
+      zoom: Math.max(mapRef.current.getZoom(), 14),
+    });
   }, [latitude, longitude, isReadOnly]);
 
   // Read mode: move the marker (and recenter on it) when lat/lng change.
@@ -437,7 +441,10 @@ export function SpatialCoordinatePicker({
       markerRef.current.addTo(mapRef.current);
     }
     setCurrentCoords({ lat: latitude, lng: longitude });
-    mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
+    mapRef.current.flyTo({
+      center: [lng, lat],
+      zoom: Math.max(mapRef.current.getZoom(), 14),
+    });
   }, [latitude, longitude, isReadOnly]);
 
   useEffect(() => {
@@ -447,6 +454,19 @@ export function SpatialCoordinatePicker({
       }, 300);
     }
   }, []);
+
+  // isFullscreen isn't read in the body — it's the resize trigger itself,
+  // nudging mapbox after the fullscreen CSS transition changes container size.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional re-run trigger, not a stale-closure risk
+  useEffect(() => {
+    const firstResize = requestAnimationFrame(() => mapRef.current?.resize());
+    const secondResize = setTimeout(() => mapRef.current?.resize(), 350);
+
+    return () => {
+      cancelAnimationFrame(firstResize);
+      clearTimeout(secondResize);
+    };
+  }, [isFullscreen]);
 
   return (
     <div

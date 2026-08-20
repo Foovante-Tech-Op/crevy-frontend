@@ -2,9 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ChevronRight, Search, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AgentDeveloperService } from "@/lib/services/field-agent-service";
@@ -19,23 +19,66 @@ const STATUS_STYLES: Record<string, string> = {
   rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
+const PAGE_SIZE = 20;
+
+// Mirrors the cursor-stack pattern used by (dashboard)/project-developers —
+// the backend only supports forward cursors (nextCursor), so "back" means
+// popping our own history of visited cursors rather than asking the API.
+function useCursorPagination() {
+  const [cursorStack, setCursorStack] = useState<(string | undefined)[]>([
+    undefined,
+  ]);
+  const currentPage = cursorStack.length - 1;
+  const currentCursor = cursorStack[currentPage];
+
+  const goNext = useCallback(
+    (nextCursor: string) => setCursorStack((s) => [...s, nextCursor]),
+    [],
+  );
+  const goPrev = useCallback(
+    () => setCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s)),
+    [],
+  );
+  const resetToFirst = useCallback(() => setCursorStack([undefined]), []);
+
+  return {
+    currentPage,
+    currentCursor,
+    goNext,
+    goPrev,
+    resetToFirst,
+    canGoPrev: currentPage > 0,
+  };
+}
+
 export default function MyRegistrationsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<
     "all" | "pending" | "verified" | "rejected"
   >("all");
+  const {
+    currentPage,
+    currentCursor,
+    goNext,
+    goPrev,
+    resetToFirst,
+    canGoPrev,
+  } = useCursorPagination();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["agent-developers-mine", search, status],
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["agent-developers-mine", search, status, currentCursor],
     queryFn: () =>
       AgentDeveloperService.listMine({
         search: search || undefined,
         status: status === "all" ? undefined : status,
-        limit: 50,
+        cursor: currentCursor,
+        limit: PAGE_SIZE,
       }),
   });
 
   const developers = data?.data || [];
+  const nextCursor = data?.nextCursor ?? null;
+  const total = data?.total ?? 0;
 
   return (
     <div className="space-y-4">
@@ -46,7 +89,10 @@ export default function MyRegistrationsPage() {
         <input
           placeholder="Search by name or code..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            resetToFirst();
+          }}
           className="w-full rounded-none border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
         />
       </div>
@@ -56,7 +102,10 @@ export default function MyRegistrationsPage() {
           <button
             key={s}
             type="button"
-            onClick={() => setStatus(s)}
+            onClick={() => {
+              setStatus(s);
+              resetToFirst();
+            }}
             className={`px-3.5 py-1.5 rounded-none text-xs font-medium whitespace-nowrap transition-colors ${
               status === s
                 ? "bg-foreground text-white"
@@ -107,6 +156,33 @@ export default function MyRegistrationsPage() {
               </Card>
             </Link>
           ))}
+        </div>
+      )}
+
+      {developers.length > 0 && (
+        <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-200">
+          <p className="text-xs text-slate-400">
+            Page {currentPage + 1} · {developers.length}
+            {total ? ` of ${total}` : ""}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={goPrev}
+              disabled={!canGoPrev || isFetching}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 disabled:text-slate-300 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" /> Prev
+            </button>
+            <button
+              type="button"
+              onClick={() => nextCursor && goNext(nextCursor)}
+              disabled={!nextCursor || isFetching}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 disabled:text-slate-300 disabled:cursor-not-allowed"
+            >
+              Next <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       )}
     </div>

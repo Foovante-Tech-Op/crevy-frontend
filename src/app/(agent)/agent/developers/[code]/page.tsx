@@ -20,11 +20,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Building2,
+  ChevronRight,
   FolderPlus,
   Loader2,
   Mail,
   MapPinned,
   Phone,
+  Search,
   StickyNote,
   UserPlus,
   UserRound,
@@ -33,7 +35,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ComponentType } from "react";
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { AddMemberModal } from "@/components/AddMemberModal";
 import { LocationMap } from "@/components/SpatialCoordinatePicker";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +49,13 @@ const STATUS_STYLES: Record<string, string> = {
   verified: "bg-emerald-50 text-emerald-700 border-emerald-200",
   rejected: "bg-red-50 text-red-700 border-red-200",
 };
+
+const SITE_KIND_LABELS: Record<string, string> = {
+  farm_plot: "Farm plot",
+  project_site: "Project site",
+};
+
+const SITES_PAGE_SIZE = 8;
 
 function InfoLine({
   icon: Icon,
@@ -72,6 +81,11 @@ export default function AgentDeveloperDetailPage({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [siteSearch, setSiteSearch] = useState("");
+  const [siteKind, setSiteKind] = useState<
+    "all" | "farm_plot" | "project_site"
+  >("all");
+  const [sitePage, setSitePage] = useState(1);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["agent-developer-detail", code],
@@ -99,6 +113,30 @@ export default function AgentDeveloperDetailPage({
   const plotCentroid = plot?.centroid
     ? { lat: plot.centroid.y, lng: plot.centroid.x }
     : null;
+
+  const allSites = useMemo(() => developer?.sites ?? [], [developer?.sites]);
+
+  const filteredSites = useMemo(() => {
+    const term = siteSearch.trim().toLowerCase();
+    return allSites.filter((site) => {
+      if (siteKind !== "all" && site.kind !== siteKind) return false;
+      if (!term) return true;
+      return (
+        site.projectName?.toLowerCase().includes(term) ||
+        site.projectCode?.toLowerCase().includes(term)
+      );
+    });
+  }, [allSites, siteSearch, siteKind]);
+
+  const siteTotalPages = Math.max(
+    1,
+    Math.ceil(filteredSites.length / SITES_PAGE_SIZE),
+  );
+  const currentSitePage = Math.min(sitePage, siteTotalPages);
+  const pagedSites = filteredSites.slice(
+    (currentSitePage - 1) * SITES_PAGE_SIZE,
+    currentSitePage * SITES_PAGE_SIZE,
+  );
 
   if (isLoading) {
     return (
@@ -294,25 +332,114 @@ export default function AgentDeveloperDetailPage({
         </div>
       )}
 
-      {developer.sites && developer.sites.length > 0 && (
+      {allSites.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">
-            Registered projects
+            Registered projects ({filteredSites.length})
           </h2>
-          <div className="space-y-2">
-            {developer.sites.map((site: any) => (
-              <Card key={site.id} className="rounded-none">
-                <CardContent className="py-4">
-                  <div className="font-medium text-slate-900 text-sm">
-                    {site.projectName || "Unnamed project"}
-                  </div>
-                  <div className="text-xs text-slate-400 font-mono mt-0.5">
-                    {site.projectCode}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+          <div className="space-y-2 mb-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                placeholder="Search by name or code..."
+                value={siteSearch}
+                onChange={(e) => {
+                  setSiteSearch(e.target.value);
+                  setSitePage(1);
+                }}
+                className="w-full rounded-none border border-slate-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
+              />
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {(["all", "farm_plot", "project_site"] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => {
+                    setSiteKind(k);
+                    setSitePage(1);
+                  }}
+                  className={`px-3 py-1.5 rounded-none text-xs font-medium whitespace-nowrap transition-colors ${
+                    siteKind === k
+                      ? "bg-foreground text-white"
+                      : "bg-white text-slate-600 border border-slate-200"
+                  }`}
+                >
+                  {k === "all" ? "All" : SITE_KIND_LABELS[k]}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {filteredSites.length === 0 ? (
+            <Card className="rounded-none">
+              <CardContent className="py-6 flex flex-col items-center text-center gap-1.5">
+                <p className="text-xs text-slate-400">
+                  No projects match this filter.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {pagedSites.map((site) => (
+                  <Link
+                    key={site.id}
+                    href={`/agent/projects/${site.projectId}`}
+                  >
+                    <Card className="rounded-none hover:border-slate-400 transition-colors">
+                      <CardContent className="py-4 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-medium text-slate-900 text-sm truncate">
+                            {site.projectName || "Unnamed project"}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-xs text-slate-400 font-mono">
+                              {site.projectCode}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] bg-slate-50 text-slate-500 border-slate-200"
+                            >
+                              {SITE_KIND_LABELS[site.kind]}
+                            </Badge>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-slate-300 shrink-0" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+
+              {siteTotalPages > 1 && (
+                <div className="flex items-center justify-between mt-3">
+                  <button
+                    type="button"
+                    disabled={currentSitePage <= 1}
+                    onClick={() => setSitePage((p) => Math.max(1, p - 1))}
+                    className="text-xs font-medium text-slate-600 disabled:text-slate-300 disabled:cursor-not-allowed"
+                  >
+                    ← Previous
+                  </button>
+                  <span className="text-xs text-slate-400">
+                    Page {currentSitePage} of {siteTotalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={currentSitePage >= siteTotalPages}
+                    onClick={() =>
+                      setSitePage((p) => Math.min(siteTotalPages, p + 1))
+                    }
+                    className="text-xs font-medium text-slate-600 disabled:text-slate-300 disabled:cursor-not-allowed"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
