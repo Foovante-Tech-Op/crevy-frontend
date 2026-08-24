@@ -8,29 +8,17 @@ import { Input } from "@/components/ui/input";
 export default function ComplianceReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const reports = [
-    {
-      ref: "ESG-PROTOCOL-2026-Q1",
-      period: "January 2026 - March 2026",
-      amount: "1,240 tCO2e",
-      date: "April 02, 2026",
-      status: "Verified",
-    },
-    {
-      ref: "ESG-PROTOCOL-2025-FY",
-      period: "Fiscal Year 2025",
-      amount: "4,800 tCO2e",
-      date: "Jan 10, 2026",
-      status: "Verified",
-    },
-    {
-      ref: "ESG-PROTOCOL-2025-Q4",
-      period: "October 2025 - December 2025",
-      amount: "1,100 tCO2e",
-      date: "Oct 05, 2025",
-      status: "Verified",
-    },
-  ];
+  // Empty until wired to real data. These were three invented reports, each
+  // labelled "Verified" with a plausible reference and tonnage — the most
+  // dangerous kind of placeholder on a compliance screen, since a buyer could
+  // reasonably read them as genuine audit artifacts.
+  const reports: {
+    ref: string;
+    period: string;
+    amount: string;
+    date: string;
+    status: string;
+  }[] = [];
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-6 space-y-12 animate-in fade-in duration-700">
@@ -87,6 +75,17 @@ export default function ComplianceReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
+              {reports.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-10 py-16 text-center text-sm text-slate-400"
+                  >
+                    No compliance reports yet. They'll appear here once credits
+                    have been retired against your portfolio.
+                  </td>
+                </tr>
+              )}
               {reports.map((row, i) => (
                 <tr
                   key={i}

@@ -37,25 +37,15 @@ export default function ESGPortfolioView() {
   );
   const [isGenerating, setIsPending] = useState(false);
 
-  // ─── Mock Data for High-End Visualization ───
+  // Empty until wired to real portfolio data. These were previously invented
+  // figures — a net-zero trajectory crossing over in Q2 '26 and a methodology
+  // split adding to 100% — rendered indistinguishably from real reporting on a
+  // page whose whole purpose is auditable ESG disclosure. Zeroed rather than
+  // deleted so the chart scaffolding stays in place for the real data.
+  const netZeroData: { period: string; emissions: number; offsets: number }[] =
+    [];
 
-  // Net Zero Trajectory (Emissions vs Offsets over Quarters)
-  const netZeroData = [
-    { period: "Q1 '25", emissions: 1200, offsets: 200 },
-    { period: "Q2 '25", emissions: 1150, offsets: 350 },
-    { period: "Q3 '25", emissions: 1080, offsets: 500 },
-    { period: "Q4 '25", emissions: 980, offsets: 750 },
-    { period: "Q1 '26", emissions: 920, offsets: 880 },
-    { period: "Q2 '26", emissions: 850, offsets: 920 }, // Projected cross-over
-  ];
-
-  // Portfolio Methodology Allocation
-  const allocationData = [
-    { name: "Reforestation (AR)", value: 45 },
-    { name: "Soil Carbon (ALM)", value: 30 },
-    { name: "Biochar (BC)", value: 15 },
-    { name: "Blue Carbon", value: 10 },
-  ];
+  const allocationData: { name: string; value: number }[] = [];
 
   const handleGenerate = async () => {
     setIsPending(true);
@@ -155,7 +145,7 @@ export default function ESGPortfolioView() {
                         Total Verified Retirements
                       </p>
                       <h2 className="text-5xl font-mono text-slate-900 font-bold tracking-tight">
-                        2,840
+                        0
                         <span className="text-xl text-slate-400 ml-2 font-sans font-normal">
                           tCO₂e
                         </span>
@@ -174,14 +164,14 @@ export default function ESGPortfolioView() {
                         Net Zero Gap
                       </p>
                       <h2 className="text-5xl font-mono text-slate-900 font-bold tracking-tight">
-                        -70
+                        0
                         <span className="text-xl text-slate-400 ml-2 font-sans font-normal">
                           tCO₂e
                         </span>
                       </h2>
                     </div>
-                    <div className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-brand-600">
-                      <TrendingDown size={14} /> Deficit Shrinking (YoY)
+                    <div className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      <TrendingDown size={14} /> No data yet
                     </div>
                   </div>
                 </div>
@@ -210,62 +200,68 @@ export default function ESGPortfolioView() {
                   </div>
 
                   <div className="h-[340px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart
-                        data={netZeroData}
-                        margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-                      >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical={false}
-                          stroke="#e2e8f0"
-                        />
-                        <XAxis
-                          dataKey="period"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{
-                            fontSize: 10,
-                            fontFamily: "monospace",
-                            fill: "#64748b",
-                          }}
-                          dy={10}
-                        />
-                        <YAxis
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{
-                            fontSize: 10,
-                            fontFamily: "monospace",
-                            fill: "#64748b",
-                          }}
-                        />
-                        <Tooltip
-                          cursor={{ fill: "#f8fafc" }}
-                          contentStyle={{
-                            borderRadius: "0",
-                            border: "1px solid #cbd5e1",
-                            boxShadow: "none",
-                            fontFamily: "monospace",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="emissions"
-                          name="Gross Emissions"
-                          fill="#e2e8f0"
-                          barSize={40}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="offsets"
-                          name="Verified Removals"
-                          stroke="#059669"
-                          strokeWidth={3}
-                          dot={{ r: 4, strokeWidth: 2 }}
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
+                    {netZeroData.length === 0 ? (
+                      <div className="h-full w-full flex items-center justify-center text-sm text-slate-400">
+                        No emissions or offset data recorded yet.
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart
+                          data={netZeroData}
+                          margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                            stroke="#e2e8f0"
+                          />
+                          <XAxis
+                            dataKey="period"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fontSize: 10,
+                              fontFamily: "monospace",
+                              fill: "#64748b",
+                            }}
+                            dy={10}
+                          />
+                          <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fontSize: 10,
+                              fontFamily: "monospace",
+                              fill: "#64748b",
+                            }}
+                          />
+                          <Tooltip
+                            cursor={{ fill: "#f8fafc" }}
+                            contentStyle={{
+                              borderRadius: "0",
+                              border: "1px solid #cbd5e1",
+                              boxShadow: "none",
+                              fontFamily: "monospace",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="emissions"
+                            name="Gross Emissions"
+                            fill="#e2e8f0"
+                            barSize={40}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="offsets"
+                            name="Verified Removals"
+                            stroke="#059669"
+                            strokeWidth={3}
+                            dot={{ r: 4, strokeWidth: 2 }}
+                          />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>
@@ -279,40 +275,46 @@ export default function ESGPortfolioView() {
 
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="h-[240px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RePieChart>
-                          <Pie
-                            data={allocationData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={70}
-                            outerRadius={95}
-                            paddingAngle={2}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {allocationData.map((_entry, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={
-                                  ALLOCATION_COLORS[
-                                    index % ALLOCATION_COLORS.length
-                                  ]
-                                }
-                              />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              borderRadius: "0",
-                              border: "1px solid #cbd5e1",
-                              fontFamily: "monospace",
-                              fontSize: "11px",
-                            }}
-                            itemStyle={{ color: "#0f172a" }}
-                          />
-                        </RePieChart>
-                      </ResponsiveContainer>
+                      {allocationData.length === 0 ? (
+                        <div className="h-full w-full flex items-center justify-center text-sm text-slate-400">
+                          No portfolio allocation to show yet.
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RePieChart>
+                            <Pie
+                              data={allocationData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={70}
+                              outerRadius={95}
+                              paddingAngle={2}
+                              dataKey="value"
+                              stroke="none"
+                            >
+                              {allocationData.map((_entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={
+                                    ALLOCATION_COLORS[
+                                      index % ALLOCATION_COLORS.length
+                                    ]
+                                  }
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{
+                                borderRadius: "0",
+                                border: "1px solid #cbd5e1",
+                                fontFamily: "monospace",
+                                fontSize: "11px",
+                              }}
+                              itemStyle={{ color: "#0f172a" }}
+                            />
+                          </RePieChart>
+                        </ResponsiveContainer>
+                      )}
                     </div>
 
                     <div className="w-full mt-8 border-t border-slate-200 pt-6">

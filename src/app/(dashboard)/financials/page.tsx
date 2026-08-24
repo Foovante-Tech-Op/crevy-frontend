@@ -3,6 +3,11 @@
 import { ArrowRight, FileSignature, Landmark } from "lucide-react";
 import Link from "next/link";
 
+// The three headline figures are placeholders showing 0 until the financial
+// aggregates are wired to real data. They previously carried invented numbers
+// (142,500 tCO₂e, $2.4M paid out, $42,150 pending) which read as live figures
+// to anyone looking at the page — a made-up payout total is worse than an
+// obviously-empty one.
 export default function FinancialsDashboard() {
   return (
     <div className="animate-in fade-in duration-700 pb-24 font-sans selection:bg-brand selection:text-slate-900">
@@ -36,13 +41,13 @@ export default function FinancialsDashboard() {
               Total Volume Managed
             </p>
             <h2 className="text-4xl font-mono text-slate-900 font-bold tracking-tight tabular-nums">
-              142,500
+              0
               <span className="text-xs text-slate-400 ml-2 font-sans font-normal uppercase tracking-wider">
                 tCO₂e
               </span>
             </h2>
-            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-900 mt-4">
-              +12% growth this year
+            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-400 mt-4">
+              No volume recorded yet
             </p>
           </div>
 
@@ -55,7 +60,7 @@ export default function FinancialsDashboard() {
               <span className="text-slate-400 font-sans mr-0.5 font-normal">
                 $
               </span>
-              2.4M
+              0
             </h2>
             <p className="text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-400 mt-4">
               Successfully Transferred
@@ -72,7 +77,7 @@ export default function FinancialsDashboard() {
                 <span className="text-brand font-sans mr-0.5 font-normal">
                   $
                 </span>
-                42,150
+                0
               </h2>
               <p className="text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-brand mt-4">
                 Awaiting Transfer
