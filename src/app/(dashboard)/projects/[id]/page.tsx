@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import {
   Activity,
   ArrowLeft,
@@ -16,7 +17,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import {
   Area,
@@ -37,7 +38,6 @@ import { cn } from "@/lib/utils";
 // ─── Administrative Oversight Visual System ──────────────────────────────────
 
 function ProjectDetailContent() {
-  const router = useRouter();
   const params = useParams();
   const id = params.id;
   const { user, isPending } = useUser();
@@ -49,18 +49,47 @@ function ProjectDetailContent() {
     setIsMounted(true);
   }, []);
 
-  // 1. RBAC Guard: Strictly Administrative
-  const isAuthorized =
-    user?.role === "super_admin" ||
-    user?.role === "admin" ||
-    user?.role === "mrv_admin" ||
-    user?.role === "project_manager" ||
-    user?.role === "project_owner";
-
-  const { data: projectRes, isLoading: loadingProject } = useQuery({
+  // There is deliberately no client-side role allowlist here any more.
+  //
+  // What used to sit at this line was:
+  //
+  //   user?.role === "super_admin" || user?.role === "admin" ||
+  //   user?.role === "mrv_admin"   || user?.role === "project_manager" ||
+  //   user?.role === "project_owner"
+  //
+  // Two of those five are not roles this platform has. The seed defines
+  // `project_developer`, never `project_owner`, and there is no `admin` at
+  // all — so the list carried two names that could never match while missing
+  // `project_admin`, the role whose entire job is running projects. A
+  // project_admin clicking through from a developer's site inventory was
+  // bounced to /dashboard with "You don't have access to this project",
+  // whatever the project's actual state.
+  //
+  // Re-adding the missing name would leave the same trap set for the next
+  // role. Access is the API's decision and it already makes it properly:
+  // requirePermission(["project", "view"]) on the route, then
+  // hasProjectAccess() row scoping in the service (creator, enrolled
+  // developer member, or assigned agent). Duplicating that here can only
+  // ever drift out of step with it, and the copy that drifts is the one
+  // that decides what the user sees.
+  //
+  // So the page renders from the response: 403 means denied, 404 means
+  // gone, anything else means show the project.
+  const {
+    data: projectRes,
+    isLoading: loadingProject,
+    error: projectError,
+  } = useQuery({
     queryKey: ["admin-project-detail", id],
     queryFn: () => ProjectService.getProject(id as string),
     enabled: !!id && !!user,
+    // A 403 or 404 is a settled answer, not a blip. Retrying it four times
+    // (react-query's default) just delays the message by a few seconds.
+    retry: (failureCount, error) => {
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 403 || status === 404) return false;
+      return failureCount < 2;
+    },
   });
 
   const { data: verifRes } = useQuery({
@@ -85,16 +114,6 @@ function ProjectDetailContent() {
       setActiveAssessmentTab(assessments[0].moduleKey);
     }
   }, [assessments, activeAssessmentTab]);
-
-  // Redirect if not authorized
-  useEffect(() => {
-    if (!isPending && !isAuthorized && isMounted) {
-      router.push("/dashboard");
-      toast.error("You don't have access to this project", {
-        description: "Contact an administrator if you think this is a mistake.",
-      });
-    }
-  }, [isAuthorized, isPending, router, isMounted]);
 
   // Hooks must run unconditionally on every render, so this is declared
   // before the early returns below (loading / not-found) rather than after
@@ -133,16 +152,52 @@ function ProjectDetailContent() {
     );
   }
 
+  // Three different reasons the project isn't on screen, told apart rather
+  // than collapsed into one. Previously every one of them — denied, missing,
+  // server error, network drop — rendered "Asset Not Found / Null Pointer in
+  // Ledger", which tells the reader nothing they can act on and is actively
+  // wrong for the two most common cases.
   if (!loadingProject && !project) {
+    const status = isAxiosError(projectError)
+      ? projectError.response?.status
+      : undefined;
+
+    const state =
+      status === 403
+        ? {
+            title: "You don't have access to this project",
+            detail:
+              "It belongs to a developer outside the ones you manage. If you think that's wrong, ask a super admin to check who this project is assigned to.",
+            stamp: "Access Denied",
+          }
+        : status === 404
+          ? {
+              title: "Project not found",
+              detail:
+                "It may have been deleted, or the link may be pointing at an id that no longer exists.",
+              stamp: "Not Found",
+            }
+          : {
+              title: "We couldn't load this project",
+              // Reuses the shared translator, which already knows how to keep
+              // driver output and stack frames off the screen.
+              detail: getErrorMessage(
+                projectError,
+                "Something went wrong loading it. Please try again in a moment.",
+              ),
+              stamp: "Load Failed",
+            };
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-center px-6">
         <ShieldAlert size={32} className="text-slate-900 mb-4" />
         <h1 className="font-sans text-3xl text-slate-900 mb-2">
-          Asset Not Found
+          {state.title}
         </h1>
-        <p className="font-mono text-xs text-slate-500 uppercase tracking-widest mb-6">
-          Error: Null Pointer in Ledger
+        <p className="font-mono text-xs text-slate-500 uppercase tracking-widest mb-4">
+          {state.stamp}
         </p>
+        <p className="text-sm text-slate-600 max-w-md mb-8">{state.detail}</p>
         <Link
           href="/dashboard"
           className="px-6 py-3 border border-slate-900 text-[10px] font-bold uppercase tracking-widest text-slate-900 hover:bg-slate-900 hover:text-white transition-colors"
@@ -169,9 +224,14 @@ function ProjectDetailContent() {
   }));
 
   // Helper to format dates
+  // Real role names only. `admin` was in this list and has never existed —
+  // see the note where the page-level allowlist used to be. `project_admin`
+  // holds project:manage as of the RBAC seed fix, which is what the
+  // PATCH /projects/:id/classification route actually checks, so it belongs
+  // here too. This only shows or hides the control; the route enforces it.
   const isClassificationAdmin =
     user?.role === "super_admin" ||
-    user?.role === "admin" ||
+    user?.role === "project_admin" ||
     user?.role === "project_manager";
 
   const formatDate = (dateStr: string) => {
@@ -200,6 +260,37 @@ function ProjectDetailContent() {
           </span>
         </div>
       </div>
+
+      {/* ── Draft / incomplete banner ──
+          The page renders fine for a draft — everything below just has gaps
+          in it. Saying so at the top is the difference between "this project
+          isn't finished being set up" and "this screen is broken", which is
+          how an unexplained half-empty record reads. */}
+      {project.projectStatus === "draft" && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 lg:px-10 py-4">
+          <div className="max-w-[1400px] mx-auto flex items-start gap-3">
+            <FileQuestion
+              size={16}
+              className="text-amber-900 mt-0.5 shrink-0"
+            />
+            <div>
+              <p className="text-sm font-medium text-amber-900">
+                This project is still a draft
+                {project.assessmentCompletion &&
+                project.assessmentCompletion !== "complete"
+                  ? ` — its assessment is ${project.assessmentCompletion.replace("_", " ")}`
+                  : ""}
+                .
+              </p>
+              <p className="text-xs text-amber-800/70 mt-1">
+                Sections below will be empty or partial until setup is finished.
+                It won't appear on the marketplace or accept dMRV data while it
+                stays in draft.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── 1. CORE ASSET TELEMETRY (full width) ────────────────────── */}
       <section className="w-full border-b-2 border-slate-900 bg-white">
