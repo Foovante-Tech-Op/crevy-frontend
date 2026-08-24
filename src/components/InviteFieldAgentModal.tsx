@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getErrorMessage } from "@/lib/errors";
+import { notifyInviteResult } from "@/lib/invites";
 import { FieldAgentService } from "@/lib/services/field-agent-service";
 
 interface InviteFieldAgentModalProps {
@@ -60,7 +61,8 @@ export function InviteFieldAgentModal({
         phone: data.phone || undefined,
       });
 
-      toast.success(
+      notifyInviteResult(
+        result?.data,
         result?.data?.reinvited
           ? "Invitation resent successfully"
           : `Invite sent to ${normalizeEmailClient(data.email)}`,

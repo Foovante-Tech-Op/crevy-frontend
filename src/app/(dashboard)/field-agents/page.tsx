@@ -39,6 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getErrorMessage } from "@/lib/errors";
+import { notifyInviteResult } from "@/lib/invites";
 import {
   FieldAgentService,
   type TFieldAgentRow,
@@ -96,12 +97,12 @@ export default function FieldAgentsPage() {
 
   const handleResendInvite = async (agent: TFieldAgentRow) => {
     try {
-      await FieldAgentService.inviteFieldAgent({
+      const result = await FieldAgentService.inviteFieldAgent({
         fullName: agent.fullName,
         email: agent.email,
         phone: agent.contactNumber || undefined,
       });
-      toast.success(`Invite resent to ${agent.email}`);
+      notifyInviteResult(result?.data, `Invite resent to ${agent.email}`);
       queryClient.invalidateQueries({ queryKey: ["field-agents"] });
     } catch (error: any) {
       toast.error(

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useUser } from "@/hooks/use-user";
 import { getErrorMessage } from "@/lib/errors";
+import { notifyInviteResult } from "@/lib/invites";
 import { RBACService } from "@/lib/services/rbac-service";
 
 interface InviteAdminModalProps {
@@ -76,12 +77,13 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
-      await RBACService.inviteUser({
+      const result = await RBACService.inviteUser({
         email: data.email,
         roleName: data.roleName,
       });
 
-      toast.success(
+      notifyInviteResult(
+        result?.data,
         isOrgAdmin
           ? "Team member invited successfully"
           : "Admin invitation sent successfully",
