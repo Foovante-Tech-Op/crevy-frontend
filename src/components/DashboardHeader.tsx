@@ -4,6 +4,7 @@ import { Bell, Command, Search, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { getFirstName, getUserInitials } from "@/lib/utils";
 import type { TBetterAuthUser } from "@/types";
 
 interface DashboardHeaderProps {
@@ -12,13 +13,6 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const pathname = usePathname();
-
-  const getInitials = (name?: string) => {
-    if (!name) return "U";
-    const names = name.trim().split(" ");
-    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    return name.substring(0, 2).toUpperCase();
-  };
 
   // Generate a sophisticated breadcrumb/context based on the route
   const getContext = () => {
@@ -36,7 +30,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             System Context / {getContext()}
           </p>
           <h1 className="text-xl font-serif text-slate-900 leading-none">
-            Welcome, {user?.name?.split(" ")[0] || "User"}.
+            Welcome, {getFirstName(user)}.
           </h1>
         </div>
       </div>
@@ -84,7 +78,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               className="object-cover"
             />
             <AvatarFallback className="rounded-none bg-slate-900 text-white font-mono text-[10px]">
-              {getInitials(user?.name)}
+              {getUserInitials(user)}
             </AvatarFallback>
           </Avatar>
         </div>

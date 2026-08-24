@@ -8,11 +8,13 @@ import {
   DollarSign,
   Layers,
   Leaf,
+  type LucideIcon,
   Mail,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { type Column, DataTable } from "@/components/DataTable";
+import { useSuperAdminDashboard } from "@/hooks/use-dashboard";
 import { useWaitlistRegistrations } from "@/hooks/use-waitlist";
 import {
   AlertStrip,
@@ -107,6 +109,69 @@ const WAITLIST_COLUMNS: Column<WaitlistRow>[] = [
   },
 ];
 
+// ─── Formatting helpers ─────────────────────────────────────────────────────
+// Postgres serialises SUM() over numeric columns as a string, so every
+// aggregate off /dashboards/super-admin arrives as a string, not a number.
+
+const PENDING = "—";
+
+const toNumber = (value: string | number | null | undefined) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatCount = (value: string | number | null | undefined) =>
+  toNumber(value).toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+const formatCurrency = (
+  value: string | number | null | undefined,
+  currency = "USD",
+) =>
+  toNumber(value).toLocaleString("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "";
+  return date
+    .toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "UTC",
+    })
+    .concat(" UTC");
+};
+
+// The backend tags each audit-log entry with an icon name; map it to the
+// component here rather than shipping icon components over the wire.
+const ACTIVITY_ICONS: Record<string, LucideIcon> = {
+  Leaf,
+  DollarSign,
+  Layers,
+  Activity,
+};
+
+const ACTIVITY_ICON_STYLES: Record<string, string> = {
+  Leaf: "bg-brand-50 text-brand-700",
+  DollarSign: "bg-blue-50 text-blue-700",
+  Layers: "bg-slate-100 text-slate-700",
+  Activity: "bg-slate-100 text-slate-700",
+};
+
+function EmptyPanel({ message }: { message: string }) {
+  return (
+    <div className="w-full h-[250px] flex items-center justify-center bg-slate-50 text-slate-400 font-mono text-[10px] uppercase tracking-widest border border-dashed border-slate-200 text-center px-6">
+      {message}
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function SuperAdminDashboard({
@@ -114,6 +179,14 @@ export default function SuperAdminDashboard({
 }: {
   userName: string;
 }) {
+  // Platform-wide metrics: registry KPIs, financial vectors, MRV pipeline
+  // counters and the audit-log activity feed.
+  const {
+    data: metrics,
+    isLoading: metricsLoading,
+    isError: metricsError,
+  } = useSuperAdminDashboard();
+
   // Fetch the 10 most recent waitlist registrations for the dashboard snapshot
   const { data: waitlistResponse, isLoading: waitlistLoading } =
     useWaitlistRegistrations({ limit: 10 });
@@ -123,11 +196,42 @@ export default function SuperAdminDashboard({
     (r) => r.status === "pending",
   ).length;
 
-  // MOCK DATA – to be replaced by real API queries per KPI
-  const pendingProjectsCount = 4;
-  const pendingUsersCount = 12;
-  const totalPending =
-    pendingProjectsCount + pendingUsersCount + pendingWaitlistCount;
+  const pendingProjectsCount = metrics?.hero.pendingProjects ?? 0;
+  const pendingUsersCount = metrics?.hero.pendingKyc ?? 0;
+  // Waitlist applications are counted client-side because they come from a
+  // separate endpoint that the metrics payload doesn't cover.
+  const totalPending = (metrics?.hero.totalPending ?? 0) + pendingWaitlistCount;
+
+  const activityFeed = metrics?.activityFeed ?? [];
+
+  // The backend hands back /mrv/* hrefs for these stages, but this app has no
+  // /mrv routes — the verification pipeline lives at /track-verification.
+  const mrvStages = [
+    {
+      key: "ingest",
+      label: "Ingest",
+      count: metrics?.mrvPipeline.ingest.count ?? 0,
+      href: "/track-verification",
+    },
+    {
+      key: "verify",
+      label: "Verify",
+      count: metrics?.mrvPipeline.verify.count ?? 0,
+      href: "/track-verification",
+    },
+    {
+      key: "anchor",
+      label: "Anchor",
+      count: metrics?.mrvPipeline.anchor.count ?? 0,
+      href: "/track-verification",
+    },
+    {
+      key: "issue",
+      label: "Issue",
+      count: metrics?.mrvPipeline.issue.count ?? 0,
+      href: "/credits-ledger",
+    },
+  ];
 
   return (
     <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10 font-sans selection:bg-slate-900 selection:text-white bg-slate-50 min-h-screen">
@@ -163,20 +267,19 @@ export default function SuperAdminDashboard({
             <p className="font-sans text-2xl mb-8">Operative: {userName}</p>
             <ul className="space-y-4 font-mono text-xs text-slate-400">
               <li className="flex items-center gap-3">
-                <span className="text-brand-500">→</span> {pendingProjectsCount}{" "}
-                Project reviews pending
+                <span className="text-brand-500">→</span>{" "}
+                {metricsLoading ? PENDING : pendingProjectsCount} Project
+                reviews pending
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-brand-500">→</span> {pendingUsersCount}{" "}
-                KYC audits pending
+                <span className="text-brand-500">→</span>{" "}
+                {metricsLoading ? PENDING : pendingUsersCount} KYC audits
+                pending
               </li>
               <li className="flex items-center gap-3">
-                <span className="text-amber-400">→</span> {pendingWaitlistCount}{" "}
-                waitlist applications unreviewed
-              </li>
-              <li className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-800 text-slate-500">
-                <span className="w-2 h-2 bg-brand-500 rounded-none shrink-0 animate-pulse" />{" "}
-                All services operational
+                <span className="text-amber-400">→</span>{" "}
+                {waitlistLoading ? PENDING : pendingWaitlistCount} waitlist
+                applications unreviewed
               </li>
             </ul>
           </div>
@@ -184,11 +287,20 @@ export default function SuperAdminDashboard({
       </motion.div>
 
       {/* ── 2. Alert Strip ── */}
-      <AlertStrip
-        count={totalPending}
-        message={`${pendingProjectsCount} asset submissions, ${pendingUsersCount} identity registrations, and ${pendingWaitlistCount} waitlist applications require governance review.`}
-        delay={0.1}
-      />
+      {metricsError ? (
+        <AlertStrip
+          count={1}
+          type="error"
+          message="Platform metrics could not be loaded. Figures below are unavailable, not zero."
+          delay={0.1}
+        />
+      ) : (
+        <AlertStrip
+          count={totalPending}
+          message={`${pendingProjectsCount} asset submissions, ${pendingUsersCount} identity registrations, and ${pendingWaitlistCount} waitlist applications require governance review.`}
+          delay={0.1}
+        />
+      )}
 
       {/* ── 3. KPI Matrix ── */}
       <div className="mb-16">
@@ -196,38 +308,47 @@ export default function SuperAdminDashboard({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200">
           <StatCard
             label="Total Credits Issued"
-            value="42,840"
-            unit="tCO₂e"
+            value={
+              metricsLoading
+                ? PENDING
+                : formatCount(metrics?.kpi.totalCreditsIssued.value)
+            }
+            unit={metrics?.kpi.totalCreditsIssued.unit ?? "tCO₂e"}
             icon={Leaf}
-            accent="emerald"
-            trend="+12% WoW"
+            trend={metrics?.kpi.totalCreditsIssued.trend}
             delay={0.2}
           />
           <StatCard
             label="Gross Registry Value"
-            value="$856,800"
+            value={
+              metricsLoading
+                ? PENDING
+                : formatCurrency(metrics?.kpi.grossRegistryValue.value)
+            }
             unit="USD"
             icon={DollarSign}
-            accent="blue"
-            trend="+8% WoW"
+            trend={metrics?.kpi.grossRegistryValue.trend}
             delay={0.25}
           />
+          {/* No trend on the two below: the API returns a hardcoded string for
+              each ("+3 Nodes", "-2 vs last week") rather than a computed
+              delta, so rendering it would be inventing a movement. */}
           <StatCard
             label="Active Projects"
-            value="204"
+            value={
+              metricsLoading
+                ? PENDING
+                : formatCount(metrics?.kpi.activeProjects.value)
+            }
             unit="Nodes"
             icon={Layers}
-            accent="emerald"
-            trend="+3 Nodes"
             delay={0.3}
           />
           <StatCard
             label="Pending Governance"
-            value={totalPending.toString()}
+            value={metricsLoading ? PENDING : totalPending.toString()}
             unit="Actions"
             icon={Clock}
-            accent="amber"
-            trend="-2 vs last week"
             delay={0.35}
           />
         </div>
@@ -247,7 +368,7 @@ export default function SuperAdminDashboard({
             label="Total Applicants"
             value={
               waitlistLoading
-                ? "—"
+                ? PENDING
                 : (waitlistResponse?.total ?? waitlistRows.length).toString()
             }
             unit="Registered"
@@ -256,7 +377,7 @@ export default function SuperAdminDashboard({
           />
           <StatCard
             label="Pending Review"
-            value={waitlistLoading ? "—" : pendingWaitlistCount.toString()}
+            value={waitlistLoading ? PENDING : pendingWaitlistCount.toString()}
             unit="Applications"
             icon={Mail}
             delay={0.42}
@@ -265,7 +386,7 @@ export default function SuperAdminDashboard({
             label="Approved"
             value={
               waitlistLoading
-                ? "—"
+                ? PENDING
                 : waitlistRows
                     .filter((r) => r.status === "approved")
                     .length.toString()
@@ -278,7 +399,7 @@ export default function SuperAdminDashboard({
             label="Conversion Rate"
             value={
               waitlistLoading || waitlistRows.length === 0
-                ? "—"
+                ? PENDING
                 : `${Math.round(
                     (waitlistRows.filter((r) => r.status === "approved")
                       .length /
@@ -320,10 +441,15 @@ export default function SuperAdminDashboard({
                 Platform Revenue (MTD)
               </p>
               <h4 className="text-4xl font-mono font-bold text-slate-900 mb-2">
-                $24,600
+                {metricsLoading
+                  ? PENDING
+                  : formatCurrency(
+                      metrics?.financial.platformRevenueMtd.value,
+                      metrics?.financial.platformRevenueMtd.currency,
+                    )}
               </h4>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-brand-600 flex items-center gap-1">
-                <ArrowUpRight size={12} /> 18% vs last month
+              <p className="text-[10px] font-mono uppercase tracking-widest text-slate-500 flex items-center gap-1">
+                <ArrowUpRight size={12} /> Platform fees, month to date
               </p>
             </div>
           </div>
@@ -333,13 +459,21 @@ export default function SuperAdminDashboard({
                 Payout Queue
               </p>
               <h4 className="text-4xl font-mono font-bold text-slate-900 mb-2">
-                12{" "}
+                {metricsLoading
+                  ? PENDING
+                  : formatCount(metrics?.financial.payoutQueue.count)}{" "}
                 <span className="text-base text-slate-400 font-sans">
                   Pending
                 </span>
               </h4>
               <p className="text-[10px] font-mono uppercase tracking-widest text-slate-500">
-                $38,240 outstanding
+                {metricsLoading
+                  ? PENDING
+                  : formatCurrency(
+                      metrics?.financial.payoutQueue.outstandingAmount,
+                      metrics?.financial.payoutQueue.currency,
+                    )}{" "}
+                outstanding
               </p>
             </div>
             <Link
@@ -355,13 +489,23 @@ export default function SuperAdminDashboard({
                 Credits Acquired (MTD)
               </p>
               <h4 className="text-4xl font-mono font-bold text-slate-900 mb-2">
-                2,840{" "}
+                {metricsLoading
+                  ? PENDING
+                  : formatCount(
+                      metrics?.financial.creditsAcquiredMtd.quantity,
+                    )}{" "}
                 <span className="text-base text-slate-400 font-sans">
-                  tCO₂e
+                  {metrics?.financial.creditsAcquiredMtd.unit ?? "tCO₂e"}
                 </span>
               </h4>
               <p className="text-[10px] font-mono uppercase tracking-widest text-slate-500">
-                Value: $56,800
+                Value:{" "}
+                {metricsLoading
+                  ? PENDING
+                  : formatCurrency(
+                      metrics?.financial.creditsAcquiredMtd.value,
+                      metrics?.financial.creditsAcquiredMtd.currency,
+                    )}
               </p>
             </div>
           </div>
@@ -373,21 +517,20 @@ export default function SuperAdminDashboard({
         <SectionLabel label="Market Telemetry" delay={0.45} />
         <div className="grid lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3 space-y-8">
+            {/* The metrics endpoint returns point-in-time aggregates only —
+                there is no time-series to plot yet. The scaffolding stays so
+                the charts can drop in once the API exposes history. */}
             <div className="bg-white border border-slate-200 p-8 h-[350px]">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 pb-2">
                 User Acquisition Trajectory
               </h3>
-              <div className="w-full h-[250px] flex items-center justify-center bg-slate-50 text-slate-400 font-mono text-xs border border-dashed border-slate-200">
-                [MultiLineChart Component Renders Here]
-              </div>
+              <EmptyPanel message="No time-series data available yet" />
             </div>
             <div className="bg-white border border-slate-200 p-8 h-[350px]">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 pb-2">
                 Credit Market Liquidity
               </h3>
-              <div className="w-full h-[250px] flex items-center justify-center bg-slate-50 text-slate-400 font-mono text-xs border border-dashed border-slate-200">
-                [GroupedBarChart Component Renders Here]
-              </div>
+              <EmptyPanel message="No time-series data available yet" />
             </div>
           </div>
           <div className="lg:col-span-2 space-y-8">
@@ -395,42 +538,50 @@ export default function SuperAdminDashboard({
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 pb-2">
                 MRV Pipeline Flow
               </h3>
-              <MrvPipelineStepper
-                stages={[
-                  { key: "ingest", label: "Ingest", count: 14, href: "#" },
-                  { key: "verify", label: "Verify", count: 6, href: "#" },
-                  { key: "anchor", label: "Anchor", count: 3, href: "#" },
-                  { key: "issue", label: "Issue", count: 28, href: "#" },
-                ]}
-              />
+              <MrvPipelineStepper stages={mrvStages} />
             </div>
             <div className="bg-slate-900 border border-slate-900 p-8 h-[350px] text-white">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-6 border-b border-slate-800 pb-2">
-                System Diagnostics
+                Governance Queues
               </h3>
+              {/* Registry uptime / anchoring latency / double-count status are
+                  fixed strings in the API, not measurements, so they are not
+                  shown. Everything here is a live count. */}
               <ul className="space-y-5 font-mono text-xs">
-                <li className="flex justify-between border-b border-slate-800 pb-2">
-                  <span>Registry Uptime</span>
-                  <span className="text-brand-400">99.97%</span>
-                </li>
-                <li className="flex justify-between border-b border-slate-800 pb-2">
-                  <span>Polygon Anchoring</span>
-                  <span className="text-brand-400">142ms avg</span>
-                </li>
-                <li className="flex justify-between border-b border-slate-800 pb-2">
-                  <span>Double-Count DB</span>
-                  <span className="text-brand-400">Clean</span>
-                </li>
                 <li className="flex justify-between border-b border-slate-800 pb-2">
                   <span>Pending KYC</span>
                   <span className="text-amber-400">
-                    {pendingUsersCount} Items
+                    {metricsLoading ? PENDING : `${pendingUsersCount} Items`}
+                  </span>
+                </li>
+                <li className="flex justify-between border-b border-slate-800 pb-2">
+                  <span>Project Reviews</span>
+                  <span className="text-amber-400">
+                    {metricsLoading ? PENDING : `${pendingProjectsCount} Items`}
                   </span>
                 </li>
                 <li className="flex justify-between border-b border-slate-800 pb-2">
                   <span>Waitlist Queue</span>
                   <span className="text-amber-400">
-                    {pendingWaitlistCount} Pending
+                    {waitlistLoading
+                      ? PENDING
+                      : `${pendingWaitlistCount} Pending`}
+                  </span>
+                </li>
+                <li className="flex justify-between border-b border-slate-800 pb-2">
+                  <span>Blockchain Anchors</span>
+                  <span className="text-brand-400">
+                    {metricsLoading
+                      ? PENDING
+                      : formatCount(metrics?.mrvPipeline.anchor.count)}
+                  </span>
+                </li>
+                <li className="flex justify-between border-b border-slate-800 pb-2">
+                  <span>MRV Ingest Queue</span>
+                  <span className="text-brand-400">
+                    {metricsLoading
+                      ? PENDING
+                      : formatCount(metrics?.mrvPipeline.ingest.count)}
                   </span>
                 </li>
               </ul>
@@ -447,47 +598,46 @@ export default function SuperAdminDashboard({
       >
         <SectionLabel label="System Ledger Feed" />
         <div className="bg-white border border-slate-200 p-6">
-          <ul className="space-y-4">
-            <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
-              <div className="p-2 bg-brand-50 text-brand-700 shrink-0">
-                <Leaf size={16} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">
-                  1,200 tCO₂e Issued to PRJ-GH-2026-001
-                </p>
-                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
-                  Today, 14:32 UTC
-                </p>
-              </div>
-            </li>
-            <li className="flex items-start gap-4 pb-4 border-b border-slate-100">
-              <div className="p-2 bg-blue-50 text-blue-700 shrink-0">
-                <DollarSign size={16} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">
-                  Payout $14,200 executed for EcoLogic Systems
-                </p>
-                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
-                  Today, 11:15 UTC
-                </p>
-              </div>
-            </li>
-            <li className="flex items-start gap-4">
-              <div className="p-2 bg-slate-100 text-slate-700 shrink-0">
-                <Activity size={16} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">
-                  System maintenance completed successfully
-                </p>
-                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
-                  Yesterday, 02:00 UTC
-                </p>
-              </div>
-            </li>
-          </ul>
+          {metricsLoading ? (
+            <p className="py-8 text-center font-mono text-[10px] uppercase tracking-widest text-slate-400">
+              Fetching audit log...
+            </p>
+          ) : activityFeed.length === 0 ? (
+            <p className="py-8 text-center font-mono text-[10px] uppercase tracking-widest text-slate-400">
+              No ledger activity recorded yet.
+            </p>
+          ) : (
+            <ul className="space-y-4">
+              {activityFeed.map((entry, index) => {
+                const Icon = ACTIVITY_ICONS[entry.icon] ?? Activity;
+                const iconStyles =
+                  ACTIVITY_ICON_STYLES[entry.icon] ??
+                  ACTIVITY_ICON_STYLES.Activity;
+                return (
+                  <li
+                    key={entry.id}
+                    className={`flex items-start gap-4 ${
+                      index < activityFeed.length - 1
+                        ? "pb-4 border-b border-slate-100"
+                        : ""
+                    }`}
+                  >
+                    <div className={`p-2 shrink-0 ${iconStyles}`}>
+                      <Icon size={16} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">
+                        {entry.message}
+                      </p>
+                      <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+                        {formatTimestamp(entry.timestamp)}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </motion.div>
     </div>

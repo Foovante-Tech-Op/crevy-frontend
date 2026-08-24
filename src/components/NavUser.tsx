@@ -28,14 +28,8 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
+import { getDisplayName, getUserInitials } from "@/lib/utils";
 import type { TBetterAuthUser } from "@/types";
-
-const getInitials = (name?: string) => {
-  if (!name) return "U";
-  const parts = name.trim().split(" ");
-  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  return name.substring(0, 2).toUpperCase();
-};
 
 export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
   const { isMobile } = useSidebar();
@@ -76,11 +70,11 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
                   <Avatar className="h-8 w-8 rounded-none border border-white/20">
                     <AvatarImage
                       src={avatarUrl}
-                      alt={user?.name}
+                      alt={getDisplayName(user)}
                       className="object-cover"
                     />
                     <AvatarFallback className="rounded-none bg-foreground text-white font-mono text-[10px]">
-                      {getInitials(user?.name)}
+                      {getUserInitials(user)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
@@ -88,7 +82,7 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
                       {user?.role?.replace("_", " ")}
                     </span>
                     <span className="truncate font-serif text-white text-base">
-                      {user?.name || "User"}
+                      {getDisplayName(user)}
                     </span>
                   </div>
                   <ChevronsUpDown className="ml-auto h-4 w-4 text-white/40 group-data-[collapsible=icon]:hidden" />
@@ -108,16 +102,16 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
                 <Avatar className="h-10 w-10 rounded-none border border-slate-200">
                   <AvatarImage
                     src={avatarUrl}
-                    alt={user?.name}
+                    alt={getDisplayName(user)}
                     className="object-cover"
                   />
                   <AvatarFallback className="rounded-none bg-slate-900 text-white font-mono text-[10px]">
-                    {getInitials(user?.name)}
+                    {getUserInitials(user)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate font-bold text-slate-900 font-sans text-sm">
-                    {user?.name || "User"}
+                    {getDisplayName(user)}
                   </span>
                   <span className="truncate text-[9px] text-slate-400 lowercase tracking-normal font-sans">
                     {user?.email || ""}

@@ -12,14 +12,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth";
-import { cn } from "@/lib/utils";
-
-const getInitials = (name?: string) => {
-  if (!name) return "U";
-  const parts = name.trim().split(" ");
-  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  return name.substring(0, 2).toUpperCase();
-};
+import { cn, getDisplayName, getUserInitials } from "@/lib/utils";
 
 /**
  * Institutional Navbar Protocol
@@ -149,7 +142,7 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                       : "bg-white text-slate-900",
                   )}
                 >
-                  {getInitials(user.name)}
+                  {getUserInitials(user)}
                 </div>
                 {/* <span
                   className={cn(
@@ -255,11 +248,11 @@ export function Navbar({ solid = false }: { solid?: boolean }) {
                 <div className="space-y-6">
                   <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4">
                     <div className="w-10 h-10 bg-white text-slate-900 flex items-center justify-center text-lg font-bold shrink-0">
-                      {getInitials(user.name)}
+                      {getUserInitials(user)}
                     </div>
                     <div className="text-left overflow-hidden">
                       <p className="text-white font-bold truncate">
-                        {user.name}
+                        {getDisplayName(user)}
                       </p>
                       <p className="text-slate-500 font-mono text-[10px] uppercase tracking-widest truncate mt-1">
                         {user.email}

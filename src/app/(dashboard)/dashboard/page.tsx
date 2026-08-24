@@ -1,6 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth";
+import { getDisplayName } from "@/lib/utils";
 import type { TBetterAuthUser } from "@/types/user.types";
 import AdminDashboard from "./_components/AdminDashboard";
 import OrgAdminDashboard from "./_components/OrgAdminDashboard";
@@ -55,7 +56,7 @@ export default function DashboardRouter() {
     return NO_ROLE_UI;
   }
 
-  const userName = user?.name || "Operative";
+  const userName = getDisplayName(user, "Operative");
 
   switch (role) {
     case "super_admin":
