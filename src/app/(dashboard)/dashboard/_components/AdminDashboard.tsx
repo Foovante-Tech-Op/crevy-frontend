@@ -44,7 +44,14 @@ export default function AdminDashboard({
   userName: string;
   role: string;
 }) {
-  const isProjectManager = role === "project_manager" || role === "super_admin";
+  // Project Operations covers the developer roster + KYC queue. project_admin
+  // is a project-operations role (it manages field agents and the developers
+  // they register), so it belongs here alongside project_manager — without it
+  // a project_admin renders zero tabs and an empty dashboard.
+  const isProjectManager =
+    role === "project_manager" ||
+    role === "project_admin" ||
+    role === "super_admin";
   const isMrvAdmin = role === "mrv_admin" || role === "super_admin";
   const isFinancialAdmin = role === "financial_admin" || role === "super_admin";
 

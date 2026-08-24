@@ -62,6 +62,7 @@ export default function DashboardRouter() {
     case "super_admin":
       return <SuperAdminDashboard userName={userName} />;
     case "admin":
+    case "project_admin":
     case "project_manager":
     case "mrv_admin":
     case "financial_admin":
