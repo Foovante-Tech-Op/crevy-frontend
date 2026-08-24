@@ -207,6 +207,44 @@ having no runner.
 Confirm both repos see it as **Idle** before moving on. Re-run one backend
 deploy to prove you did not break the pipeline that already worked.
 
+#### If the job hangs on "Waiting for a runner to pick up this job..."
+
+**"Idle" does not mean "available to this repo."** It means connected and not
+currently busy. A runner still registered to crevy-backend shows as Idle on
+crevy-backend's Runners page while being entirely invisible to crevy-frontend,
+which is the single most likely cause of this hang.
+
+The `.runner` file settles it — `gitHubUrl` is the registration scope:
+
+```bash
+sudo python3 -m json.tool /home/deploy/actions-runner/.runner
+```
+
+| `gitHubUrl` | Meaning | Fix |
+|---|---|---|
+| `.../Foovante-Tech-Op/crevy-backend` | Still repo-scoped; A4 never completed | Run A4 steps 1-4, one command at a time |
+| `.../Foovante-Tech-Op` | Org-scoped correctly | Labels or group access — see below |
+
+If it is org-scoped, check Org → Settings → Actions → **Runners** → the runner
+and confirm `crevy-vps` appears in its labels. If it does, and you are on
+GitHub Team or Enterprise, check that its runner group grants access to
+crevy-frontend.
+
+The service journal shows which URL it is actually listening against:
+
+```bash
+sudo bash -c 'cd /home/deploy/actions-runner && ./svc.sh status'
+sudo journalctl -u "actions.runner.*" -n 30 --no-pager
+```
+
+Note the build job runs on `ubuntu-latest`, so nothing before the deploy job
+needs the self-hosted runner. A misregistered runner therefore stays invisible
+until the first deploy — lint, scans and the image push all pass first.
+
+Cancelling a queued deploy job costs nothing: the build job has already pushed
+the image to GHCR by commit SHA. Fix the runner, then re-run **only the failed
+job** rather than rebuilding.
+
 ### A5. Let the deploy SA create Deployments — recommended
 
 On the VPS as an admin:
@@ -480,6 +518,139 @@ for ip in $(curl -s https://www.cloudflare.com/ips-v6); do
 done
 ```
 
+#### ufw alone does not close this on a k3s node
+
+A direct-to-IP connection can traverse **two** netfilter hooks on a k3s
+node, and on the box this was first deployed on the iptables-based stack
+that powers ufw did not enforce at either: with ufw `active` and 443
+restricted to Cloudflare ranges, a foreign `curl -sk https://<vps-ip>/`
+still returned the whole site. (`nft list ruleset` on that box printed
+`Warning: XT target DNAT/MASQUERADE not found` against the iptables-nft
+tables — broken compat, rules loaded but never effective.) The lock
+therefore has to live in a stack that provably works: a pure nftables
+table hooked to both paths.
+
+- **INPUT** — when Traefik answers on the node's own address (it is
+  published with `hostPort`), the connection terminates locally and never
+  touches FORWARD. This is the path the foreign probe actually took: the
+  FORWARD drop counter stayed at 0 at every priority tried, while INPUT
+  was wide open. An INPUT chain that drops 80/443 from anywhere except
+  Cloudflare is the lock itself.
+- **FORWARD** — pod-bound and pod-originated traffic passes through here.
+  The most important of those flows loops straight through the rule this
+  table exists to enforce: `getServerSession` on the frontend fetches its
+  own public `SITE_URL` (`src/lib/auth-server.ts`) so the auth cookie stays
+  same-origin — the request leaves the cluster to Cloudflare's edge and
+  comes back. A bare FORWARD drop kills that SYN (it is not from a
+  Cloudflare range) and the symptom is beguiling: sign-in returns 200, then
+  every SSR page renders logged-out and bounces to `/login` with nothing
+  logged. The FORWARD chain therefore needs its own Cloudflare allow plus
+  cluster exemptions — it is the session-loop fix, not the lock.
+
+ufw is kept as documented above because on a *healthy* box it would cover
+INPUT, and its ranges double as documentation of intent — but treat the
+nftables table as the enforcement that must verify green.
+
+Close the forwarded path with a second filter on the FORWARD hook. An
+nftables `drop` verdict is final and outranks whatever the legacy iptables
+chains accepted, so this works regardless of rule order; the `nftables`
+service makes it survive reboot, and deleting the table is the whole
+rollback.
+
+Two exemptions are not optional:
+
+- **The cluster CIDRs.** The pods themselves originate outbound HTTPS, and
+  the most important of those calls loops straight through the very rule
+  this table exists to enforce: `getServerSession` on the frontend fetches
+  its own public `SITE_URL` (`src/lib/auth-server.ts`) so the auth cookie
+  stays same-origin — the request therefore *leaves* the cluster to
+  Cloudflare's edge and comes right back in. With a bare
+  `tcp dport {80,443} drop`, the pod's SYN to Cloudflare:443 is not from a
+  Cloudflare range and dies in the FORWARD chain. The symptom is beguiling:
+  the sign-in POST returns 200, then every SSR page renders logged-out and
+  bounces back to `/login`, while nothing anywhere logs an error. Backend
+  calls to external APIs (maps, email) die the same way.
+- **`ct state established,related accept`** short-circuits return traffic so
+  the per-packet cost of the range checks stays trivial.
+
+```bash
+sudo apt-get install -y nftables
+sudo mkdir -p /etc/nftables
+sudo tee /etc/nftables/crevy-origin.nft <<'EOF'
+table inet crevy_origin {
+    set cf_v4 {
+        type ipv4_addr; flags interval;
+        elements = { 173.245.48.0/20, 103.21.244.0/22, 103.22.200.0/22,
+                     103.31.4.0/22, 141.101.64.0/18, 108.162.192.0/18,
+                     190.93.240.0/20, 188.114.96.0/20, 197.234.240.0/22,
+                     198.41.128.0/17, 162.158.0.0/15, 104.16.0.0/13,
+                     104.24.0.0/14, 172.64.0.0/13, 131.0.72.0/22 }
+    }
+    set cf_v6 {
+        type ipv6_addr; flags interval;
+        elements = { 2400:cb00::/32, 2606:4700::/32, 2803:f800::/32,
+                     2405:b500::/32, 2405:8100::/32, 2a06:98c0::/29,
+                     2c0f:f248::/32 }
+    }
+    set cluster_v4 {
+        type ipv4_addr; flags interval;
+        elements = { 10.42.0.0/16, 10.43.0.0/16 }
+    }
+    # The lock: hostPort traffic terminates locally on INPUT. Loopback is
+    # exempt; SSH (and everything except 80/443) rides the policy accept.
+    chain input {
+        type filter hook input priority -100; policy accept;
+        ct state established,related accept
+        ip saddr { 127.0.0.0/8 } accept
+        ip6 saddr ::1 accept
+        tcp dport { 80, 443 } ip saddr @cf_v4 accept
+        tcp dport { 80, 443 } ip6 saddr @cf_v6 accept
+        tcp dport { 80, 443 } counter drop
+    }
+    # The session-loop fix and pod-path guard: see the bullets above.
+    chain forward {
+        # priority -100: run ahead of the accept chains k3s installs on the
+        # forward hook (FLANNEL-FWD / KUBE-FORWARD, priority 0). Same-priority
+        # chains run in arbitrary order; when their blanket accept of
+        # pod-bound traffic runs first, the drop below never fires and the
+        # lock is silently gone — the drop counter staying at 0 while a
+        # direct curl from a foreign IP still succeeds is the signature.
+        type filter hook forward priority -100; policy accept;
+        ct state established,related accept
+        meta nfproto ipv4 ip saddr @cluster_v4 accept
+        meta nfproto ipv4 tcp dport { 80, 443 } ip saddr @cf_v4 accept
+        meta nfproto ipv6 tcp dport { 80, 443 } ip6 saddr @cf_v6 accept
+        tcp dport { 80, 443 } counter drop
+    }
+}
+EOF
+echo 'include "/etc/nftables/crevy-origin.nft"' | sudo tee -a /etc/nftables.conf
+sudo systemctl enable --now nftables
+```
+
+`ufw status` going active proves none of this. Prove the origin is actually
+unreachable from a non-Cloudflare IP:
+
+```bash
+curl -sk --connect-timeout 5 -H 'Host: crevy.foovanteglobal.earth' https://169.58.154.18/
+# must end with: curl: (28) Operation timed out
+
+# Watch INPUT, not FORWARD. hostPort traffic terminates locally, so INPUT is
+# the chain the foreign probe hits and the only counter that proves the lock.
+# FORWARD's drop stayed at 0 at every priority tried — reading it instead is
+# how you conclude "not protected" about a lock that is working.
+sudo nft list chain inet crevy_origin input | tail -3     # drop counter climbs
+```
+
+Both counters at 0 while the bare-IP curl still returns the site means the
+table is loaded but not matching — check that `nft list ruleset` shows it and
+that no earlier chain accepted first.
+
+The bare IP must time out while both hostnames stay 200 through Cloudflare.
+If they do not, `sudo nft delete table inet crevy_origin` is the entire
+rollback — then re-check the set elements against
+`https://www.cloudflare.com/ips-v4` / `ips-v6`.
+
 ### D7. Retire cert-manager — last, and only after D5 is green
 
 ```bash
@@ -522,6 +693,181 @@ cd ~/crevy-backend && git pull
 sudo k3s kubectl apply -f k8s/configmap.yaml -n crevy
 sudo k3s kubectl rollout restart deployment/crevy-backend -n crevy
 ```
+
+### E2. Brevo sender identity
+
+`backend-config` also carries the transactional-email sender:
+
+```yaml
+BREVO_SENDER_EMAIL: "mail@foovanteglobal.earth"
+BREVO_SENDER_NAME:  "Becky"
+```
+
+Applied the same way — `kubectl apply` then `rollout restart`. A ConfigMap edit
+never reaches a running container on its own; `envFrom` is read once at pod
+start.
+
+Three DNS/Brevo prerequisites, none of which fail at deploy time. They fail
+later, as mail that silently does not arrive:
+
+1. **Authenticate the domain in Brevo** → Senders, Domains & IPs. Add the DKIM
+   records it issues. An unauthenticated sender domain either 400s on send or
+   lands in spam.
+
+2. **Do not add an SPF include for Brevo. There isn't one.** Brevo's current
+   domain authentication is DKIM-CNAME based and it sends with its own
+   Return-Path domain, so SPF for Brevo's mail is evaluated against *Brevo's*
+   domain, not this zone. DMARC passes on DKIM alignment. Adding an invented
+   `include:spf.brevo.com` would be a second SPF record, and a domain may have
+   exactly **one** — two produces a `permerror` that fails SPF for every
+   message, including inbound forwarding.
+
+   Verified live on this zone:
+
+   ```
+   brevo1._domainkey  CNAME → b1.foovanteglobal-earth.dkim.brevo.com
+   brevo2._domainkey  CNAME → b2.foovanteglobal-earth.dkim.brevo.com
+   mail               CNAME → mail-foovanteglobal-earth.brand.brevosend.com
+   _dmarc             v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com
+   @                  brevo-code:5adc12153f025f382a5ee59de6fe4cf1
+   ```
+
+   The apex SPF record belongs to **inbound** mail and is Email Routing's
+   business, not Brevo's — see the Email Routing section below.
+
+3. **Route `mail@` inbound.** Cloudflare Email Routing needs a rule for
+   `mail@foovanteglobal.earth`, or every reply to Becky bounces.
+
+Verify with a real send — a password reset or an invite — and check the
+message's `Authentication-Results` header for `spf=pass` and `dkim=pass`.
+
+---
+
+## Phase E3 — Cloudflare Email Routing (inbound mail is dead right now)
+
+Confirmed live, not assumed:
+
+```
+$ dig +short MX foovanteglobal.earth
+10 eforward1.registrar-servers.com.    ← Namecheap Email Forwarding
+10 eforward2.registrar-servers.com.
+10 eforward3.registrar-servers.com.
+15 eforward4.registrar-servers.com.
+20 eforward5.registrar-servers.com.
+```
+
+Those hosts only forward while the domain uses **Namecheap** nameservers. It
+uses Cloudflare's (`sage`/`karina.ns.cloudflare.com`). So mail to this domain
+is being dropped, and has been since the nameserver switch — silently. No
+bounce anyone sees. It presents as "nobody has emailed us".
+
+This blocks `BREVO_SENDER_EMAIL=mail@foovanteglobal.earth` in a way that is
+easy to miss: Brevo will happily *send* as that address (DKIM is configured, so
+delivery is fine), but every **reply** goes into a black hole.
+
+Routing is inbound-only and completely independent of Brevo, which is outbound.
+They do not conflict.
+
+### E3.1 Verify a destination address
+
+Cloudflare → **Email → Email Routing → Get started**.
+
+Add a real mailbox under **Destination addresses** — a shared team inbox is
+better than a personal one. Cloudflare emails it a verification link that must
+be clicked. Status has to read **Verified** before any rule can use it; this is
+the step with an email round-trip in it, so start here.
+
+### E3.2 Create the routing rules
+
+Under **Routing rules**, at minimum:
+
+| Custom address | Destination |
+|---|---|
+| `mail@foovanteglobal.earth` | the verified address |
+
+`mail@` is the one the backend now sends as, so it is the one that must accept
+replies. Add `hello@`, `support@`, `info@` if wanted.
+
+Check the **Destination Addresses** tab reads **Verified**, not Pending. A rule
+pointing at an unverified destination silently delivers nothing even after
+routing is enabled, and the Overview's "Destination addresses: 1" counts it
+either way.
+
+Also enable the **catch-all** and point it at the same destination. Without it,
+mail to any address you did not think to list is rejected — including whatever
+a customer guesses.
+
+### E3.3 Enable, and let Cloudflare write the records
+
+Enabling shows the DNS it needs — three `route*.mx.cloudflare.net` MX records
+and an SPF TXT — and offers to add them. Let it.
+
+**Expect to get stuck here first.** With rules and a destination created, the
+Overview still reads:
+
+```
+Status: Disabled          DNS records: Not configured
+Routing rules: 1          Destination addresses: 1        Domains: 1
+```
+
+That is not a bug and not a separate problem — the two fields are the same
+fact. Rules and destinations are only configuration; routing flips to Enabled
+when Cloudflare's MX records are actually authoritative for the zone. The five
+`eforward*` records at the apex are what stops that, because Cloudflare will
+not stack its MX alongside another provider's.
+
+Click the **"Not configured"** link (or the **Settings** tab) → **Add records
+automatically**. It should detect the conflict and offer to replace the old MX
+records; prefer that over deleting them yourself, since it swaps them in one
+operation. Only if it refuses, delete them by hand and click it again.
+
+Confirm with `dig` rather than the dashboard:
+
+```bash
+dig +short MX foovanteglobal.earth | grep -c mx.cloudflare.net   # must be 3
+```
+
+Then **delete the stale records by hand**, because Cloudflare will not remove
+what it did not create:
+
+- all five `eforward*.registrar-servers.com` MX records
+- the TXT `v=spf1 include:spf.efwd.registrar-servers.com ~all`
+
+That old SPF authorizes Namecheap's servers to send as this domain, and they no
+longer have anything to do with it.
+
+**Exactly one SPF TXT record must remain at the apex.** Two is a `permerror`
+that fails SPF for every message, which is worse than having none. Leaving the
+efwd record alongside Cloudflare's is the specific way this goes wrong.
+
+Leave the `brevo-code`, `_dmarc`, `brevo1/2._domainkey` and `mail` records
+alone — different job, all still needed.
+
+### E3.4 Verify
+
+```bash
+dig +short MX foovanteglobal.earth     # route1/2/3.mx.cloudflare.net, nothing else
+dig +short TXT foovanteglobal.earth    # exactly ONE v=spf1, naming cloudflare
+```
+
+Then send a real message from an outside account to
+`mail@foovanteglobal.earth` and confirm it lands. Until that arrives, mail is
+still on the floor — the dashboard showing "Enabled" is not the test.
+
+Finally, exercise the round trip that matters: trigger a password reset or an
+invite from the app, confirm it arrives, and check the message's
+`Authentication-Results` header for `dkim=pass`.
+
+### E3.5 Know the limitation before someone hits it
+
+**Email Routing forwards; it cannot send.** A reply typed in the destination
+mailbox goes out as *that* mailbox's address, not as `mail@foovanteglobal.earth`.
+Customers will see a personal Gmail address answering.
+
+To reply as Becky, add a "Send mail as" identity in the destination mailbox
+pointing at Brevo's SMTP relay (`smtp-relay.brevo.com:587`, with an SMTP key
+from Brevo). That is a separate piece of setup — worth doing before the address
+goes on anything customer-facing.
 
 ---
 
@@ -569,12 +915,7 @@ first green deploy means any breakage has two possible causes.
 
 ## Still open from HANDOFF.md — unrelated to this deploy, more urgent than it
 
-- **Email Routing is almost certainly down and failing silently.** The MX
-  records still point at `eforward*.registrar-servers.com`, but Namecheap Email
-  Forwarding only works while the domain uses Namecheap nameservers. Cloudflare
-  → Email → Email Routing → verify a destination → enable. It rewrites the MX
-  records itself. Nothing bounces visibly; it just looks like nobody is
-  emailing.
+- **Email Routing** — confirmed down. Now covered as Phase E3 above.
 - **Rotate the exposed secrets**: postgres (`ALTER USER`, not just the Secret —
   `POSTGRES_PASSWORD` applies at initdb only), redis, Neon, Upstash,
   `BETTER_AUTH_SECRET`. Use `openssl rand -hex 32` so the values are
