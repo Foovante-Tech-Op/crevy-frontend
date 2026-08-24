@@ -1,0 +1,24 @@
+# Service for crevy-frontend.
+#
+# Kept out of deployment.yaml deliberately: the CI deploy job applies that file
+# as the namespace-scoped `crevy-deploy` ServiceAccount, whose Role covers
+# deployments, replicasets and pods only. A Service in the same file fails the
+# apply with "services ... is forbidden" AFTER the Deployment has already
+# applied, reporting a half-applied deploy as a failure.
+#
+# Apply by hand when it changes:
+#   kubectl apply -f k8s/service.yaml -n crevy
+apiVersion: v1
+kind: Service
+metadata:
+  name: crevy-frontend-service
+  labels:
+    app: crevy-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: crevy-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

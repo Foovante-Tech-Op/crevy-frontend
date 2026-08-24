@@ -1,0 +1,51 @@
+# Non-secret runtime config for crevy-frontend.
+#
+# NEXT_PUBLIC_API_URL is listed here for reference, but it is a BUILD-time
+# value: next.config.ts inlines it into the rewrite destinations, and
+# NEXT_PUBLIC_* is substituted at compile time. Setting it here does not change
+# an already-built image. It is passed as a --build-arg in CI; this file
+# records what that value should be.
+#
+# The same is true of every other NEXT_PUBLIC_* the app reads
+# (NEXT_PUBLIC_SITE_URL, _APP_URL, _MAPBOX_TOKEN, _STORAGE_URL,
+# _STORAGE_UPLOAD_ORIGIN, _CLOUDINARY_URL). They live in GitHub repo
+# variables/secrets and are passed as --build-arg — see the Dockerfile for
+# what each one breaks when it is missing. Adding them to this ConfigMap
+# would change nothing.
+#
+# It must be the INTERNAL Service, not https://api.foovanteglobal.earth.
+# src/lib/axiosClient.tsx returns "" in the browser and only reads this
+# variable server-side (SSR fetches and the rewrite proxy), so every use stays
+# inside the cluster. Pointing it at the public hostname would send each
+# server-rendered request out to Cloudflare and back over TLS to the same
+# machine.
+#
+# Apply by hand — the deploy ServiceAccount's Role does not cover ConfigMaps:
+#   kubectl apply -f k8s/configmap.yaml -n crevy
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  labels:
+    app: crevy-frontend
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  HOSTNAME: "0.0.0.0"
+  NEXT_PUBLIC_API_URL: "http://crevy-backend-service.crevy.svc.cluster.local"
+
+  # SITE_URL is the one variable here that genuinely takes effect at RUNTIME.
+  # It has no NEXT_PUBLIC_ prefix, so it is read from the environment rather
+  # than inlined at compile time, and src/lib/auth-server.ts checks it FIRST —
+  # ahead of NEXT_PUBLIC_APP_URL and NEXT_PUBLIC_SITE_URL — when building the
+  # absolute URL for getServerSession's fetch of /api/auth/get-session.
+  #
+  # It must be the PUBLIC frontend origin, not the internal Service. That fetch
+  # goes back through this pod's own Next rewrite so the auth cookie stays
+  # same-origin; a cluster-internal name would change the origin the request
+  # appears to come from and better-auth would reject it.
+  #
+  # With none of the three set, getServerSession logs "No site URL env var
+  # found" and returns null — every server-rendered page renders logged-out for
+  # a user who is in fact signed in.
+  SITE_URL: "https://crevy.foovanteglobal.earth"

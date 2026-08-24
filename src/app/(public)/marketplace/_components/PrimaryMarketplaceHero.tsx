@@ -162,18 +162,21 @@ export default function PrimaryMarketplaceHero() {
               className="absolute top-[35%] left-[5%] w-[320px] h-[220px] border border-brand bg-foreground/80 p-2 z-20 group shadow-2xl shadow-brand/10 rounded-none backdrop-blur-sm"
             >
               <div className="relative w-full h-full overflow-hidden border border-slate-800 rounded-none bg-black">
-                <video
-                  src="https://www.pexels.com/download/video/34494550"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover opacity-65 group-hover:mix-blend-normal group-hover:opacity-90 transition-all duration-700"
+                {/* Was a hardcoded pexels.com video src, CSP-blocked in
+                    production (media-src only allows 'self', blob: and
+                    Cloudinary). Swapped for a static image — pexels.com
+                    images are already allowlisted under img-src — until a
+                    real clip is produced and hosted on Cloudinary. */}
+                <Image
+                  src="https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg"
+                  alt="Field monitoring"
+                  fill
+                  className="object-cover opacity-65 group-hover:mix-blend-normal group-hover:opacity-90 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
                 <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center z-10">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-brand font-bold animate-pulse">
-                    LIVE STREAM
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-brand font-bold">
+                    Field Monitoring
                   </span>
                   <div className="w-1.5 h-1.5 bg-brand rounded-none" />
                 </div>

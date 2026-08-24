@@ -339,9 +339,7 @@ function FoundationalStandards() {
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand mb-4 pb-4 border-b border-slate-100">
                 CORE STANDARD
               </div>
-              <h3 className="text-lg font-bold text-brand mb-4">
-                {std.title}
-              </h3>
+              <h3 className="text-lg font-bold text-brand mb-4">{std.title}</h3>
               <p className="text-sm text-slate-500 leading-relaxed flex-grow mb-6">
                 {std.purpose}
               </p>
@@ -564,11 +562,7 @@ function TelemetrySpecs() {
       <div className="container mx-auto max-w-[1400px]">
         <div className="grid grid-cols-1 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 border border-slate-200">
           <div className="p-8 lg:p-12 lg:col-span-1 flex flex-col justify-center bg-slate-100/50">
-            <Globe2
-              className="text-brand mb-6"
-              size={32}
-              strokeWidth={1.5}
-            />
+            <Globe2 className="text-brand mb-6" size={32} strokeWidth={1.5} />
             <h2 className="text-2xl text-slate-900 mb-4 leading-tight">
               Data Ingestion Pipeline
             </h2>
@@ -780,7 +774,11 @@ function TreeToTokenPipeline() {
           <div className="lg:col-span-5 space-y-6 relative before:absolute before:inset-0 before:ml-[31px] before:-translate-x-px before:h-full before:w-[2px] before:bg-slate-200">
             <div className="relative flex items-start gap-6 group">
               <div className="flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-900 shrink-0 relative z-10 group-hover:border-brand group-hover:bg-brand transition-colors">
-                <HardDrive className="text-brand group-hover:text-white" size={24} strokeWidth={1.5} />
+                <HardDrive
+                  className="text-brand group-hover:text-white"
+                  size={24}
+                  strokeWidth={1.5}
+                />
               </div>
               <div className="pt-2">
                 <h4 className="font-bold text-slate-900 text-lg mb-1">
@@ -794,7 +792,11 @@ function TreeToTokenPipeline() {
             </div>
             <div className="relative flex items-start gap-6 group">
               <div className="flex items-center justify-center w-16 h-16 bg-white border border-slate-200 text-slate-900 shrink-0 relative z-10 group-hover:border-brand group-hover:bg-brand transition-colors">
-                <Database className="text-brand group-hover:text-white" size={24} strokeWidth={1.5} />
+                <Database
+                  className="text-brand group-hover:text-white"
+                  size={24}
+                  strokeWidth={1.5}
+                />
               </div>
               <div className="pt-2">
                 <h4 className="font-bold text-slate-900 text-lg mb-1">
@@ -808,7 +810,11 @@ function TreeToTokenPipeline() {
             </div>
             <div className="relative flex items-start gap-6 group">
               <div className="flex items-center justify-center w-16 h-16 bg-brand border border-brand text-white shrink-0 relative z-10 group-hover:bg-white">
-                <LinkIcon className="group-hover:text-brand" size={24} strokeWidth={1.5} />
+                <LinkIcon
+                  className="group-hover:text-brand"
+                  size={24}
+                  strokeWidth={1.5}
+                />
               </div>
               <div className="pt-2">
                 <h4 className="font-bold text-slate-900 text-lg mb-1">

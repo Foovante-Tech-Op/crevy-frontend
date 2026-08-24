@@ -1,0 +1,267 @@
+# Build, scan, push and deploy crevy-frontend to the k3s VPS.
+#
+# Deliberately parallel to crevy-backend's pipeline, including the fixes that
+# took a while to find there. Each comment marked WHY records a failure that
+# actually happened, so it is not reintroduced.
+name: CI/CD - Build, Scan & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy after a successful build"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  # WHY: github/codeql-action/upload-sarif calls
+  # GET /repos/{owner}/{repo}/actions/runs/{run_id}. Declaring a permissions
+  # block at all drops every scope not listed, so without this the upload fails
+  # "Resource not accessible by integration" — naming the workflow-runs
+  # endpoint, not security-events, which was already granted.
+  actions: read
+
+env:
+  REGISTRY: ghcr.io
+  K8S_NAMESPACE: crevy
+  K8S_DEPLOYMENT: crevy-frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.ref }}
+    env:
+      # WHY resolved here rather than referenced directly in `if:`: the
+      # `secrets` context is not available in step-level `if:` expressions
+      # (only in `env:`, `with:` and credential blocks). Job-level `env:` CAN
+      # read secrets, so the presence check happens once here and the steps
+      # below test `env.HAS_SONAR_TOKEN` instead.
+      HAS_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so SonarCloud can attribute new code by blame. With
+          # the default shallow clone every line looks new, and the "new code"
+          # quality gate is measured against the wrong denominator.
+          fetch-depth: 0
+
+      - name: Compute image reference
+        id: image
+        # GHCR paths must be lowercase; the org name is not.
+        run: echo "ref=${REGISTRY}/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # WHY: reads .nvmrc rather than hardcoding a major here. The same
+          # file is the default for the Dockerfile's NODE_VERSION arg and is
+          # passed into the image build below, so the version the app is built
+          # and tested on cannot drift from the one it ships on.
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Resolve Node version for the image build
+        id: node
+        run: echo "version=$(tr -d ' \r\n' < .nvmrc)" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      # Biome does not typecheck — it parses, it does not resolve types across
+      # modules. `next build` would catch this eventually, but only after the
+      # whole Docker build has run, so failing here is minutes cheaper and the
+      # error points at the file rather than at a build stage.
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      # Trivy filesystem scan — dependency CVEs in the source tree, as opposed
+      # to the image scan further down which covers the base image and the
+      # production node_modules that actually ship.
+      #
+      # Split in two for the same reason as the image scan: when the action
+      # builds a SARIF report it rewrites `severity` to every level, so a
+      # single sarif step with exit-code "1" fails on any LOW anywhere.
+      - name: Trivy filesystem scan (report)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs-results.sarif
+          exit-code: "0"
+
+      - name: Upload Trivy FS results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        # always() alone also fires when the scan never ran because an earlier
+        # step failed, and upload-sarif hard-errors on a missing file — burying
+        # the real failure under a misleading second one.
+        if: always() && hashFiles('trivy-fs-results.sarif') != ''
+        with:
+          sarif_file: trivy-fs-results.sarif
+          category: trivy-fs
+
+      - name: Trivy filesystem scan (gate on CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      # --- SonarCloud ---
+      # Deliberately bare, and do NOT add a "Set up JDK 21" step. SonarCloud's
+      # analysis engine requires Java 21+ and the scanner CLI this action
+      # installs bundles Java 17, but the scanner provisions a Java 21 JRE for
+      # itself on startup — that is the supported path and needs no config.
+      # An explicit JDK step cannot work anyway: the action calls
+      # core.exportVariable('SONAR_SCANNER_JRE', <bundled jre>) while it runs,
+      # overwriting anything the step's `env:` set, and the scanner still dies
+      # on "Java 17 is not supported".
+      - name: SonarCloud scan
+        if: ${{ env.HAS_SONAR_TOKEN == 'true' }}
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Reports the gate, does not enforce it. This repo has no test suite, so
+      # Coverage on New Code is 0% and a blocking gate would reject every
+      # commit. Drop `continue-on-error` once there are tests and the threshold
+      # is being met.
+      - name: SonarCloud Quality Gate
+        if: ${{ env.HAS_SONAR_TOKEN == 'true' }}
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          target: runner
+          tags: ${{ steps.image.outputs.ref }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Every NEXT_PUBLIC_* is inlined into the bundle at COMPILE time, so
+          # each one that belongs in the image has to be listed here. A missing
+          # value never fails the build — see the Dockerfile for what each one
+          # breaks silently at runtime instead.
+          #
+          # NEXT_PUBLIC_MAPBOX_TOKEN comes from `secrets` only so it stays
+          # masked in the run log. It is not actually confidential: NEXT_PUBLIC_
+          # means it is compiled into the client bundle and served to every
+          # visitor. Restrict it by URL in the Mapbox dashboard, not by hiding
+          # it here.
+          build-args: |
+            NODE_VERSION=${{ steps.node.outputs.version }}
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_STORAGE_URL=${{ vars.NEXT_PUBLIC_STORAGE_URL }}
+            NEXT_PUBLIC_STORAGE_UPLOAD_ORIGIN=${{ vars.NEXT_PUBLIC_STORAGE_UPLOAD_ORIGIN }}
+            NEXT_PUBLIC_CLOUDINARY_URL=${{ vars.NEXT_PUBLIC_CLOUDINARY_URL }}
+            NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
+
+      # Two steps rather than one: a single Trivy step with `severity` set
+      # still exits non-zero on ANY finding regardless of that filter, so the
+      # report and the gate are separated.
+      - name: Trivy image scan (report)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image.outputs.ref }}
+          format: sarif
+          output: trivy-image-results.sarif
+          exit-code: "0"
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        # WHY: publishing to the Security tab needs code scanning enabled on
+        # the repo. Until it is, this fails — and a reporting step should never
+        # take the deploy down with it. The gate below is what enforces.
+        continue-on-error: true
+        if: always() && hashFiles('trivy-image-results.sarif') != ''
+        with:
+          sarif_file: trivy-image-results.sarif
+          # WHY: without distinct categories, two SARIF uploads in one job
+          # collide — "only one run of the codeql/analyze or
+          # codeql/upload-sarif actions is allowed per job per tool/category"
+          # — and the second is silently dropped.
+          category: trivy-image
+
+      - name: Trivy image scan (gate on CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image.outputs.ref }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
+        run: docker push ${{ steps.image.outputs.ref }}
+
+  deploy:
+    needs: build
+    if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)) && needs.build.result == 'success'
+    # The self-hosted runner on the VPS, installed by
+    # crevy-backend/k8s/install-github-runner.sh. It polls GitHub over outbound
+    # HTTPS, so there is no inbound SSH for CI to authenticate.
+    runs-on: [self-hosted, crevy-vps]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # WHY apply, not `kubectl set image`: set image edits one field and
+      # leaves the rest of the live object untouched, so the cluster silently
+      # drifts from the repo. On the backend, adding imagePullSecrets had no
+      # effect until someone ran apply by hand, and the resulting failure said
+      # "failed to fetch anonymous token" — pointing at the registry rather
+      # than the missing field.
+      #
+      # The sed rewrites only the ghcr.io line.
+      - name: Apply manifest and wait for rollout
+        env:
+          IMAGE: ${{ needs.build.outputs.image }}
+        run: |
+          set -euo pipefail
+          sed -E "s#^( *image: )ghcr\.io/.*#\1${IMAGE}#" k8s/deployment.yaml \
+            | kubectl apply -n "$K8S_NAMESPACE" -f -
+          # Generous timeout: a cold Next.js start plus probe backoff can
+          # exceed 120s and fail a rollout that was still healthy.
+          kubectl rollout status deployment/"$K8S_DEPLOYMENT" \
+            -n "$K8S_NAMESPACE" --timeout=300s

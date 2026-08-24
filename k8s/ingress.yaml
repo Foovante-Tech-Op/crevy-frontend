@@ -1,0 +1,111 @@
+# Ingress for crevy-frontend at crevy.foovanteglobal.earth.
+#
+#   client -> crevy.foovanteglobal.earth (A -> 169.58.154.18)
+#     -> Traefik (bundled with k3s, exposed on the host by servicelb)
+#     -> this Ingress, matched on Host
+#     -> Service crevy-frontend-service:80
+#     -> pod :3000
+#
+# ─── TLS: CLOUDFLARE ORIGIN CA, BEHIND THE PROXY ────────────────────────────
+# This host serves a Cloudflare Origin CA certificate and is orange-clouded,
+# matching api. (Phase 5b of CLOUDFLARE_MIGRATION.md in crevy-backend). The two
+# hostnames must not diverge.
+#
+# An Origin CA certificate is trusted ONLY by Cloudflare. The moment this host
+# is grey-clouded, or anyone reaches 169.58.154.18 directly, TLS fails with an
+# untrusted-issuer error. Flipping the cloud icon back is NOT a rollback.
+#
+# secretName below refers to a Secret created by hand from the PEM pair
+# Cloudflare issues — ONE certificate whose SAN list covers both hostnames:
+#   kubectl create secret tls crevy-origin-tls \
+#     --cert=origin.pem --key=origin.key -n crevy
+# No cert-manager annotation and no ACME: the certificate is valid 15 years, so
+# there is no renewal to fail. Proxying is what breaks HTTP-01 renewal, and
+# that failure would otherwise surface ~60 days later, long after anyone
+# connects it to this change.
+#
+# ─── SET SSL MODE TO FULL (STRICT) BEFORE ORANGE-CLOUDING ───────────────────
+# Flexible talks to the origin over plain HTTP. Combined with the HTTP->HTTPS
+# redirect below that is an infinite redirect loop. Order: mode first, cloud
+# icon second.
+#
+# Admin-applied — the deploy ServiceAccount's Role does not cover
+# networking.k8s.io:
+#   kubectl apply -f k8s/ingress.yaml -n crevy
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crevy-frontend
+  labels:
+    app: crevy-frontend
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - crevy.foovanteglobal.earth
+      # Shared with the backend Ingress — one Origin CA certificate covering
+      # both api. and crevy., so there is one Secret to create and one thing
+      # to replace in 15 years.
+      secretName: crevy-origin-tls
+  rules:
+    - host: crevy.foovanteglobal.earth
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: crevy-frontend-service
+                port:
+                  number: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: frontend-redirect-to-https
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+# HTTP-only Ingress whose only job is the redirect.
+#
+# Behind the proxy on Full (strict), Cloudflare always speaks HTTPS to the
+# origin, so this router only ever sees direct-to-IP plain HTTP — and once the
+# firewall is locked to Cloudflare's ranges it sees nothing at all. Kept
+# because it costs nothing and is correct if the host is ever exposed again,
+# not because anything depends on it today.
+#
+# A separate resource because
+# the router above is TLS-only on every entrypoint it binds to, so plain HTTP
+# never matches it and falls through to Traefik's default 404 — and a
+# middleware cannot fix that, since a request must match a router before any
+# middleware runs.
+#
+# The middleware reference format is <namespace>-<name>@kubernetescrd. It is
+# not the bare resource name, and getting it wrong fails silently as a 404.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crevy-frontend-http-redirect
+  labels:
+    app: crevy-frontend
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: crevy-frontend-redirect-to-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: crevy.foovanteglobal.earth
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: crevy-frontend-service
+                port:
+                  number: 80

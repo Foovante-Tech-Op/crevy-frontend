@@ -1,0 +1,85 @@
+# Deployment for crevy-frontend.
+#
+# ─── THIS FILE MUST CONTAIN THE DEPLOYMENT AND NOTHING ELSE ─────────────────
+# CI applies it as the namespace-scoped `crevy-deploy` ServiceAccount, whose
+# Role covers deployments/replicasets/pods. `apply` on an existing Deployment
+# is a PATCH, which that Role permits; anything else in this file fails the
+# step with "... is forbidden" after the Deployment has already applied.
+# Service, Ingress and ConfigMap live in their own files, applied by an admin.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crevy-frontend
+  labels:
+    app: crevy-frontend
+spec:
+  replicas: 1
+  # Kubernetes keeps 10 superseded ReplicaSets by default. A run of failed
+  # deploys leaves a long tail of 0/0/0 entries cluttering `kubectl get rs` at
+  # exactly the moment you are trying to work out which pod is live.
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: crevy-frontend
+  template:
+    metadata:
+      labels:
+        app: crevy-frontend
+    spec:
+      # ghcr.io/foovante-tech-op/crevy-frontend is a PRIVATE package, and
+      # package visibility is independent of repository visibility. Without
+      # this the kubelet pulls anonymously, gets a 401, and the pod sits in
+      # ImagePullBackOff while `kubectl rollout status` reports only "timed out
+      # waiting for the condition" — pointing nowhere near the registry.
+      # Reuses the same Secret as the backend:
+      #   kubectl create secret docker-registry ghcr-pull \
+      #     --docker-server=ghcr.io --docker-username=<user> \
+      #     --docker-password=<PAT with read:packages> -n crevy
+      imagePullSecrets:
+        - name: ghcr-pull
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: web
+          # :latest is a placeholder for the first manual apply only. CI never
+          # publishes it — images are tagged by commit SHA — so applying this
+          # file unmodified points at a tag that does not exist in GHCR.
+          # The deploy job substitutes the real image before applying.
+          image: ghcr.io/foovante-tech-op/crevy-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: frontend-config
+          # Next's standalone server has no dedicated health route, so probe
+          # the app root. It returns 200 once the server is accepting requests.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
