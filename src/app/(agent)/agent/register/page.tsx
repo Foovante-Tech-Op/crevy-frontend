@@ -320,9 +320,10 @@ export default function RegisterDeveloperPage() {
   const emailIsWellFormed =
     trimmedEmail === "" || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmedEmail);
 
-  // Only genuinely required when a login is going to be created for them.
-  const emailIsRequired =
-    draft.entityType !== "individual" && draft.hasEmailAccess;
+  // Only genuinely required when a login is going to be created for them —
+  // which is now decided purely by hasEmailAccess, on every entity type. An
+  // individual used to be excluded from the capability questions entirely.
+  const emailIsRequired = draft.hasEmailAccess;
 
   const canProceedStep1 =
     draft.developerName.trim().length >= 2 &&
@@ -349,13 +350,14 @@ export default function RegisterDeveloperPage() {
         idPhotoUrl: draft.idPhotoObjectKey
           ? (StorageService.resolveUrl(draft.idPhotoObjectKey) as string)
           : undefined,
-        ...(draft.entityType !== "individual"
-          ? {
-              hasEmailAccess: draft.hasEmailAccess,
-              hasWebAccess: draft.hasWebAccess,
-              agentManagesAccount: draft.agentManagesAccount,
-            }
-          : {}),
+        // Sent for every entity type. These used to be stripped for an
+        // individual, and the API forced them to false to match — so the
+        // registrations most likely to involve someone with no email and no
+        // smartphone were the ones that recorded neither fact, nor the
+        // consent to an agent operating the account on their behalf.
+        hasEmailAccess: draft.hasEmailAccess,
+        hasWebAccess: draft.hasWebAccess,
+        agentManagesAccount: draft.agentManagesAccount,
         location:
           draft.region && draft.lat && draft.lng
             ? {
@@ -460,132 +462,113 @@ export default function RegisterDeveloperPage() {
               </Select>
             </div>
 
-            {draft.entityType === "individual" ? (
-              <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email (optional)
-                  <span className="text-slate-400 font-normal normal-case">
-                    {" — we'll send them a link to manage their project online"}
-                  </span>
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="farmer@example.com"
-                  value={draft.email}
-                  onChange={(e) => update({ email: e.target.value })}
-                  className="h-12 text-base"
-                />
-                {!emailIsWellFormed && (
-                  <p className="text-xs text-red-600">
-                    That doesn't look like a valid email address. Correct it, or
-                    clear the field to skip it.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3 pt-2 border-t border-slate-100">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                  About {draft.developerName.trim() || "this contact"}
-                  {"'s access"}
-                </p>
-                <div className="p-4 bg-slate-50 border border-slate-200">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="hasEmailAccess"
-                      checked={draft.hasEmailAccess}
-                      onCheckedChange={(checked) =>
-                        update({ hasEmailAccess: !!checked })
-                      }
-                      className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
-                    />
-                    <div>
-                      <label
-                        htmlFor="hasEmailAccess"
-                        className="text-sm font-medium text-slate-800 cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Mail className="h-3.5 w-3.5" /> Has an active email
-                        account
-                      </label>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {draft.hasEmailAccess
-                          ? "They'll get an account and a 14-day setup code by email + SMS to choose their own password."
-                          : "No account will be created — just a roster entry, with a plain SMS confirming they've been registered."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {draft.hasEmailAccess && (
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="farmer@example.com"
-                      value={draft.email}
-                      onChange={(e) => update({ email: e.target.value })}
-                      className="h-12 text-base"
-                    />
-                    {!emailIsWellFormed && (
-                      <p className="text-xs text-red-600">
-                        That doesn't look like a valid email address.
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div className="p-4 bg-slate-50 border border-slate-200">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="hasWebAccess"
-                      checked={draft.hasWebAccess}
-                      onCheckedChange={(checked) =>
-                        update({ hasWebAccess: !!checked })
-                      }
-                      className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
-                    />
-                    <div>
-                      <label
-                        htmlFor="hasWebAccess"
-                        className="text-sm font-medium text-slate-800 cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Wifi className="h-3.5 w-3.5" /> Can get online
-                        (smartphone / computer)
-                      </label>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Independent of email access — used to plan outreach.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-amber-50 border border-amber-200">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="agentManagesAccount"
-                      checked={draft.agentManagesAccount}
-                      onCheckedChange={(checked) =>
-                        update({ agentManagesAccount: !!checked })
-                      }
-                      className="mt-0.5 rounded-none border-amber-300 data-[state=checked]:bg-amber-900 data-[state=checked]:border-amber-900"
-                    />
-                    <div>
-                      <label
-                        htmlFor="agentManagesAccount"
-                        className="text-sm font-medium text-amber-900 cursor-pointer flex items-center gap-1.5"
-                      >
-                        <ShieldCheck className="h-3.5 w-3.5" /> Consents to you
-                        managing their account on their behalf
-                      </label>
-                      <p className="text-xs text-amber-800/70 mt-1">
-                        Ask this explicitly — required for the record.
-                      </p>
-                    </div>
+            {/* Asked on every entity type. This was an either/or: an
+                individual got a bare optional-email field and nothing else,
+                while a cooperative/company lead got the three questions
+                below. Same person either way, and the answers matter most
+                for the individual — they are the likeliest to have no email
+                account and no way online. */}
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                About {draft.developerName.trim() || "this contact"}
+                {"'s access"}
+              </p>
+              <div className="p-4 bg-slate-50 border border-slate-200">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="hasEmailAccess"
+                    checked={draft.hasEmailAccess}
+                    onCheckedChange={(checked) =>
+                      update({ hasEmailAccess: !!checked })
+                    }
+                    className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
+                  />
+                  <div>
+                    <label
+                      htmlFor="hasEmailAccess"
+                      className="text-sm font-medium text-slate-800 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Mail className="h-3.5 w-3.5" /> Has an active email
+                      account
+                    </label>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {draft.hasEmailAccess
+                        ? "They'll get an account and a 14-day setup code by email + SMS to choose their own password."
+                        : "No account will be created — just a roster entry, with a plain SMS confirming they've been registered."}
+                    </p>
                   </div>
                 </div>
               </div>
-            )}
+
+              {draft.hasEmailAccess && (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="farmer@example.com"
+                    value={draft.email}
+                    onChange={(e) => update({ email: e.target.value })}
+                    className="h-12 text-base"
+                  />
+                  {!emailIsWellFormed && (
+                    <p className="text-xs text-red-600">
+                      That doesn't look like a valid email address.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="p-4 bg-slate-50 border border-slate-200">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="hasWebAccess"
+                    checked={draft.hasWebAccess}
+                    onCheckedChange={(checked) =>
+                      update({ hasWebAccess: !!checked })
+                    }
+                    className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
+                  />
+                  <div>
+                    <label
+                      htmlFor="hasWebAccess"
+                      className="text-sm font-medium text-slate-800 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Wifi className="h-3.5 w-3.5" /> Can get online
+                      (smartphone / computer)
+                    </label>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Independent of email access — used to plan outreach.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-amber-50 border border-amber-200">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="agentManagesAccount"
+                    checked={draft.agentManagesAccount}
+                    onCheckedChange={(checked) =>
+                      update({ agentManagesAccount: !!checked })
+                    }
+                    className="mt-0.5 rounded-none border-amber-300 data-[state=checked]:bg-amber-900 data-[state=checked]:border-amber-900"
+                  />
+                  <div>
+                    <label
+                      htmlFor="agentManagesAccount"
+                      className="text-sm font-medium text-amber-900 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" /> Consents to you
+                      managing their account on their behalf
+                    </label>
+                    <p className="text-xs text-amber-800/70 mt-1">
+                      Ask this explicitly — required for the record.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}

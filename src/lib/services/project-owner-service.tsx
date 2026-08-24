@@ -129,12 +129,27 @@ export type ProjectOwnerListResponse = {
   total: number;
 };
 
+// The `firstName`..`agentManagesAccount` block describes the LEAD — the
+// person being onboarded in this request, who becomes 'owner' on the
+// project developer.
+//
+// No password, for the same reason AddProjectOwnerMemberPayload below has
+// never had one: whoever fills this form in would then know the developer's
+// credential. The lead was the last place that still collected one. They now
+// get the same 14-day claim code every member gets, by email and SMS, and
+// choose their own password at /developer/claim.
+//
+// The three capability answers are required on every entityType, individual
+// included — they decide whether an account is ever created (hasEmailAccess)
+// and record the consent to Crevy operating it.
 export type ProjectOwnerOnboardPayload = {
   firstName: string;
   lastName: string;
   email?: string | null;
   contactNumber: string;
-  password: string;
+  hasEmailAccess: boolean;
+  hasWebAccess: boolean;
+  agentManagesAccount: boolean;
   countryOfOperation: string;
   partnerId?: number | null;
   assignedAdminId?: string | null;
@@ -207,8 +222,14 @@ export const ProjectOwnerService = {
 
   /**
    * Onboard a new project owner (admin / field-agent only).
-   * The backend creates the Better Auth user, project owner profile,
-   * farm plot, and assignment in a single atomic transaction.
+   *
+   * The backend creates the project developer profile, the lead's membership
+   * row, the farm plot and the assignment in a single atomic transaction —
+   * and, when the lead has email access, a 14-day claim code sent to them.
+   *
+   * It no longer creates a Better Auth user here. That happens when the
+   * person redeems their code, which is what lets them set their own
+   * password instead of being handed one.
    */
   onboardProjectOwner: async (
     payload: ProjectOwnerOnboardPayload,

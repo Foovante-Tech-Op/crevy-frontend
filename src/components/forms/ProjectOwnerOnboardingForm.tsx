@@ -66,7 +66,9 @@ export default function ProjectOwnerOnboardingForm() {
       lastName: "",
       email: "",
       contactNumber: "",
-      password: "",
+      hasEmailAccess: false,
+      hasWebAccess: false,
+      agentManagesAccount: false,
       countryOfOperation: "Ghana",
       paymentMethod: "momo",
       assignmentType: "primary",
@@ -89,6 +91,9 @@ export default function ProjectOwnerOnboardingForm() {
   const watchedFirstName = form.watch("firstName");
   const watchedLastName = form.watch("lastName");
   const watchedPaymentMethod = form.watch("paymentMethod");
+  // Drives both the email label/requirement and the explanatory copy under
+  // the checkbox — this is the flag that decides whether an account exists.
+  const watchedHasEmailAccess = form.watch("hasEmailAccess");
   const watchedLatitude = form.watch("latitude");
   const watchedLongitude = form.watch("longitude");
 
@@ -115,7 +120,10 @@ export default function ProjectOwnerOnboardingForm() {
         "firstName",
         "lastName",
         "contactNumber",
-        "password",
+        "email",
+        "hasEmailAccess",
+        "hasWebAccess",
+        "agentManagesAccount",
         "countryOfOperation",
       ];
     else if (currentStep === 2) {
@@ -141,7 +149,9 @@ export default function ProjectOwnerOnboardingForm() {
         lastName: data.lastName,
         email: data.email || null,
         contactNumber: data.contactNumber,
-        password: data.password,
+        hasEmailAccess: data.hasEmailAccess,
+        hasWebAccess: data.hasWebAccess,
+        agentManagesAccount: data.agentManagesAccount,
         countryOfOperation: data.countryOfOperation,
         partnerId: data.partnerId,
         assignedAdminId: data.assignedAdminId,
@@ -177,7 +187,15 @@ export default function ProjectOwnerOnboardingForm() {
       };
 
       await ProjectOwnerService.onboardProjectOwner(payload);
-      toast.success("Project Owner registered successfully!");
+      // Say what actually happens next. Whoever fills this in used to set
+      // the password and could tell the developer what it was; now the
+      // developer receives a code and sets their own, so the operator needs
+      // to know that's pending rather than assume the account is ready.
+      toast.success(
+        data.hasEmailAccess
+          ? `Project Developer registered — a 14-day setup code was sent to ${data.email}.`
+          : "Project Developer registered as a roster entry. No account was created, since they have no email access.",
+      );
       router.push("/projects/new");
     } catch (error: any) {
       toast.error(
@@ -284,7 +302,11 @@ export default function ProjectOwnerOnboardingForm() {
                     />
                     <CustomInput
                       name="email"
-                      label="Email Address (Optional)"
+                      label={
+                        watchedHasEmailAccess
+                          ? "Email Address"
+                          : "Email Address (Optional)"
+                      }
                       placeholder="contact@domain.com"
                       control={form.control}
                       type="email"
@@ -294,14 +316,6 @@ export default function ProjectOwnerOnboardingForm() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <CustomInput
-                      name="password"
-                      label="Password"
-                      placeholder="Min. 8 chars"
-                      control={form.control}
-                      type="password"
-                      disabled={loading}
-                    />
-                    <CustomInput
                       name="countryOfOperation"
                       label="Country of operation"
                       placeholder="Ghana"
@@ -309,6 +323,106 @@ export default function ProjectOwnerOnboardingForm() {
                       type="text"
                       disabled={loading}
                     />
+                  </div>
+
+                  {/* ── Access & consent ──
+                      Replaces the password field that used to sit here. The
+                      developer sets their own password from a 14-day code we
+                      send them; nobody in this office ever knows it. These
+                      three answers are the same ones the field agent's
+                      on-site form asks, so a developer registered at a desk
+                      and one registered in a field produce the same record. */}
+                  <div className="space-y-4 pt-8 border-t border-slate-200">
+                    <div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        Access &amp; Consent
+                      </Label>
+                      <p className="text-xs text-slate-500 mt-2">
+                        Ask these directly — they decide whether an account is
+                        created at all, and the consent is a legal record.
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border border-slate-200">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="hasEmailAccess"
+                          checked={watchedHasEmailAccess}
+                          onCheckedChange={(checked) =>
+                            form.setValue("hasEmailAccess", !!checked, {
+                              shouldValidate: true,
+                            })
+                          }
+                          disabled={loading}
+                          className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
+                        />
+                        <div>
+                          <label
+                            htmlFor="hasEmailAccess"
+                            className="text-sm font-medium text-slate-800 cursor-pointer"
+                          >
+                            Has an active email account
+                          </label>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {watchedHasEmailAccess
+                              ? "They'll get a 14-day setup code by email and SMS to choose their own password."
+                              : "No account will be created — a roster entry only, with an SMS confirming registration."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border border-slate-200">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="hasWebAccess"
+                          checked={form.watch("hasWebAccess")}
+                          onCheckedChange={(checked) =>
+                            form.setValue("hasWebAccess", !!checked)
+                          }
+                          disabled={loading}
+                          className="mt-0.5 rounded-none border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900"
+                        />
+                        <div>
+                          <label
+                            htmlFor="hasWebAccess"
+                            className="text-sm font-medium text-slate-800 cursor-pointer"
+                          >
+                            Can get online (smartphone / computer)
+                          </label>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Independent of email access — used to plan outreach.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-amber-50 border border-amber-200">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="agentManagesAccount"
+                          checked={form.watch("agentManagesAccount")}
+                          onCheckedChange={(checked) =>
+                            form.setValue("agentManagesAccount", !!checked)
+                          }
+                          disabled={loading}
+                          className="mt-0.5 rounded-none border-amber-300 data-[state=checked]:bg-amber-900 data-[state=checked]:border-amber-900"
+                        />
+                        <div>
+                          <label
+                            htmlFor="agentManagesAccount"
+                            className="text-sm font-medium text-amber-900 cursor-pointer"
+                          >
+                            Consents to Crevy managing their account on their
+                            behalf
+                          </label>
+                          <p className="text-xs text-amber-800/70 mt-1">
+                            Ask explicitly — recorded against their name with a
+                            timestamp.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
