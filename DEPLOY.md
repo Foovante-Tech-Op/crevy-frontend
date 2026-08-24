@@ -292,10 +292,32 @@ Note the repo has unrelated work in progress (`MAKEOVER.md`, `globals.css`,
 It runs: lint → typecheck → Trivy fs (report + gate) → SonarCloud → build image
 → Trivy image (report + gate) → push to GHCR.
 
-Expect the **Trivy gates** to be where it stops, if anywhere. They fail the run
-on any CRITICAL or HIGH. If that happens, read the finding before reaching for
-`severity:` — the backend hit the same wall and the answer was to fix the
-dependency, not to widen the gate.
+The **Trivy gates** fail the run on any CRITICAL or HIGH. The first run hit ten
+HIGH findings; they are fixed, and the dependency floors below are what keeps
+them fixed. If a gate fails again, read the finding before reaching for
+`severity:` — the answer here was to fix the dependency, not to widen the gate.
+
+#### Dependency security floors — do not downgrade past these
+
+| Package | Floor | Why |
+|---|---|---|
+| `next` | `^16.3.2` | 16.2.9 carried an **authentication bypass** (CVE-2026-64642), two SSRFs (64645, 64649) and a DoS (64641), all fixed in 16.2.11. 16.3.2 is chosen over 16.2.12 because it also pins `postcss 8.5.23` and `sharp ^0.35.3`, which is what clears those two findings without an override. |
+| `better-auth` | `^1.6.22` | 1.6.19 allowed **account takeover via pre-account hijacking** on magic-link and email-OTP sign-in (GHSA-qq9h-g4jm-xgf3). This resolves to 1.7.1 — the same version crevy-backend resolves, which is deliberate: the frontend's `authClient` and the backend's better-auth server should not skew. Check both repos together when bumping either. |
+
+Verified after the bump: `trivy fs . --scanners vuln --severity CRITICAL,HIGH`
+reports 0, `tsc --noEmit` and `biome check` pass, `next build` is clean, and the
+staged standalone server serves `/` and `/_next/static/*` as 200 with the CSP
+intact.
+
+Two vulnerable copies remain in `pnpm-lock.yaml` and are **correctly** not
+flagged — both are dev-only, and Trivy suppresses dev dependencies:
+
+- `sharp@0.34.5` via `wrangler` → `miniflare`
+- `nanoid@3.3.13` via `@tailwindcss/postcss` → `postcss@8.5.15`
+
+Neither reaches the runtime image, which contains only `.next/standalone` plus
+`.next/static` and `public`. Removing the dead Cloudflare tooling (Phase F)
+eliminates the `sharp` one outright.
 
 ### C3. First rollout
 
@@ -517,6 +539,21 @@ first green deploy means any breakage has two possible causes.
    footgun: `pnpm deploy` currently pushes to Cloudflare instead of building
    the container, and those devDependencies are extra surface for the Trivy
    filesystem gate to fail on.
+
+   It has also started actively getting in the way. `@cloudflare/next-on-pages`
+   declares `next@">=14.3.0 && <=15.5.2"` and is missing a `vercel` peer
+   entirely, so every `pnpm install` now prints:
+
+   ```
+   WARN  Issues with peer dependencies found
+   └─┬ @cloudflare/next-on-pages 1.13.16
+     ├── ✕ missing peer vercel@">=30.0.0 && <=47.0.4"
+     └── ✕ unmet peer next@">=14.3.0 && <=15.5.2": found 16.3.2
+   ```
+
+   A warning, not an error — `--frozen-lockfile` still succeeds, verified. But
+   it is permanent noise that will mask a real peer conflict later, and it
+   means the package cannot follow this repo's Next version anyway.
 
    Re-run the build after removing them; the lockfile change means a fresh
    image.
