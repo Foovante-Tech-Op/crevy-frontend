@@ -15,7 +15,22 @@ export type ProjectOwnerRecord = {
   id: string;
   code: string;
   verificationStatus: "pending" | "verified" | "rejected";
+  // The user id of the admin/field agent who onboarded them. Not a name —
+  // the column comment on the backend model claimed otherwise for a long time,
+  // which is how the raw id ended up rendered on the detail screen.
   onboardedBy: string | null;
+  // Resolved display name for the above. Optional because only the detail
+  // endpoint (GET /project-developers/code/:code) joins the user table for it;
+  // the list endpoint returns the bare id.
+  onboardedByName?: string | null;
+  // ── KYC decision trail ──
+  // Who approved/rejected, when, and why. All null while pending. As with
+  // onboardedBy, verifiedBy is a user id and verifiedByName is the resolved
+  // display name, populated only by the detail endpoint.
+  verifiedBy?: string | null;
+  verifiedByName?: string | null;
+  verifiedAt?: string | null;
+  rejectionReason?: string | null;
   onboardedAt: string;
   bankDetails: {
     bankName: string;
@@ -223,6 +238,35 @@ export const ProjectOwnerService = {
     code: string,
   ): Promise<{ success: boolean; data: ProjectOwnerDetail }> => {
     const response = await axiosClient.get(`/project-developers/code/${code}`);
+    return response.data;
+  },
+
+  /**
+   * Admin KYC decision on a project developer.
+   *
+   * A field agent registers them on-site and they land in 'pending'; an admin
+   * reviews the captured details and calls this. Requires
+   * project_developer:manage server-side — there is deliberately no self-serve
+   * path, so a developer can never approve themselves.
+   *
+   * `reason` is required by the API when status is "rejected" and is what the
+   * registering field agent sees, so it should say what to correct.
+   */
+  setVerificationStatus: async (
+    projectDeveloperId: string,
+    payload: {
+      status: "pending" | "verified" | "rejected";
+      reason?: string;
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: ProjectOwnerRecord;
+  }> => {
+    const response = await axiosClient.patch(
+      `/project-developers/${projectDeveloperId}/verification`,
+      payload,
+    );
     return response.data;
   },
 

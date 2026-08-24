@@ -25,6 +25,7 @@ import {
   type ProjectOwnerSite,
 } from "@/lib/services/project-owner-service";
 import { cn } from "@/lib/utils";
+import { KycDecisionPanel } from "./_components/KycDecisionPanel";
 
 // ─── Editorial Configs (mirrors the list page's styling) ─────────────────────
 
@@ -512,6 +513,25 @@ export default function ProjectDeveloperDetailPage({
           </TabsList>
 
           <TabsContent value="details" className="space-y-8">
+            {/* ── KYC Review ──
+                The approve/reject control. Placed above the captured details
+                rather than below them because the decision is the reason an
+                admin opens this screen; the details are what they read to
+                make it. */}
+            <KycDecisionPanel
+              developerId={developer.id}
+              developerName={developer.name}
+              status={developer.verificationStatus}
+              verifiedByName={developer.verifiedByName}
+              verifiedAt={developer.verifiedAt}
+              rejectionReason={developer.rejectionReason}
+              onDecided={() => {
+                queryClient.invalidateQueries({
+                  queryKey: ["project-developer-detail", code],
+                });
+              }}
+            />
+
             {/* ── Developer Details ── */}
             <div className="border border-slate-200 p-6 bg-white">
               <h2 className="text-lg font-sans font-bold text-slate-950 mb-2">
@@ -524,11 +544,32 @@ export default function ProjectDeveloperDetailPage({
               />
               <InfoRow
                 label="Onboarded By"
-                value={developer.onboardedBy ?? undefined}
+                // Falls back to a stated unknown rather than the raw id: if the
+                // onboarder's account has since been removed there is no name
+                // to resolve, and an opaque id is worse than saying so.
+                value={
+                  developer.onboardedByName ??
+                  (developer.onboardedBy
+                    ? "Unknown — account no longer exists"
+                    : undefined)
+                }
               />
               <InfoRow
                 label="Onboarded At"
                 value={new Date(developer.onboardedAt).toLocaleDateString()}
+              />
+              <InfoRow label="Verified By" value={developer.verifiedByName} />
+              <InfoRow
+                label="Verified At"
+                value={
+                  developer.verifiedAt
+                    ? new Date(developer.verifiedAt).toLocaleDateString()
+                    : undefined
+                }
+              />
+              <InfoRow
+                label="Rejection Reason"
+                value={developer.rejectionReason}
               />
               <InfoRow
                 label="Site Activity Note"
