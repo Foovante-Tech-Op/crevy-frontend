@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import { UserService } from "@/lib/services/user-service";
 
 export function AccountSecurity({ user }: { user: any }) {
@@ -23,11 +24,14 @@ export function AccountSecurity({ user }: { user: any }) {
     try {
       await UserService.deleteUserProfile(user.id);
       await authClient.signOut();
-      toast.success("Entity ledger permanently purged.");
+      toast.success("Your account has been deleted.");
       router.push("/register");
     } catch (error: any) {
       toast.error(
-        error.message || "Failed to purge ledger. Contact Governance.",
+        getErrorMessage(
+          error,
+          "We couldn't delete your account. Please contact support.",
+        ),
       );
     } finally {
       setIsDeleting(false);

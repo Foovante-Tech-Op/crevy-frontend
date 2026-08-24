@@ -4,6 +4,7 @@
 import { ArrowLeft, CheckCircle, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage, getRawErrorMessage } from "@/lib/errors";
 import { ProjectService } from "@/lib/services/project-service";
 import { StorageService } from "@/lib/services/storage-service";
 
@@ -185,7 +186,12 @@ const AssessmentModuleStep = ({
       toast.success("Module saved");
       onSave();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message ?? "Failed to save module");
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't save this module. Please try again.",
+        ),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -209,16 +215,25 @@ const AssessmentModuleStep = ({
         onNext();
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.message ?? "";
-      if (msg.includes("missing required fields")) {
-        const match = msg.match(/missing required fields: (.+)/i);
+      // Raw, not sanitized: this branch PARSES the backend string, and the
+      // field list it carries is camelCase, which getErrorMessage refuses to
+      // display. Using the sanitized text here would silently stop the
+      // missing-field highlighting from ever matching.
+      const raw = getRawErrorMessage(error);
+      if (raw.toLowerCase().includes("missing required fields")) {
+        const match = raw.match(/missing required fields: (.+)/i);
         if (match) {
           const missing = match[1].split(", ").map((s: string) => s.trim());
           setMissingFields(missing);
         }
         toast.error("Please complete all required fields before submitting");
       } else {
-        toast.error(msg || "Failed to submit module");
+        toast.error(
+          getErrorMessage(
+            error,
+            "We couldn't submit this module. Please try again.",
+          ),
+        );
       }
     } finally {
       setIsSubmitting(false);

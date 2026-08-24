@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/lib/errors";
 import {
   SUGGESTION_CATEGORIES,
   SuggestionService,
@@ -30,9 +31,10 @@ export default function SuggestPage() {
     },
     onError: (error: any) => {
       toast.error("Submission failed", {
-        description:
-          error?.response?.data?.message ||
+        description: getErrorMessage(
+          error,
           "Something went wrong. Please try again.",
+        ),
       });
     },
   });

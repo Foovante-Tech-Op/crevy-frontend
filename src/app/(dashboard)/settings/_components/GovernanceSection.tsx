@@ -9,14 +9,14 @@ export function GovernanceSection({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
   const handleSave = () => {
     if (!isSuperAdmin) {
-      toast.error("Protocol Violation", {
-        description: "Insufficient clearance to alter registry physics.",
+      toast.error("You don't have permission to change these settings", {
+        description: "Contact an administrator if you need access.",
       });
       return;
     }
     setIsSaving(true);
     setTimeout(() => {
-      toast.success("Governance parameters cryptographically anchored.");
+      toast.success("Settings saved.");
       setIsSaving(false);
     }, 1500);
   };

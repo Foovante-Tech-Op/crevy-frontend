@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import { RBACService } from "@/lib/services/rbac-service";
 
 export function useRolePermissions(roleId: number | null) {
@@ -21,10 +22,15 @@ export function useRolePermissions(roleId: number | null) {
       RBACService.assignPermissionToRole(roleId as number, permissionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["role-permissions", roleId] });
-      toast.success("Permission bound to role.");
+      toast.success("Permission added to role.");
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to bind permission.");
+      toast.error(
+        getErrorMessage(
+          err,
+          "We couldn't add that permission. Please try again.",
+        ),
+      );
     },
   });
 
@@ -33,11 +39,14 @@ export function useRolePermissions(roleId: number | null) {
       RBACService.unassignPermissionFromRole(roleId as number, permissionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["role-permissions", roleId] });
-      toast.success("Permission revoked from role.");
+      toast.success("Permission removed from role.");
     },
     onError: (err: any) => {
       toast.error(
-        err?.response?.data?.message || "Failed to revoke permission.",
+        getErrorMessage(
+          err,
+          "We couldn't remove that permission. Please try again.",
+        ),
       );
     },
   });

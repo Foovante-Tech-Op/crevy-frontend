@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUser } from "@/hooks/use-user";
+import { getErrorMessage } from "@/lib/errors";
 import { RBACService } from "@/lib/services/rbac-service";
 
 interface InviteAdminModalProps {
@@ -87,8 +88,13 @@ export function InviteAdminModal({ isOpen, onClose }: InviteAdminModalProps) {
       );
       reset();
       onClose();
-    } catch (_error) {
-      toast.error("Failed to send invitation");
+    } catch (error) {
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't send that invitation. Please try again.",
+        ),
+      );
     } finally {
       setLoading(false);
     }

@@ -7,9 +7,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 
 const passwordSchema = z
   .object({
@@ -37,10 +38,10 @@ export function ChangePasswordForm() {
         revokeOtherSessions: true,
       });
       if (error) throw error;
-      toast.success("Cryptographic access key updated.");
+      toast.success("Password updated.");
       form.reset();
     } catch (error: any) {
-      toast.error(error.message || "Failed to update access key.");
+      toast.error(getErrorMessage(error, "We couldn't update your password."));
     } finally {
       setIsSubmitting(false);
     }
@@ -64,8 +65,7 @@ export function ChangePasswordForm() {
           <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             Current Password
           </Label>
-          <Input
-            type="password"
+          <PasswordInput
             {...form.register("currentPassword")}
             className="rounded-none border-0 border-b-2 border-slate-200 bg-slate-50 px-4 py-6 font-mono text-sm focus-visible:ring-0 focus-visible:border-slate-900"
           />
@@ -74,8 +74,7 @@ export function ChangePasswordForm() {
           <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             New Password
           </Label>
-          <Input
-            type="password"
+          <PasswordInput
             {...form.register("newPassword")}
             className="rounded-none border-0 border-b-2 border-slate-200 bg-slate-50 px-4 py-6 font-mono text-sm focus-visible:ring-0 focus-visible:border-slate-900"
           />
@@ -84,8 +83,7 @@ export function ChangePasswordForm() {
           <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             Verify New Password
           </Label>
-          <Input
-            type="password"
+          <PasswordInput
             {...form.register("confirmPassword")}
             className="rounded-none border-0 border-b-2 border-slate-200 bg-slate-50 px-4 py-6 font-mono text-sm focus-visible:ring-0 focus-visible:border-slate-900"
           />

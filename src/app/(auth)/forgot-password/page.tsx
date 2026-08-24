@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
-      toast.success("Reset link dispatched to authorized email payload.");
+      toast.success("If that email is registered, we've sent a reset link.");
     }, 1500);
   };
 

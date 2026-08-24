@@ -21,6 +21,7 @@ import {
   waitlistRegistrationSchema,
 } from "@/constants/waitlist";
 import { useCreateWaitlistRegistration } from "@/hooks/use-waitlist";
+import { getErrorMessage, getFieldErrorMessage } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 import {
   FieldLabel,
@@ -73,9 +74,7 @@ export default function RegisterInterestForm({
       router.push("/register-interest/success");
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Something went wrong. Please try again.",
+        getErrorMessage(err, "Something went wrong. Please try again."),
       );
     }
   };
@@ -83,8 +82,11 @@ export default function RegisterInterestForm({
   const onInvalid = (errors: any) => {
     const entries = Object.entries(errors);
     if (entries.length > 0) {
-      const [field, error]: [string, unknown][] = entries;
-      toast.error(`${field}: ${(error as any)?.message || "Invalid input"}`);
+      // entries is Array<[field, error]>; the first element is the pair,
+      // not the field name. Destructuring one level too shallow made the
+      // old toast read "email,[object Object]: undefined".
+      const [[field, error]] = entries;
+      toast.error(getFieldErrorMessage(field, (error as any)?.message));
     }
   };
 

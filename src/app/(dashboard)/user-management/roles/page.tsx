@@ -127,21 +127,22 @@ export default function RolesManagementPage() {
     mutationFn: RBACService.createRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rbac-roles"] });
-      toast.success("Security authorization role deployed.");
+      toast.success("Role created.");
       setIsRoleModalOpen(false);
     },
-    onError: () => toast.error("Failed to construct system role."),
+    onError: () =>
+      toast.error("We couldn't create that role. Please try again."),
   });
 
   const createPermissionMutation = useMutation({
     mutationFn: RBACService.createPermission,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rbac-permissions"] });
-      toast.success("Fine-grained system access permission registered.");
+      toast.success("Permission created.");
       setIsPermModalOpen(false);
     },
     onError: () =>
-      toast.error("Failed to register system capability configuration."),
+      toast.error("We couldn't create that permission. Please try again."),
   });
 
   const assignPermission = useMutation({
@@ -156,7 +157,7 @@ export default function RolesManagementPage() {
       queryClient.invalidateQueries({
         queryKey: ["rbac-role-permissions", selectedRole?.id],
       });
-      toast.success("Security scope updated: Permission attached.");
+      toast.success("Permission added to role.");
     },
   });
 
@@ -172,7 +173,7 @@ export default function RolesManagementPage() {
       queryClient.invalidateQueries({
         queryKey: ["rbac-role-permissions", selectedRole?.id],
       });
-      toast.success("Security scope updated: Permission revoked.");
+      toast.success("Permission removed from role.");
     },
   });
 

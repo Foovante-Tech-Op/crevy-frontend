@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   applyManagesProjectsRefinement,
   completeRegistrationBaseSchema,
@@ -20,6 +21,7 @@ import {
   USE_CASE_OPTIONS,
 } from "@/constants/waitlist";
 import { axiosClient } from "@/lib/axiosClient";
+import { getFieldErrorMessage } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 import {
   FieldLabel,
@@ -170,8 +172,11 @@ export default function RegisterForm({
   const onInvalid = (errors: any) => {
     const entries = Object.entries(errors);
     if (entries.length > 0) {
-      const [field, error]: [string, unknown][] = entries;
-      toast.error(`${field}: ${(error as any)?.message || "Invalid input"}`);
+      // entries is Array<[field, error]>; the first element is the pair,
+      // not the field name. Destructuring one level too shallow made the
+      // old toast read "email,[object Object]: undefined".
+      const [[field, error]] = entries;
+      toast.error(getFieldErrorMessage(field, (error as any)?.message));
     }
   };
 
@@ -296,8 +301,7 @@ export default function RegisterForm({
                 name="password"
                 render={({ field, fieldState }) => (
                   <>
-                    <input
-                      type="password"
+                    <PasswordInput
                       className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
                       {...field}
                       disabled={loading}
@@ -318,8 +322,7 @@ export default function RegisterForm({
                 name="confirmPassword"
                 render={({ field, fieldState }) => (
                   <>
-                    <input
-                      type="password"
+                    <PasswordInput
                       className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors outline-none"
                       {...field}
                       disabled={loading}

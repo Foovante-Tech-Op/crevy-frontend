@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 
 const changeEmailSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -47,8 +48,10 @@ export default function ChangeEmailForm() {
       }, 1500);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-          "Failed to update email. Please try again.",
+        getErrorMessage(
+          err,
+          "We couldn't update your email. Please try again.",
+        ),
       );
     } finally {
       setLoading(false);

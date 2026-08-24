@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
 import { useUser } from "@/hooks/use-user";
+import { getErrorMessage } from "@/lib/errors";
 import { ProjectService } from "@/lib/services/project-service";
 import { cn } from "@/lib/utils";
 
@@ -89,9 +90,8 @@ function ProjectDetailContent() {
   useEffect(() => {
     if (!isPending && !isAuthorized && isMounted) {
       router.push("/dashboard");
-      toast.error("Access Restricted", {
-        description:
-          "You do not have administrative clearance for this dossier.",
+      toast.error("You don't have access to this project", {
+        description: "Contact an administrator if you think this is a mistake.",
       });
     }
   }, [isAuthorized, isPending, router, isMounted]);
@@ -110,8 +110,8 @@ function ProjectDetailContent() {
       setClassificationOpen(false);
     },
     onError: (error: any) => {
-      toast.error("Failed to update classification", {
-        description: error?.response?.data?.message || error.message,
+      toast.error("Couldn't update classification", {
+        description: getErrorMessage(error, "Please try again."),
       });
     },
   });

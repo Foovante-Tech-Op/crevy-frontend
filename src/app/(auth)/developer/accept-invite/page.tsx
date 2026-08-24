@@ -10,7 +10,9 @@ import { toast } from "sonner";
 import * as z from "zod";
 import GalleryBackground from "@/components/GalleryBackground";
 import { Form } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/password-input";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import { DeveloperClaimService } from "@/lib/services/field-agent-service";
 
 // ── Validation Schema Definition ──
@@ -103,8 +105,10 @@ function AcceptInviteTerminal() {
     } catch (error: any) {
       console.error("[AcceptInviteTerminal] Error:", error);
       toast.error(
-        error.message ||
-          "An unexpected error occurred during account activation.",
+        getErrorMessage(
+          error,
+          "We couldn't activate your account. Please try again.",
+        ),
       );
     } finally {
       setLoading(false);
@@ -231,9 +235,8 @@ function AcceptInviteTerminal() {
             </label>
             <div className="relative border-b border-slate-200 focus-within:border-slate-900 transition-colors">
               <Key className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-900" />
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 disabled={loading}
                 className="w-full pl-6 pr-2 py-3 bg-transparent border-none outline-none font-mono text-sm text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
                 placeholder="••••••••••••"
@@ -257,9 +260,8 @@ function AcceptInviteTerminal() {
             </label>
             <div className="relative border-b border-slate-200 focus-within:border-slate-900 transition-colors">
               <Key className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-900" />
-              <input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 disabled={loading}
                 className="w-full pl-6 pr-2 py-3 bg-transparent border-none outline-none font-mono text-sm text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
                 placeholder="••••••••••••"

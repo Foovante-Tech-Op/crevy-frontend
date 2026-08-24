@@ -11,7 +11,9 @@ import * as z from "zod";
 import GalleryBackground from "@/components/GalleryBackground";
 import { CountryDropdown } from "@/components/ui/country-dropdown";
 import { Form } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/password-input";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 
 // ── Validation Schema Definition ──
 const adminSetupSchema = z
@@ -139,10 +141,10 @@ function AdminSetupTerminal() {
       router.push("/login");
     } catch (error: any) {
       console.error("[AdminSetupTerminal] Error:", error);
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "An unexpected error occurred during account creation.";
+      const message = getErrorMessage(
+        error,
+        "An unexpected error occurred during account creation.",
+      );
       toast.error(message);
     } finally {
       setLoading(false);
@@ -347,9 +349,8 @@ function AdminSetupTerminal() {
             </label>
             <div className="relative border-b border-slate-200 focus-within:border-slate-900 transition-colors">
               <Key className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-900" />
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 disabled={loading}
                 className="w-full pl-6 pr-2 py-3 bg-transparent border-none outline-none font-mono text-sm text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
                 placeholder="••••••••••••"
@@ -373,9 +374,8 @@ function AdminSetupTerminal() {
             </label>
             <div className="relative border-b border-slate-200 focus-within:border-slate-900 transition-colors">
               <Key className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-900" />
-              <input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 disabled={loading}
                 className="w-full pl-6 pr-2 py-3 bg-transparent border-none outline-none font-mono text-sm text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
                 placeholder="••••••••••••"

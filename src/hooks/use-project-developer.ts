@@ -2,6 +2,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import {
   completeProjectDeveloperProfile,
   type TCompleteProfilePayload,
@@ -27,9 +28,7 @@ export function useCompleteProjectDeveloperProfile() {
     },
     onError: (err: any) => {
       toast.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Couldn't save your profile. Please try again.",
+        getErrorMessage(err, "Couldn't save your profile. Please try again."),
       );
     },
   });

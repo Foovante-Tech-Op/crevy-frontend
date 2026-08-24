@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import { UserService } from "@/lib/services/user-service";
 import type {
   TBetterAuthUser,
@@ -38,12 +39,17 @@ export const useRegisterUser = () => {
       return response;
     },
     onSuccess: () => {
-      toast.success("User registered successfully");
+      toast.success("Account created.");
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
     onError: (error) => {
       console.error("Error registering user: ", error);
-      toast.error("Failed to register user");
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't create that account. Please try again.",
+        ),
+      );
     },
   });
 };
@@ -57,12 +63,17 @@ export const useUpdateUserProfile = () => {
       return response;
     },
     onSuccess: () => {
-      toast.success("User profile updated successfully");
+      toast.success("Changes saved.");
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
     onError: (error) => {
       console.error("Error updating user profile: ", error);
-      toast.error("Failed to update user profile");
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't save those changes. Please try again.",
+        ),
+      );
     },
   });
 };
@@ -76,12 +87,17 @@ export const useDeleteUserProfile = () => {
       return response;
     },
     onSuccess: () => {
-      toast.success("User profile deleted successfully");
+      toast.success("Account deleted.");
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
     onError: (error) => {
       console.error("Error deleting user profile: ", error);
-      toast.error("Failed to delete user profile");
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't delete that account. Please try again.",
+        ),
+      );
     },
   });
 };

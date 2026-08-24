@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/errors";
 import { FieldAgentService } from "@/lib/services/field-agent-service";
 
 interface InviteFieldAgentModalProps {
@@ -72,10 +73,7 @@ export function InviteFieldAgentModal({
       // hand-written to be helpful (e.g. "already a registered field
       // agent", "Please wait 47s before resending") rather than the
       // generic axios fallback.
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to invite field agent";
+      const message = getErrorMessage(error, "Failed to invite field agent");
       toast.error(message);
     } finally {
       setLoading(false);

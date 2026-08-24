@@ -10,6 +10,7 @@ import CustomInput from "@/components/CustomInput";
 import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
 import { CountryDropdown } from "@/components/ui/country-dropdown";
 import { PROJECT_TYPES, type TCreateProject } from "@/constants/new-project";
+import { getErrorMessage } from "@/lib/errors";
 import { ProjectService } from "@/lib/services/project-service";
 import { cn } from "@/lib/utils";
 
@@ -125,9 +126,10 @@ const Step1_ProjectProfile = ({
     } catch (error: any) {
       console.error("Project creation error:", error);
       toast.error(
-        error?.response?.data?.message ??
-          error?.message ??
-          "Failed to register asset. Protocol aborted.",
+        getErrorMessage(
+          error,
+          "We couldn't save this project. Please try again.",
+        ),
       );
     } finally {
       setIsCreating(false);

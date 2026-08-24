@@ -62,6 +62,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 import { ProjectOwnerService } from "@/lib/services/project-owner-service";
 import { cn } from "@/lib/utils";
 
@@ -352,9 +353,7 @@ export function AddMemberModal({
       onSuccess?.();
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Couldn't add this member. Please try again.",
+        getErrorMessage(error, "Couldn't add this member. Please try again."),
       );
     } finally {
       setLoading(false);

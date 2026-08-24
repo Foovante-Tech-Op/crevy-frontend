@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { authClient } from "@/lib/auth";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 
 const completeProfileSchema = z
   .object({
@@ -182,8 +183,10 @@ export default function CompleteProfilePage() {
       }, 1500);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-          "Failed to save profile. Please try again.",
+        getErrorMessage(
+          err,
+          "We couldn't save your profile. Please try again.",
+        ),
       );
     } finally {
       setIsSubmitting(false);

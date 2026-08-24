@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { GHANA_REGIONS, matchGhanaRegion } from "@/constants/ghana-regions";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 import {
   AgentDeveloperService,
   type TRegisterDeveloperInput,
@@ -163,6 +164,15 @@ export default function RegisterDeveloperPage() {
 
   const update = (patch: Partial<TDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
+
+  // clearDraft() alone only empties localStorage. The component keeps its own
+  // `draft` state, and the autosave effect above writes that state back on the
+  // next change — so after registering someone, coming back to the form showed
+  // the previous farmer's details again. Both halves have to be cleared.
+  const resetDraft = () => {
+    clearDraft();
+    setDraft(EMPTY_DRAFT);
+  };
 
   // Best-effort: fills in Region and Village from the coordinates if the
   // agent hasn't already typed them in themselves. Never overwrites a
@@ -300,15 +310,28 @@ export default function RegisterDeveloperPage() {
     }
   };
 
+  const trimmedEmail = draft.email.trim();
+
+  // Checked here rather than left to the API. The backend schema is
+  // `z.string().email().optional()`, which accepts `undefined` but rejects ""
+  // and anything malformed with a 400 "Invalid email address" — a confusing
+  // failure on a field the form labels optional. An empty value must never
+  // block; a non-empty one is worth catching before the round trip.
+  const emailIsWellFormed =
+    trimmedEmail === "" || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmedEmail);
+
+  // Only genuinely required when a login is going to be created for them.
+  const emailIsRequired =
+    draft.entityType !== "individual" && draft.hasEmailAccess;
+
   const canProceedStep1 =
     draft.developerName.trim().length >= 2 &&
     draft.phone.trim().length >= 6 &&
-    (draft.entityType === "individual" ||
-      !draft.hasEmailAccess ||
-      !!draft.email.trim());
+    emailIsWellFormed &&
+    (!emailIsRequired || trimmedEmail.length > 0);
 
   const handleCancel = () => {
-    clearDraft();
+    resetDraft();
     router.push("/agent");
   };
 
@@ -318,7 +341,9 @@ export default function RegisterDeveloperPage() {
       const payload: TRegisterDeveloperInput = {
         developerName: draft.developerName.trim(),
         phone: draft.phone.trim(),
-        email: draft.email || undefined,
+        // .trim() before the fallback: an untrimmed " " is truthy, so it
+        // was sent as-is and rejected by the API's email() check.
+        email: draft.email.trim() || undefined,
         entityType: draft.entityType,
         farmOrProjectType: draft.farmOrProjectType || undefined,
         idPhotoUrl: draft.idPhotoObjectKey
@@ -347,7 +372,7 @@ export default function RegisterDeveloperPage() {
 
       const result = await AgentDeveloperService.registerDeveloper(payload);
 
-      clearDraft();
+      resetDraft();
       if (result?.data?.inviteSent) {
         toast.success(
           `Developer registered — an invite was sent to ${result.data.inviteEmail}`,
@@ -358,8 +383,10 @@ export default function RegisterDeveloperPage() {
       router.push("/agent?registered=1");
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message ||
+        getErrorMessage(
+          error,
           "Couldn't submit — your entries are saved, try again when you have signal",
+        ),
       );
     } finally {
       setSubmitting(false);
@@ -449,6 +476,12 @@ export default function RegisterDeveloperPage() {
                   onChange={(e) => update({ email: e.target.value })}
                   className="h-12 text-base"
                 />
+                {!emailIsWellFormed && (
+                  <p className="text-xs text-red-600">
+                    That doesn't look like a valid email address. Correct it, or
+                    clear the field to skip it.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-3 pt-2 border-t border-slate-100">
@@ -494,6 +527,11 @@ export default function RegisterDeveloperPage() {
                       onChange={(e) => update({ email: e.target.value })}
                       className="h-12 text-base"
                     />
+                    {!emailIsWellFormed && (
+                      <p className="text-xs text-red-600">
+                        That doesn't look like a valid email address.
+                      </p>
+                    )}
                   </div>
                 )}
 

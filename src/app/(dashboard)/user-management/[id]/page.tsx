@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getErrorMessage } from "@/lib/errors";
 import { FieldAgentService } from "@/lib/services/field-agent-service";
 import {
   RBACService,
@@ -80,9 +81,15 @@ export default function UserManagementDetailPage({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rbac-role-permissions"] });
-      toast.success("Permission assigned successfully");
+      toast.success("Permission added.");
     },
-    onError: () => toast.error("Failed to assign permission"),
+    onError: (error) =>
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't add that permission. Please try again.",
+        ),
+      ),
   });
 
   const unassignPermission = useMutation({
@@ -95,9 +102,15 @@ export default function UserManagementDetailPage({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rbac-role-permissions"] });
-      toast.success("Permission revoked successfully");
+      toast.success("Permission removed.");
     },
-    onError: () => toast.error("Failed to revoke permission"),
+    onError: (error) =>
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't remove that permission. Please try again.",
+        ),
+      ),
   });
 
   const handleTogglePermission = (perm: TPermission) => {

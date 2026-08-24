@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/errors";
 import { CreditService } from "@/lib/services/credit-service";
 import { ProjectService } from "@/lib/services/project-service";
 
@@ -66,9 +67,14 @@ export default function PurchaseCreditsPage() {
       });
 
       setStep(3); // Success Step
-      toast.success("Credits acquired successfully!");
+      toast.success("Credits purchased.");
     } catch (err: any) {
-      toast.error(err.message || "Acquisition failed");
+      toast.error(
+        getErrorMessage(
+          err,
+          "We couldn't complete your purchase. You haven't been charged.",
+        ),
+      );
     } finally {
       setIsProcessing(false);
     }

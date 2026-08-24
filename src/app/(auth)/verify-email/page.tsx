@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import GalleryBackground from "@/components/GalleryBackground";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -66,8 +67,10 @@ function VerifyEmailContent() {
       setResendCooldown(60); // 60 second cooldown
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-          "Failed to send email. Please try again.",
+        getErrorMessage(
+          err,
+          "We couldn't send the verification email. Please try again.",
+        ),
       );
     } finally {
       setIsResending(false);
@@ -122,8 +125,7 @@ function VerifyEmailContent() {
         return;
       }
       setNewEmailError(
-        err?.response?.data?.message ||
-          "Couldn't update your email. Please try again.",
+        getErrorMessage(err, "Couldn't update your email. Please try again."),
       );
     } finally {
       setIsChangingEmail(false);

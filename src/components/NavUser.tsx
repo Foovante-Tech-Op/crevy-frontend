@@ -27,6 +27,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import type { TBetterAuthUser } from "@/types";
 
 const getInitials = (name?: string) => {
@@ -49,7 +50,9 @@ export const NavUser = ({ user }: { user: TBetterAuthUser | null }) => {
       await authClient.signOut();
       router.push("/login");
     } catch (error) {
-      toast.error(`Sign out aborted: ${(error as Error).message}`);
+      toast.error(
+        getErrorMessage(error, "We couldn't sign you out. Please try again."),
+      );
     } finally {
       setLoading(false);
     }

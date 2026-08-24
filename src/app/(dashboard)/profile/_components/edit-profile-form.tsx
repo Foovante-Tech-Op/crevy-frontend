@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getErrorMessage } from "@/lib/errors";
 import { UserService } from "@/lib/services/user-service";
 
 const profileSchema = z.object({
@@ -84,9 +85,9 @@ export function EditProfileForm({
 
       await UserService.updateUserProfile(updateData);
       await queryClient.invalidateQueries({ queryKey: ["user-profile"] });
-      toast.success("Identity ledger updated.");
+      toast.success("Profile updated.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sync protocol.");
+      toast.error(getErrorMessage(error, "We couldn't save your changes."));
     } finally {
       setIsSubmitting(false);
     }

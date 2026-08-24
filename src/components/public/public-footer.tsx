@@ -43,9 +43,8 @@ export function PublicFooter() {
 
     if (!allowedRoles.includes(userRole)) {
       e.preventDefault();
-      toast.error("Protocol Access Denied", {
-        description:
-          "Your current clearance level does not permit asset registration. Please contact the governance team.",
+      toast.error("You don't have permission to register a project", {
+        description: "Contact your administrator to request access.",
       });
       return;
     }

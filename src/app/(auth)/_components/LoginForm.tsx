@@ -7,7 +7,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type * as zod from "zod";
+import { PasswordInput } from "@/components/ui/password-input";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 import { signInSchema, type TSignInInput } from "@/types/user.types";
 
@@ -96,8 +98,11 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
           // "setState on unmounted component" warning in some browsers.
         },
         onError: (ctx: any) => {
-          toast.error("Protocol Error", {
-            description: ctx.error.message || "Invalid credentials.",
+          toast.error("Sign-in failed", {
+            description: getErrorMessage(
+              ctx.error,
+              "That email or password isn't right. Please try again.",
+            ),
           });
           form.setError("root", { message: ctx.error.message });
           setLoading(false);
@@ -182,9 +187,8 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
               Reset Password?
             </Link>
           </div>
-          <input
+          <PasswordInput
             {...form.register("password")}
-            type="password"
             placeholder="••••••••••••"
             disabled={loading}
             className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 rounded-none p-4 font-mono text-sm text-slate-900 placeholder:text-slate-400 focus:ring-0 focus:border-slate-900 transition-colors disabled:opacity-50 outline-none"

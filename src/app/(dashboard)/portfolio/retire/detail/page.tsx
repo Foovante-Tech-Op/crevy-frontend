@@ -14,6 +14,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import { CreditService } from "@/lib/services/credit-service";
 
 function CreditRetirementContent() {
@@ -46,7 +47,7 @@ function CreditRetirementContent() {
       formData.amount <= 0 ||
       formData.amount > parseFloat(credit?.availableAmount || "0")
     ) {
-      return toast.error("Invalid retirement volume specified.");
+      return toast.error("Enter a valid number of credits to retire.");
     }
 
     setIsProcessing(true);
@@ -56,11 +57,14 @@ function CreditRetirementContent() {
         reason: `${formData.beneficiary} - ${formData.reason}`,
       });
 
-      toast.success("Transaction verified. Assets successfully burned.");
+      toast.success("Credits retired successfully.");
       router.push("/portfolio");
     } catch (err: any) {
       toast.error(
-        err.message || "Protocol execution failed. No funds captured.",
+        getErrorMessage(
+          err,
+          "We couldn't retire those credits. Nothing has been charged.",
+        ),
       );
     } finally {
       setIsProcessing(false);

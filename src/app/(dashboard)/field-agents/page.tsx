@@ -38,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getErrorMessage } from "@/lib/errors";
 import {
   FieldAgentService,
   type TFieldAgentRow,
@@ -83,7 +84,10 @@ export default function FieldAgentsPage() {
       queryClient.invalidateQueries({ queryKey: ["field-agents"] });
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to update agent status",
+        getErrorMessage(
+          error,
+          "We couldn't update this agent's status. Please try again.",
+        ),
       );
     } finally {
       setPendingToggleId(null);
@@ -100,7 +104,12 @@ export default function FieldAgentsPage() {
       toast.success(`Invite resent to ${agent.email}`);
       queryClient.invalidateQueries({ queryKey: ["field-agents"] });
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to resend invite");
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't resend that invite. Please try again.",
+        ),
+      );
     }
   };
 

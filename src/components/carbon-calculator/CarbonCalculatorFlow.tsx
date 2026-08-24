@@ -56,6 +56,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getErrorMessage } from "@/lib/errors";
 import {
   type CarbonFootprintInputs,
   type CarbonFootprintResult,
@@ -712,7 +713,12 @@ export function CarbonCalculatorFlow() {
       setCurrentStep(4);
       loadHistory();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to calculate footprint");
+      toast.error(
+        getErrorMessage(
+          error,
+          "We couldn't calculate your footprint. Please try again.",
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }

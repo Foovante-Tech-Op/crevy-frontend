@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { authClient } from "@/lib/auth";
 import { axiosClient } from "@/lib/axiosClient";
+import { getErrorMessage } from "@/lib/errors";
 import { ProjectOwnerService } from "@/lib/services/project-owner-service";
 import { cn } from "@/lib/utils";
 import {
@@ -180,8 +181,10 @@ export default function ProjectOwnerOnboardingForm() {
       router.push("/projects/new");
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message ||
+        getErrorMessage(
+          error,
           "Registration failed. Please check the details.",
+        ),
       );
     } finally {
       setLoading(false);
@@ -292,7 +295,7 @@ export default function ProjectOwnerOnboardingForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <CustomInput
                       name="password"
-                      label="System Access Key"
+                      label="Password"
                       placeholder="Min. 8 chars"
                       control={form.control}
                       type="password"
@@ -300,7 +303,7 @@ export default function ProjectOwnerOnboardingForm() {
                     />
                     <CustomInput
                       name="countryOfOperation"
-                      label="Operating Jurisdiction"
+                      label="Country of operation"
                       placeholder="Ghana"
                       control={form.control}
                       type="text"

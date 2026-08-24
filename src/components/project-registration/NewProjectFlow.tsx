@@ -39,6 +39,7 @@ import {
   type TCreateProject,
 } from "@/constants/new-project";
 import { authClient } from "@/lib/auth";
+import { getErrorMessage, getFieldErrorMessage } from "@/lib/errors";
 import { ProjectService } from "@/lib/services/project-service";
 import { StorageService } from "@/lib/services/storage-service";
 import { cn } from "@/lib/utils";
@@ -111,7 +112,9 @@ const NewProjectFlow = ({
         if (res.success) setManifest(res.data);
       })
       .catch(() => {
-        toast.error("Failed to load assessment manifest. Please refresh.");
+        toast.error(
+          "We couldn't load the assessment questions. Please refresh the page.",
+        );
       });
   }, []);
 
@@ -227,11 +230,11 @@ const NewProjectFlow = ({
           setCurrentStep(resumeStep);
         }
 
-        toast.info("Resumed your in-progress asset registration.");
+        toast.info("Picked up where you left off.");
       } catch (error) {
         console.error("Failed to resume registration:", error);
         toast.error(
-          "Could not resume your previous registration. Starting over.",
+          "We couldn't restore your previous progress, so we've started a new registration.",
         );
         const basePath =
           mode === "agent" ? "/agent/register-project" : "/projects/new";
@@ -287,12 +290,12 @@ const NewProjectFlow = ({
         const failed = uploadResults.filter((r) => r.status === "rejected");
         if (failed.length > 0) {
           toast.warning(
-            `Asset registered but ${failed.length} artifact(s) failed to sync.`,
+            `Project registered, but ${failed.length} file${failed.length === 1 ? "" : "s"} didn't upload. You can add them again from the project page.`,
           );
         }
       }
 
-      toast.success("Asset successfully committed to registry.");
+      toast.success("Project registered.");
       if (onSubmitSuccess) {
         onSubmitSuccess(projectId);
       } else {
@@ -301,9 +304,10 @@ const NewProjectFlow = ({
     } catch (error: any) {
       console.error("Submission Error:", error);
       toast.error(
-        error?.response?.data?.message ??
-          error?.message ??
-          "Failed to finalize asset. Protocol aborted.",
+        getErrorMessage(
+          error,
+          "We couldn't finish registering this project. Please try again.",
+        ),
       );
     } finally {
       setIsSubmitting(false);
@@ -315,11 +319,11 @@ const NewProjectFlow = ({
     const errorList = Object.entries(errors);
     if (errorList.length > 0) {
       const [field, error]: [string, any] = errorList[0];
-      toast.error(
-        `Validation Error [${field}]: ${error.message || "Invalid input"}`,
-      );
+      toast.error(getFieldErrorMessage(field, error.message));
     } else {
-      toast.error("Please review all registration phases for missing data.");
+      toast.error(
+        "Some required details are missing. Please check each step and try again.",
+      );
     }
   };
 
