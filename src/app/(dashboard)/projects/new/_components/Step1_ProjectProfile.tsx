@@ -13,6 +13,7 @@ import { PROJECT_TYPES, type TCreateProject } from "@/constants/new-project";
 import { getErrorMessage } from "@/lib/errors";
 import { ProjectService } from "@/lib/services/project-service";
 import { cn } from "@/lib/utils";
+import ParcelPicker from "./ParcelPicker";
 
 // Mirrors PROJECT_TYPE_SITE_KIND in crevy-backend's assessment-modules.config.ts.
 // These two project types route to project_plot → farm_plot on the backend
@@ -56,6 +57,13 @@ const Step1_ProjectProfile = ({
   const [isCreating, setIsCreating] = useState(false);
 
   const selectedType = watch("projectType");
+  const projectOwnerId = watch("projectOwnerId");
+  // Farm-plot project types run on the developer's registered parcels, so
+  // they get the picker. Everything else (facility, energy, water, coastal)
+  // has no parcels to choose from and keeps the single-coordinate capture.
+  const isFarmPlotType = FARM_PLOT_PROJECT_TYPES.includes(selectedType ?? "");
+  const enrolledPlots = watch("enrolledPlots") ?? [];
+  const hasPickedParcels = isFarmPlotType && enrolledPlots.length > 0;
   const startDate = watch("startDate");
   // Parse current latitude and longitude from the unified telemetry field
   const gpsCoordinates = watch("gpsCoordinates") || "";
@@ -101,6 +109,10 @@ const Step1_ProjectProfile = ({
       "region",
       "startDate",
       "totalAreaHectares",
+      // Blocks Next on a per-parcel area of 0 or less. An over-area value is
+      // caught by the backend, which is the only side that knows each
+      // parcel's registered size for certain.
+      "enrolledPlots",
       "projectOwnerId",
       "customProjectTypeLabel",
       // Note: Make sure to update your Zod schema to validate these broken-out spatial keys
@@ -292,148 +304,166 @@ const Step1_ProjectProfile = ({
               />
             </div> */}
 
-            {/* ── SPATIAL ANALYSIS & BOUNDS CONFIGURATION ── */}
-            <div className="space-y-4 border border-slate-200 p-5 bg-white">
-              <div>
-                <label
-                  htmlFor="gpsCoordinates"
-                  className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground block mb-1"
-                >
-                  Spatial Bounds Location *
-                </label>
-                <p className="text-xs text-slate-500 font-light">
-                  Input accurate boundaries manually, or position the viewport
-                  crosshair precisely over your project location to auto-resolve
-                  structural metadata.
-                </p>
+            {/* ── LAND IN THIS PROJECT (farm-plot project types) ── */}
+            {isFarmPlotType && (
+              <div className="border border-slate-200 p-5 bg-white">
+                <ParcelPicker projectOwnerId={projectOwnerId} />
               </div>
+            )}
 
-              {/* Coordinates Text Display Layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* ── SPATIAL ANALYSIS & BOUNDS CONFIGURATION ──
+                Hidden once parcels are picked: the project's location is
+                then the parcels themselves, each with its own coordinates
+                already captured. Asking for one more coordinate on top would
+                be a fourth source of truth for where the project is, and the
+                backend ignores it in that case anyway. */}
+            {!hasPickedParcels && (
+              <div className="space-y-4 border border-slate-200 p-5 bg-white">
                 <div>
                   <label
                     htmlFor="gpsCoordinates"
-                    className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1"
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground block mb-1"
                   >
-                    Latitude (Decimal Degrees) *
+                    Spatial Bounds Location *
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 6.5244"
-                    value={latValue}
-                    onChange={(e) => {
-                      const newLat = e.target.value;
-                      setValue("gpsCoordinates", `${newLat},${lngValue}`, {
-                        shouldValidate: true,
-                        shouldTouch: true,
-                      });
-                    }}
-                    className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors"
-                  />
+                  <p className="text-xs text-slate-500 font-light">
+                    {isFarmPlotType
+                      ? "This developer has no parcels on record yet. Position the crosshair over the project's location and it will be registered as a single parcel."
+                      : "Input accurate boundaries manually, or position the viewport crosshair precisely over your project location to auto-resolve structural metadata."}
+                  </p>
                 </div>
-                <div>
-                  <label
-                    htmlFor="gpsCoordinates"
-                    className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1"
-                  >
-                    Longitude (Decimal Degrees) *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. -1.3792"
-                    value={lngValue}
-                    onChange={(e) => {
-                      const newLng = e.target.value;
-                      setValue("gpsCoordinates", `${latValue},${newLng}`, {
-                        shouldValidate: true,
-                        shouldTouch: true,
-                      });
-                    }}
-                    className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors"
-                  />
+
+                {/* Coordinates Text Display Layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="gpsCoordinates"
+                      className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1"
+                    >
+                      Latitude (Decimal Degrees) *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 6.5244"
+                      value={latValue}
+                      onChange={(e) => {
+                        const newLat = e.target.value;
+                        setValue("gpsCoordinates", `${newLat},${lngValue}`, {
+                          shouldValidate: true,
+                          shouldTouch: true,
+                        });
+                      }}
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="gpsCoordinates"
+                      className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1"
+                    >
+                      Longitude (Decimal Degrees) *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. -1.3792"
+                      value={lngValue}
+                      onChange={(e) => {
+                        const newLng = e.target.value;
+                        setValue("gpsCoordinates", `${latValue},${newLng}`, {
+                          shouldValidate: true,
+                          shouldTouch: true,
+                        });
+                      }}
+                      className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-mono text-sm text-slate-900 focus:ring-0 focus:border-slate-900 transition-colors"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {errors.gpsCoordinates && (
-                <p className="text-red-500 text-[10px] font-mono mt-1">
-                  {errors.gpsCoordinates.message}
-                </p>
-              )}
+                {errors.gpsCoordinates && (
+                  <p className="text-red-500 text-[10px] font-mono mt-1">
+                    {errors.gpsCoordinates.message}
+                  </p>
+                )}
 
-              {/* Global Geo-Registry Information Block */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div data-lenis-prevent="true">
-                  <CountryDropdown
+                {/* Global Geo-Registry Information Block */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div data-lenis-prevent="true">
+                    <CountryDropdown
+                      control={control}
+                      name="country"
+                      label="Country *"
+                      placeholder="Select Country"
+                    />
+                  </div>
+
+                  <CustomInput
                     control={control}
-                    name="country"
-                    label="Country *"
-                    placeholder="Select Country"
+                    name="region"
+                    type="text"
+                    label="State / Province / Region *"
+                    placeholder="Auto-resolved from map canvas"
                   />
                 </div>
 
-                <CustomInput
-                  control={control}
-                  name="region"
-                  type="text"
-                  label="State / Province / Region *"
-                  placeholder="Auto-resolved from map canvas"
-                />
+                {/* Interactive Map Component Wrapper */}
+                <div className="space-y-2 pt-4">
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
+                    Precision Mapping Grid Matrix
+                  </span>
+
+                  <Controller
+                    control={control}
+                    name="gpsCoordinates"
+                    render={({ field }) => {
+                      const [currentLat, currentLng] = field.value
+                        ? field.value.split(",").map((s: string) => s.trim())
+                        : ["", ""];
+
+                      return (
+                        <SpatialCoordinatePicker
+                          latitude={currentLat || ""}
+                          longitude={currentLng || ""}
+                          onChange={({ lat, lng, region, countryCode }) => {
+                            // Commit the coordinates update to the true schema key
+                            field.onChange(`${lat},${lng}`);
+
+                            // Seamlessly fill administrative data vectors when returned from API
+                            if (region) {
+                              setValue("region", region, {
+                                shouldValidate: true,
+                                shouldTouch: true,
+                              });
+                            }
+                            if (countryCode) {
+                              setValue("country", countryCode, {
+                                shouldValidate: true,
+                                shouldTouch: true,
+                              });
+                            }
+                          }}
+                        />
+                      );
+                    }}
+                  />
+                </div>
               </div>
+            )}
 
-              {/* Interactive Map Component Wrapper */}
-              <div className="space-y-2 pt-4">
-                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
-                  Precision Mapping Grid Matrix
-                </span>
-
-                <Controller
-                  control={control}
-                  name="gpsCoordinates"
-                  render={({ field }) => {
-                    const [currentLat, currentLng] = field.value
-                      ? field.value.split(",").map((s: string) => s.trim())
-                      : ["", ""];
-
-                    return (
-                      <SpatialCoordinatePicker
-                        latitude={currentLat || ""}
-                        longitude={currentLng || ""}
-                        onChange={({ lat, lng, region, countryCode }) => {
-                          // Commit the coordinates update to the true schema key
-                          field.onChange(`${lat},${lng}`);
-
-                          // Seamlessly fill administrative data vectors when returned from API
-                          if (region) {
-                            setValue("region", region, {
-                              shouldValidate: true,
-                              shouldTouch: true,
-                            });
-                          }
-                          if (countryCode) {
-                            setValue("country", countryCode, {
-                              shouldValidate: true,
-                              shouldTouch: true,
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  }}
-                />
+            {/* The GPS-accuracy warning belongs to the coordinate capture
+                above, so it goes with it. */}
+            {!hasPickedParcels && (
+              <div className="bg-slate-50 border-l-2 border-foreground p-4 flex flex-col sm:flex-row gap-3">
+                <Info className="h-4 w-4 text-foreground shrink-0 sm:mt-0.5 hidden sm:block" />
+                <p className="text-[11px] md:text-xs text-slate-600 font-mono leading-relaxed">
+                  <span className="font-bold uppercase text-foreground">
+                    Verification Warning:
+                  </span>{" "}
+                  Precise GPS spatial mapping is locked into satellite
+                  configurations. Ensure spatial fields match valid legal
+                  boundary documents exactly.
+                </p>
               </div>
-            </div>
-
-            <div className="bg-slate-50 border-l-2 border-foreground p-4 flex flex-col sm:flex-row gap-3">
-              <Info className="h-4 w-4 text-foreground shrink-0 sm:mt-0.5 hidden sm:block" />
-              <p className="text-[11px] md:text-xs text-slate-600 font-mono leading-relaxed">
-                <span className="font-bold uppercase text-foreground">
-                  Verification Warning:
-                </span>{" "}
-                Precise GPS spatial mapping is locked into satellite
-                configurations. Ensure spatial fields match valid legal boundary
-                documents exactly.
-              </p>
-            </div>
+            )}
 
             {!FARM_PLOT_PROJECT_TYPES.includes(selectedType) && (
               <div className="space-y-4 border border-slate-200 p-5 bg-white animate-in fade-in slide-in-from-bottom-2 duration-300">

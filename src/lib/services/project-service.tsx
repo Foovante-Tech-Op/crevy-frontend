@@ -20,6 +20,14 @@ export const ProjectService = {
       startDate: format(data.startDate, "yyyy-MM-dd"),
       endDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
       totalAreaHectares: data.totalAreaHectares,
+      // Which of the developer's parcels this project runs on, and how much
+      // of each. Omitted rather than sent empty: the backend treats absence
+      // as "use the legacy single-parcel path" (reuse the developer's
+      // existing parcel, or create one from gpsCoordinates), which is still
+      // the right behaviour for a developer with no land captured yet.
+      enrolledPlots: data.enrolledPlots?.length
+        ? data.enrolledPlots
+        : undefined,
       facilityName: data.facilityName || undefined,
       address: data.address || undefined,
       currency: data.currency, // Pass the {code, name} object

@@ -243,6 +243,27 @@ export const createProjectInputSchema = z
       })
       .positive("Area must be greater than 0"),
 
+    // ── Which of the developer's parcels this project runs on ──
+    // Farm-plot project types only; the picker in Step 1 fills this in.
+    // Optional because non-land project types have no parcels, and because
+    // a developer with no land captured yet still falls through to the
+    // single gpsCoordinates capture above (the backend keeps that path for
+    // exactly that case).
+    //
+    // enrolledAreaHectares is per parcel and may be less than the parcel's
+    // registered size — enrolling part of a field is normal, and this is the
+    // number the carbon calculation reads.
+    enrolledPlots: z
+      .array(
+        z.object({
+          plotId: z.string(),
+          enrolledAreaHectares: z.coerce
+            .number()
+            .positive("Enter an area greater than 0"),
+        }),
+      )
+      .optional(),
+
     // Site details — shown for non-land-based project types (processing
     // facilities, energy installations, water bodies, coastal zones).
     // Optional at the schema level since farm-plot project types don't
@@ -306,6 +327,7 @@ export const createProjectDefaultValues: TCreateProject = {
   startDate: new Date(),
   endDate: undefined,
   totalAreaHectares: 0,
+  enrolledPlots: [],
   facilityName: "",
   address: "",
   // No longer user-selectable at registration (see Step1_ProjectProfile.tsx) —
