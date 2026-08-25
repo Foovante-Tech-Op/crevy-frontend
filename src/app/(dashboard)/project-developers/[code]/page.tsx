@@ -15,7 +15,10 @@ import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 import { AddMemberModal } from "@/components/AddMemberModal";
 import { type Column, DataTable } from "@/components/DataTable";
-import { LocationMap } from "@/components/SpatialCoordinatePicker";
+import {
+  LocationMap,
+  type TMapMarker,
+} from "@/components/SpatialCoordinatePicker";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { axiosClient } from "@/lib/axiosClient";
@@ -112,29 +115,50 @@ function SiteCard({ site }: { site: ProjectOwnerSite }) {
           <span
             className={cn(
               "text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 border",
-              isFarmPlot
-                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                : "bg-blue-50 border-blue-200 text-blue-800",
+              !site.isEnrolled
+                ? "bg-slate-50 border-slate-200 text-slate-600"
+                : isFarmPlot
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                  : "bg-blue-50 border-blue-200 text-blue-800",
             )}
           >
-            {isFarmPlot ? "Enrolled Farm Plot" : "Project Site"}
+            {!site.isEnrolled
+              ? "Registered Parcel"
+              : isFarmPlot
+                ? "Enrolled Farm Plot"
+                : "Project Site"}
           </span>
+          {/* An unenrolled parcel has no project, so it is titled by whose
+              land it is and where. Titling it "Unnamed Project" — which is
+              what the old fallback did the moment projectName was null —
+              invents a project that does not exist. */}
           <h3 className="font-sans text-base font-bold text-slate-900 mt-2">
-            {site.projectName || "Unnamed Project"}
+            {site.isEnrolled
+              ? site.projectName || "Unnamed Project"
+              : isFarmPlot
+                ? (site.memberName ??
+                  [site.village, site.region].filter(Boolean).join(", ") ??
+                  "Parcel")
+                : "Unassigned site"}
           </h3>
           <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
-            {site.projectCode}
+            {site.isEnrolled ? site.projectCode : "Not enrolled in a project"}
           </p>
         </div>
-        <Link href={`/projects/${site.projectId}`}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
-          >
-            View <ExternalLink className="h-4 w-4" />
-          </Button>
-        </Link>
+        {/* Only enrolled sites have somewhere to go. The link used to render
+            unconditionally, which for a parcel with no project resolved to
+            /projects/null. */}
+        {site.isEnrolled && site.projectId && (
+          <Link href={`/projects/${site.projectId}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              View <ExternalLink className="h-4 w-4" />
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm">
@@ -161,7 +185,7 @@ function SiteCard({ site }: { site: ProjectOwnerSite }) {
                 Enrolled Area
               </span>
               <span className="font-medium text-slate-900">
-                {site.enrolledAreaHectares} ha
+                {site.isEnrolled ? `${site.enrolledAreaHectares} ha` : "—"}
               </span>
             </div>
             <div>
@@ -214,30 +238,83 @@ function SiteCard({ site }: { site: ProjectOwnerSite }) {
 }
 
 function SitesTab({ sites }: { sites: ProjectOwnerSite[] }) {
-  // Compute a representative centroid for the map viewport.
-  const mapCenter = useMemo(() => {
-    const withCentroid = sites.filter((s) => s.centroid);
-    if (withCentroid.length === 0) return null;
-    const lat =
-      withCentroid.reduce((sum, s) => sum + (s.centroid?.lat ?? 0), 0) /
-      withCentroid.length;
-    const lng =
-      withCentroid.reduce((sum, s) => sum + (s.centroid?.lng ?? 0), 0) /
-      withCentroid.length;
-    return { lat: lat.toString(), lng: lng.toString() };
-  }, [sites]);
+  // One pin per site, replacing an averaged centroid.
+  //
+  // What was here computed the arithmetic mean of every site's coordinates
+  // and dropped a single pin on it. That point is not any of the sites: for
+  // a developer with parcels in two regions it lands halfway between them,
+  // which around here is often the Gulf of Guinea. It answered no question
+  // anyone had — not "where is this parcel", not "how spread out is this
+  // developer's land" — and it looked authoritative while doing it.
+  const markers = useMemo<TMapMarker[]>(
+    () =>
+      sites
+        .filter((s) => s.centroid)
+        .map((s) => {
+          const centroid = s.centroid as { lat: number; lng: number };
+
+          if (s.kind === "farm_plot") {
+            const where = [s.village, s.region].filter(Boolean).join(", ");
+            return {
+              id: s.id,
+              lat: centroid.lat,
+              lng: centroid.lng,
+              label: s.memberName ?? where ?? "Parcel",
+              detail: s.isEnrolled
+                ? `${s.enrolledAreaHectares} of ${s.areaHectares} ha — ${s.projectCode}`
+                : `${s.areaHectares} ha — not enrolled`,
+              variant: s.isEnrolled ? "solid" : "outline",
+            };
+          }
+
+          return {
+            id: s.id,
+            lat: centroid.lat,
+            lng: centroid.lng,
+            label: s.facilityName || "Project site",
+            detail: [s.siteType?.replace(/_/g, " "), s.projectCode]
+              .filter(Boolean)
+              .join(" — "),
+            variant: "solid",
+          };
+        }),
+    [sites],
+  );
+
+  // Split rather than filtered. "This developer has no land" and "this
+  // developer's land isn't in a project yet" are different situations with
+  // different next actions, and the tab previously showed only the second
+  // group — so eight registered parcels rendered as "No enrolled sites".
+  const { enrolled, registered } = useMemo(
+    () => ({
+      enrolled: sites.filter((s) => s.isEnrolled),
+      registered: sites.filter((s) => !s.isEnrolled),
+    }),
+    [sites],
+  );
+
+  const totalHa = (rows: ProjectOwnerSite[]) =>
+    rows
+      .reduce((sum, s) => {
+        if (s.kind !== "farm_plot") return sum;
+        const ha = Number(
+          s.isEnrolled ? s.enrolledAreaHectares : s.areaHectares,
+        );
+        return sum + (Number.isFinite(ha) ? ha : 0);
+      }, 0)
+      .toFixed(2);
 
   if (sites.length === 0) {
     return (
       <div className="border border-slate-200 bg-slate-50 p-12 text-center">
         <MapPin className="h-8 w-8 text-slate-300 mx-auto mb-4" />
         <p className="font-sans text-lg text-slate-900 mb-2">
-          No enrolled sites
+          No land on record
         </p>
         <p className="text-sm text-slate-500 max-w-md mx-auto">
-          This developer has no farm plots enrolled in a project and no project
-          sites recorded. Sites will appear once a project is created and
-          linked.
+          No parcels have been captured for this developer yet. A field agent
+          records them during registration, or you can add them from a member's
+          row.
         </p>
       </div>
     );
@@ -247,28 +324,55 @@ function SitesTab({ sites }: { sites: ProjectOwnerSite[] }) {
     <div className="space-y-6">
       <div className="border border-slate-200 bg-white">
         <div className="h-96">
-          {/* Read-only overview — shows roughly where this developer's sites
-              are, doesn't let anyone reposition anything (there's nothing
-              here to reposition: it's an average of potentially several
-              sites, not any one site's actual location). */}
-          <LocationMap
-            latitude={mapCenter?.lat ?? ""}
-            longitude={mapCenter?.lng ?? ""}
-            className="w-full h-full"
-          />
+          <LocationMap markers={markers} className="w-full h-full" />
+        </div>
+        <div className="flex flex-wrap items-center gap-6 border-t border-slate-200 px-5 py-3">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
+            Enrolled in a project ({enrolled.length})
+          </span>
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
+            Registered, not enrolled ({registered.length})
+          </span>
+          {markers.length < sites.length && (
+            <span className="text-[10px] uppercase tracking-widest text-amber-700">
+              {sites.length - markers.length} without coordinates
+            </span>
+          )}
         </div>
       </div>
 
-      <div>
-        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-4">
-          Site Inventory ({sites.length})
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sites.map((site) => (
-            <SiteCard key={site.id} site={site} />
-          ))}
+      {enrolled.length > 0 && (
+        <div>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-4">
+            Enrolled in a project ({enrolled.length}) · {totalHa(enrolled)} ha
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {enrolled.map((site) => (
+              <SiteCard key={site.id} site={site} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {registered.length > 0 && (
+        <div>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-1">
+            Registered, not enrolled ({registered.length}) ·{" "}
+            {totalHa(registered)} ha
+          </h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Captured land that no project is using yet. Available to enrol when
+            a project is registered for this developer.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {registered.map((site) => (
+              <SiteCard key={site.id} site={site} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

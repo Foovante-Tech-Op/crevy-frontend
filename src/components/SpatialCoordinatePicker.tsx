@@ -64,8 +64,17 @@ const MOVEMENT_GATE_METERS = 30;
 const SELF_ECHO_TOLERANCE_METERS = 5;
 
 interface SpatialPickerProps {
-  latitude: string;
-  longitude: string;
+  /**
+   * The single point this map centres on and (in read mode) pins.
+   *
+   * Optional only because `markers` replaces it entirely — a multi-marker
+   * map has no one coordinate to be given. Required in every other usage,
+   * which is why both still default to "" rather than being made nullable
+   * throughout: the parse below already treats "" as "no location yet",
+   * a state the picker has always had to handle.
+   */
+  latitude?: string;
+  longitude?: string;
   /**
    * "write" (default) — the original interactive picker: a fixed crosshair
    * stays centered in the viewport and the *map* is dragged underneath it;
@@ -97,22 +106,58 @@ interface SpatialPickerProps {
   className?: string;
   /** Label shown in the read-mode telemetry box, e.g. a place name. */
   locationLabel?: string;
+  /**
+   * Read mode only: pin several places at once and frame all of them.
+   *
+   * Supplying this replaces the single latitude/longitude marker entirely.
+   * It exists because the alternative in use was to average the coordinates
+   * of every site a developer had and drop one pin on the mean — a point
+   * that is not any of the sites, sits between them, and for a developer
+   * with parcels in two regions lands in whatever is halfway, which off the
+   * Ghanaian coast is the sea.
+   *
+   * `variant` distinguishes committed land from merely registered land:
+   *   solid   — enrolled in a project
+   *   outline — registered, not enrolled in anything yet
+   */
+  markers?: TMapMarker[];
 }
 
+export type TMapMarker = {
+  id: string;
+  lat: number;
+  lng: number;
+  /** Bold first line of the popup. */
+  label: string;
+  /** Optional second line — area, member, project, whatever identifies it. */
+  detail?: string;
+  variant?: "solid" | "outline";
+};
+
+const MARKER_COLORS = {
+  solid: "#0f172a",
+  outline: "#94a3b8",
+} as const;
+
 export function SpatialCoordinatePicker({
-  latitude,
-  longitude,
+  latitude = "",
+  longitude = "",
   mode = "write",
   onChange,
   defaultCountryCenter = [-1.0232, 7.9465],
   className,
   locationLabel,
+  markers,
 }: SpatialPickerProps) {
   const isReadOnly = mode === "read";
+  // Multi-marker mode is a read-mode capability; a picker that emits one
+  // coordinate has nothing to do with a set of fixed points.
+  const isMultiMarker = isReadOnly && Array.isArray(markers);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const multiMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const onChangeRef = useRef(onChange);
   // Counts tile-load failures on the primary style so a single transient
   // blip doesn't trigger a fallback switch, but a real outage (CDN down)
@@ -271,17 +316,22 @@ export function SpatialCoordinatePicker({
     });
 
     if (isReadOnly) {
-      // Static marker pinned at the given coordinates. The map can still
-      // be panned/zoomed to look around, but the marker itself never moves
-      // and nothing is reverse-geocoded — this view is for display only.
-      const marker = new mapboxgl.Marker({ color: "#0f172a" }).setLngLat([
-        initialLng,
-        initialLat,
-      ]);
-      if (latitude && longitude) {
-        marker.addTo(map);
+      // Multi-marker mode owns its own pins (see the effect below), so the
+      // single static marker is skipped rather than left hanging at
+      // whatever latitude/longitude happened to be passed alongside.
+      if (!isMultiMarker) {
+        // Static marker pinned at the given coordinates. The map can still
+        // be panned/zoomed to look around, but the marker itself never moves
+        // and nothing is reverse-geocoded — this view is for display only.
+        const marker = new mapboxgl.Marker({ color: "#0f172a" }).setLngLat([
+          initialLng,
+          initialLat,
+        ]);
+        if (latitude && longitude) {
+          marker.addTo(map);
+        }
+        markerRef.current = marker;
       }
-      markerRef.current = marker;
     } else {
       // Debounced: a flurry of quick successive drags (or a fast flick)
       // collapses into a single lookup ~700ms after motion settles, instead
@@ -372,6 +422,8 @@ export function SpatialCoordinatePicker({
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       markerRef.current?.remove();
       markerRef.current = null;
+      for (const m of multiMarkersRef.current) m.remove();
+      multiMarkersRef.current = [];
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -429,8 +481,87 @@ export function SpatialCoordinatePicker({
     });
   }, [latitude, longitude, isReadOnly]);
 
+  // ── Multi-marker mode: one pin per site, framed to show all of them ──
+  //
+  // Rebuilds every pin whenever the set changes. That is wasteful in
+  // principle and correct in practice at this scale — a developer has tens
+  // of parcels, not thousands — and diffing markers by id would trade a
+  // real correctness risk (stale popups, leaked marker instances) for an
+  // optimisation nobody can perceive.
+  //
+  // Popups are built as DOM nodes rather than with setHTML. Every string in
+  // them is user-supplied — a parcel's village, a member's name — and
+  // setHTML would parse them as markup.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!isMultiMarker || !map || !markers) return;
+
+    const render = () => {
+      for (const m of multiMarkersRef.current) m.remove();
+      multiMarkersRef.current = [];
+
+      const placeable = markers.filter(
+        (m) => Number.isFinite(m.lat) && Number.isFinite(m.lng),
+      );
+      if (placeable.length === 0) return;
+
+      for (const site of placeable) {
+        const popupEl = document.createElement("div");
+        popupEl.className = "text-xs leading-snug";
+
+        const title = document.createElement("p");
+        title.className = "font-semibold text-slate-900";
+        title.textContent = site.label;
+        popupEl.appendChild(title);
+
+        if (site.detail) {
+          const detail = document.createElement("p");
+          detail.className = "text-slate-500 mt-0.5";
+          detail.textContent = site.detail;
+          popupEl.appendChild(detail);
+        }
+
+        const marker = new mapboxgl.Marker({
+          color: MARKER_COLORS[site.variant ?? "solid"],
+          scale: 0.8,
+        })
+          .setLngLat([site.lng, site.lat])
+          .setPopup(
+            new mapboxgl.Popup({
+              offset: 18,
+              closeButton: false,
+            }).setDOMContent(popupEl),
+          )
+          .addTo(map);
+
+        multiMarkersRef.current.push(marker);
+      }
+
+      // Framing. fitBounds on a single point zooms to maximum and shows a
+      // featureless green square, so one pin gets an explicit sane zoom.
+      if (placeable.length === 1) {
+        map.setCenter([placeable[0].lng, placeable[0].lat]);
+        map.setZoom(13);
+        return;
+      }
+
+      const bounds = new mapboxgl.LngLatBounds();
+      for (const site of placeable) bounds.extend([site.lng, site.lat]);
+      map.fitBounds(bounds, { padding: 64, maxZoom: 14, duration: 0 });
+    };
+
+    // Markers can only be added once the style is up; on a cold mount this
+    // effect wins the race against load.
+    if (map.isStyleLoaded()) {
+      render();
+    } else {
+      map.once("load", render);
+    }
+  }, [markers, isMultiMarker]);
+
   // Read mode: move the marker (and recenter on it) when lat/lng change.
   useEffect(() => {
+    if (isMultiMarker) return;
     if (!isReadOnly || !mapRef.current || !markerRef.current) return;
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
@@ -445,7 +576,10 @@ export function SpatialCoordinatePicker({
       center: [lng, lat],
       zoom: Math.max(mapRef.current.getZoom(), 14),
     });
-  }, [latitude, longitude, isReadOnly]);
+    // isMultiMarker gates the early return above: without it in the deps,
+    // this keeps flying the map back to a single coordinate and undoing the
+    // fitBounds that framed all the markers.
+  }, [latitude, longitude, isReadOnly, isMultiMarker]);
 
   useEffect(() => {
     if (mapRef.current) {

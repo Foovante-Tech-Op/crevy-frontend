@@ -89,19 +89,28 @@ export type ProjectOwnerMember = {
 
 export type ProjectOwnerSite = {
   id: string;
-  projectId: string;
+  // Null for a parcel that is registered but not enrolled in any project.
+  // This list used to be enrolled parcels only, so these were always set;
+  // now every parcel the developer has appears and `isEnrolled` says which.
+  projectId: string | null;
   projectCode: string | null;
   projectName: string | null;
   kind: "farm_plot" | "project_site";
+  isEnrolled: boolean;
   centroid: { lat: number; lng: number } | null;
 } & (
   | {
       kind: "farm_plot";
       plotId: string;
-      enrolledAreaHectares: string;
-      status: string;
-      enrolledDate: string;
+      // Null when not enrolled — there is no enrolled area for a parcel
+      // that is not in a project. `areaHectares` (registered) is always set.
+      enrolledAreaHectares: string | null;
+      status: string | null;
+      enrolledDate: string | null;
       farmPlotId: string;
+      memberId: string | null;
+      /** Whose parcel this is; null = held by the developer entity itself. */
+      memberName: string | null;
       country: string;
       region: string;
       village: string | null;
