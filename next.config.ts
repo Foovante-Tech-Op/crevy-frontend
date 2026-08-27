@@ -120,8 +120,9 @@ const nextConfig: NextConfig = {
   },
 
   // Proxy /api/auth/* and /api/v*/* through Next.js so that:
-  //  1. Auth cookies are set same-origin (netlify.app → netlify.app), not
-  //     cross-origin to Render. httpOnly cookies cannot be set cross-origin.
+  //  1. Auth cookies are set same-origin (the browser only ever talks to this
+  //     app's own origin), not cross-origin to the API. httpOnly cookies
+  //     cannot be set cross-origin.
   //  2. CORS preflight is avoided for all API calls.
   //  3. BETTER_AUTH_URL on the backend can stay as the frontend URL.
   async rewrites() {
