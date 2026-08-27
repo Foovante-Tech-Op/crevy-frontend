@@ -92,6 +92,40 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Patch the Alpine layer before anything else.
+#
+# `node:24-alpine` is rebuilt when the Node maintainers cut an image, not when
+# Alpine publishes a security update. So the base regularly ships an OS package
+# whose fix is already sitting in the Alpine repository, and the
+# `Trivy image scan (gate on CRITICAL/HIGH)` step goes red on it through no
+# fault of anything in this repo.
+#
+# That is what blocked this deploy: CVE-2026-14456 (HIGH, OpenSSL denial of
+# service via unbounded memory growth in the QUIC server) against
+# libcrypto3/libssl3 at 3.5.7-r0, with 3.5.8-r0 already published in
+# alpine v3.24 main. Trivy reported it status=fixed — the remedy existed and
+# we were not taking it.
+#
+# Worth understanding what that failure looks like from the outside, because
+# it is quiet: the gate sits BEFORE `Log in to GHCR` / `Push image`, and the
+# deploy job is gated on `needs.build.result == 'success'`. So a red gate
+# means the image is never pushed and the deploy never runs — the cluster
+# just carries on serving the previous image. Nothing alerts, nothing rolls
+# back, and `kubectl get deploy` shows a perfectly healthy Deployment on a
+# stale tag. Comparing the running image against the commit SHA is the only
+# way to notice.
+#
+# One `apk upgrade` takes the fix, and keeps taking it for the next such CVE
+# without anyone editing this file. Deliberately NOT solved with
+# `ignore-unfixed: true` or a .trivyignore: this finding is actionable, and
+# suppressing actionable findings is how a gate stops meaning anything. Same
+# principle as the npm removal below — fix the image, don't silence the
+# scanner. crevy-backend's Dockerfile carries the identical block; both
+# images share this base, so a base CVE will always hit them together.
+#
+# --no-cache leaves no apk index behind in the layer.
+RUN apk --no-cache upgrade
+
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 --ingroup nodejs --shell /sbin/nologin nextjs
 
