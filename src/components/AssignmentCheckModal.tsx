@@ -36,6 +36,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDebounce } from "@/hooks/use-debounce";
 import { ProjectOwnerService } from "@/lib/services/project-owner-service";
 import { UserService } from "@/lib/services/user-service";
 import { cn } from "@/lib/utils";
@@ -57,7 +58,7 @@ export function AssignmentCheckModal({
   const router = useRouter();
   const [step, setStep] = React.useState<1 | 2>(1);
   const [search, setSearch] = React.useState("");
-  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [selectedOwnerId, setSelectedOwnerId] = React.useState<string>("");
   const [selectedAdminId, setSelectedAdminId] = React.useState<string>("");
 
@@ -69,14 +70,6 @@ export function AssignmentCheckModal({
 
   const [isOwnerPopoverOpen, setIsOwnerPopoverOpen] = React.useState(false);
   const [isAdminPopoverOpen, setIsAdminPopoverOpen] = React.useState(false);
-
-  // Debounce handler to isolate server requests
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [search]);
 
   // 1. Fetch Project Owners (Paginated + Searchable via API)
   const {
