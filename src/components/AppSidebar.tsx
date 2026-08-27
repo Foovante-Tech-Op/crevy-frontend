@@ -15,15 +15,63 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getSidebarConfig } from "@/constants/sidebar-items";
+import { useUnreadNotificationCount } from "@/hooks/use-notifications";
 import type { TBetterAuthUser } from "@/types";
+import type { SidebarItem } from "@/types/sidebar.types";
 import { NavUser } from "./NavUser";
 import { Separator } from "./ui/separator";
+
+/**
+ * One nav row, used by both the top items and the grouped sections — they
+ * rendered identical markup in two places before, so a badge added to one
+ * would silently not appear in the other.
+ *
+ * `badge` is live data passed down from AppSidebar, not a property of the
+ * static config. sidebar-items.ts used to carry a hardcoded `badge: 3` that
+ * nothing rendered; SidebarMenuBadge existed here and had no consumers.
+ */
+function NavItem({
+  item,
+  className,
+  badge,
+}: {
+  item: SidebarItem;
+  className: string;
+  badge?: number;
+}) {
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip={item.title} className={className}>
+        <Link href={item.url}>
+          <HugeiconsIcon
+            icon={item.icon}
+            size={24}
+            color="currentColor"
+            strokeWidth={1.5}
+            className="shrink-0"
+          />
+          <span className="text-xs font-mono tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
+            {item.title}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+      {/* Rendered only when there is something to count — a "0" badge is
+          noise, and an always-on badge is a lie. */}
+      {badge !== undefined && badge > 0 && (
+        <SidebarMenuBadge className="group-data-[collapsible=icon]:hidden bg-emerald-500 text-white font-mono text-[10px] rounded-full px-1.5 min-w-5 justify-center">
+          {badge > 99 ? "99+" : badge}
+        </SidebarMenuBadge>
+      )}
+    </SidebarMenuItem>
+  );
+}
 
 export function AppSidebar({
   user,
@@ -34,8 +82,15 @@ export function AppSidebar({
   const pathname = usePathname();
   const { setOpenMobile, isMobile, state, toggleSidebar } = useSidebar();
 
-  const role = user.role || "project_owner";
+  const role = user.role || "project_developer";
   const sidebarConfig = getSidebarConfig(role);
+
+  const { data: unreadNotifications = 0 } = useUnreadNotificationCount();
+
+  // The only badged item today. Keyed on url rather than title so a rename
+  // of the label cannot silently drop the badge.
+  const badgeFor = (item: SidebarItem) =>
+    item.url === "/notifications" ? unreadNotifications : undefined;
 
   // Dynamic Theme Matrix based on Tier Clearance
   const getSidebarStyles = (r: string) => {
@@ -134,29 +189,15 @@ export function AppSidebar({
               {sidebarConfig.topItems.map((item) => {
                 const isActive = pathname === item.url;
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip={item.title}
-                      className={`
+                  <NavItem
+                    key={item.title}
+                    item={item}
+                    badge={badgeFor(item)}
+                    className={`
                         flex items-center gap-4 px-3 py-5 rounded-none transition-all border-l-2
                         ${isActive ? currentStyle.active : currentStyle.inactive}
                       `}
-                    >
-                      <Link href={item.url}>
-                        <HugeiconsIcon
-                          icon={item.icon}
-                          size={24}
-                          color="currentColor"
-                          strokeWidth={1.5}
-                          className="shrink-0"
-                        />
-                        <span className="text-xs font-mono tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  />
                 );
               })}
             </SidebarMenu>
@@ -178,29 +219,15 @@ export function AppSidebar({
                 {section.items.map((item) => {
                   const isActive = pathname === item.url;
                   return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        tooltip={item.title}
-                        className={`
+                    <NavItem
+                      key={item.title}
+                      item={item}
+                      badge={badgeFor(item)}
+                      className={`
                           flex items-center gap-4 px-3 py-5 rounded-none transition-all border-l-2
                           ${isActive ? currentStyle.active : currentStyle.inactive}
                         `}
-                      >
-                        <Link href={item.url}>
-                          <HugeiconsIcon
-                            icon={item.icon}
-                            size={24}
-                            color="currentColor"
-                            strokeWidth={1.5}
-                            className="shrink-0"
-                          />
-                          <span className="text-xs font-mono tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
-                            {item.title}
-                          </span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    />
                   );
                 })}
               </SidebarMenu>
