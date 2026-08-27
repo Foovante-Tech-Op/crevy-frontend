@@ -149,8 +149,7 @@ export default function AdminDashboard({
             Authorized Personnel · {role.replace(/_/g, " ")}
           </p>
           <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
-            Institutional{" "}
-            <span className="italic text-slate-500">Operations.</span>
+            Institutional <span className="italic text-brand">Operations.</span>
           </h1>
           <p className="text-slate-500 font-light leading-relaxed">
             Manage your designated operational domain, review developers, and

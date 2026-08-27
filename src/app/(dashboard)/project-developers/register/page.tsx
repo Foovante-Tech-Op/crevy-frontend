@@ -49,7 +49,7 @@ export default function ProjectOwnerRegisterPage() {
       </div>
 
       {/* ── Form Section ── */}
-      <div className="max-w-[1000px] mx-auto px-6 lg:px-10 mt-12">
+      <div className="max-w-[1000px] mx-auto px-6 mt-12">
         <ProjectOwnerOnboardingForm />
       </div>
     </div>
