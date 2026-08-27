@@ -1,26 +1,41 @@
 "use client";
 
-import { Save, Settings, ShieldAlert } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { Settings, ShieldAlert } from "lucide-react";
+
+/**
+ * Registry governance thresholds.
+ *
+ * This panel used to accept edits, wait 1500ms on a setTimeout, and then
+ * report `toast.success("Settings saved.")`. Nothing was sent anywhere and no
+ * endpoint exists to receive it. A super_admin could set the AI confidence
+ * threshold that gates MRV verification, be told it had been applied, and
+ * change nothing — while the panel beside it asserted that "Actions are
+ * irrevocably logged".
+ *
+ * Of the mocked screens in this app that was the one most likely to cause a
+ * real decision to be made on a false premise, so the fake save is gone. The
+ * values are shown as the defaults the pipeline currently applies, read-only,
+ * with the panel stating plainly that it is not yet connected.
+ *
+ * When a real endpoint lands, this becomes a form again — the inputs, labels
+ * and layout are all still here.
+ */
+
+/** The values the verification pipeline actually applies today. */
+const CURRENT_THRESHOLDS = [
+  {
+    label: "AI Confidence Score Threshold (%)",
+    value: 85,
+    note: "Below this, an ingestion is flagged rather than verified.",
+  },
+  {
+    label: "Maximum Buffer Deduction (%)",
+    value: 20,
+    note: "Upper bound on the non-permanence buffer withheld at issuance.",
+  },
+];
 
 export function GovernanceSection({ isSuperAdmin }: { isSuperAdmin: boolean }) {
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleSave = () => {
-    if (!isSuperAdmin) {
-      toast.error("You don't have permission to change these settings", {
-        description: "Contact an administrator if you need access.",
-      });
-      return;
-    }
-    setIsSaving(true);
-    setTimeout(() => {
-      toast.success("Settings saved.");
-      setIsSaving(false);
-    }, 1500);
-  };
-
   return (
     <div className="animate-in fade-in duration-500 space-y-12">
       <div className="border-b border-slate-200 pb-8">
@@ -28,79 +43,57 @@ export function GovernanceSection({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           Registry Governance.
         </h2>
         <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">
-          High-integrity thresholds for dMRV verification & project lifecycle.
+          Thresholds applied by the verification pipeline.
         </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Threshold Control */}
-        <div className="p-8 border border-slate-200 bg-white">
+        <div className="p-8 border border-slate-200 bg-white rounded-none">
           <div className="flex items-center gap-3 mb-8">
             <Settings size={16} className="text-slate-900" />
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">
-              dMRV Sensitivity
+              Verification Parameters
             </h3>
           </div>
 
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 block">
-            AI Confidence Score Threshold (%)
-          </div>
-          <input
-            type="number"
-            defaultValue={85}
-            disabled={!isSuperAdmin}
-            className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-mono text-slate-900 font-bold mb-8 focus:ring-0 focus:border-slate-900 disabled:opacity-50"
-          />
-
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 block">
-            Maximum Buffer Deduction (%)
-          </div>
-          <input
-            type="number"
-            defaultValue={20}
-            disabled={!isSuperAdmin}
-            className="w-full bg-slate-50 border-0 border-b-2 border-slate-200 p-4 font-mono text-slate-900 font-bold focus:ring-0 focus:border-slate-900 disabled:opacity-50"
-          />
+          {CURRENT_THRESHOLDS.map((t) => (
+            <div key={t.label} className="mb-8 last:mb-0">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 block">
+                {t.label}
+              </div>
+              <div className="w-full bg-slate-50 border border-slate-200 rounded-none p-4 font-mono text-slate-900 font-bold">
+                {t.value}
+              </div>
+              <p className="mt-2 text-[10px] font-mono text-slate-400 leading-relaxed">
+                {t.note}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Protocol Alert */}
-        <div className="p-8 border border-amber-200 bg-amber-50 flex flex-col justify-between">
+        <div className="p-8 border border-amber-200 bg-amber-50 rounded-none flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
               <ShieldAlert size={16} className="text-amber-700" />
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-900">
-                System Protocol Warning
+                Not Editable Here Yet
               </h3>
             </div>
-            <p className="text-xs text-amber-800 leading-relaxed font-light mb-6 font-mono">
-              Modifying systemic parameters alters verification logic for all
-              developers currently in the `registry_pending` state. Actions are
-              irrevocably logged.
+            <p className="text-xs text-amber-800 leading-relaxed font-mono mb-6">
+              These thresholds change verification behaviour for every project
+              in the registry, so they are not editable from this screen until
+              there is an endpoint that applies them and an audit record that
+              proves who changed what. Until then this panel reports the values
+              in force; it does not pretend to set them.
             </p>
           </div>
-          <div className="flex items-center gap-2 p-3 bg-white border border-amber-200">
-            <div className="w-2 h-2 rounded-none bg-amber-500 animate-pulse" />
-            <span className="text-[9px] font-bold uppercase tracking-widest text-amber-900">
-              Integrity Lock:{" "}
-              {isSuperAdmin ? "UNLOCKED (DANGEROUS)" : "SECURED"}
-            </span>
-          </div>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-amber-900">
+            {isSuperAdmin
+              ? "Your clearance would permit this change"
+              : "Requires super admin clearance"}
+          </p>
         </div>
       </div>
-
-      {isSuperAdmin && (
-        <div className="flex justify-end pt-8 border-t border-slate-200">
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-slate-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-widest flex items-center gap-3 hover:bg-brand-900 transition-colors disabled:opacity-70"
-          >
-            {isSaving ? "Anchoring Protocol..." : "Anchor Configuration"}
-            {!isSaving && <Save size={14} />}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
