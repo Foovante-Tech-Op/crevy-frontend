@@ -71,6 +71,9 @@ export default function DashboardRouter() {
     case "sustainability_manager":
     case "org_auditor":
       return <OrgAdminDashboard userName={userName} role={role} />;
+    // `project_developer` is what the backend actually seeds and assigns;
+    // `project_owner` is the older name kept for any session still carrying it.
+    case "project_developer":
     case "project_owner":
       return <ProjectOwnerDashboard userName={userName} role={role} />;
     default:

@@ -78,18 +78,36 @@ export const signInSchema = z.object({
 
 export type TSignInInput = z.infer<typeof signInSchema>;
 
+/**
+ * Platform roles, mirroring the ROLES seed in crevy-backend
+ * (src/v2/seed.ts). The backend `role` table is the source of truth —
+ * `user.roleId` joins to it and the better-auth customSession plugin
+ * injects the resulting name onto the session.
+ *
+ * `project_developer` is the role every developer/farmer account actually
+ * holds. It was missing here, so a real developer matched no case in the
+ * dashboard router and no key in getSidebarConfig — landing them on the
+ * "Role Not Assigned" screen despite having a perfectly good role.
+ *
+ * NOTE: `admin` and `project_owner` are NOT seeded by the backend and can
+ * never come back from the API. They are retained only because call sites
+ * still branch on them; treat `project_developer` as the real name and drop
+ * these two once those branches are cleaned up.
+ */
 export type TRole =
   | "super_admin"
-  | "admin"
   | "financial_admin"
   | "mrv_admin"
   | "project_manager"
   | "project_admin"
   | "field_agent"
-  | "project_owner"
+  | "project_developer"
   | "org_admin"
   | "sustainability_manager"
-  | "org_auditor";
+  | "org_auditor"
+  // Legacy names — see the NOTE above.
+  | "admin"
+  | "project_owner";
 
 export type TBetterAuthUser = {
   id: string;

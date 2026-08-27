@@ -21,11 +21,13 @@ import type { TRole } from "@/types/user.types";
 
 export const getSidebarConfig = (role: TRole): SidebarConfig => {
   const commonAccountItems: SidebarItem[] = [
+    // No static badge. The unread count is live data — AppSidebar reads it
+    // from useUnreadNotificationCount() and renders it via SidebarMenuBadge.
+    // This used to carry a hardcoded `badge: 3`.
     {
       title: "Notifications",
       url: "/notifications",
       icon: Notification01Icon,
-      badge: 3,
     },
     { title: "Support", url: "/support", icon: CustomerService01Icon },
   ];
@@ -39,6 +41,35 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
       icon: CalculateIcon,
     },
   ];
+
+  // Shared by both `project_developer` (what the backend assigns) and the
+  // legacy `project_owner` key, so the two can never drift apart.
+  const developerConfig: SidebarConfig = {
+    topItems: [
+      { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
+      { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
+      { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
+      {
+        title: "Register Project",
+        url: "/projects/new",
+        icon: PropertyAddIcon,
+      },
+      { title: "My Projects", url: "/projects", icon: ViewIcon },
+      {
+        title: "Track Verification",
+        url: "/track-verification",
+        icon: CheckListIcon,
+      },
+      {
+        title: "Compliance",
+        url: "/compliance",
+        icon: CheckmarkCircle03Icon,
+      },
+      ...transparencyItems,
+      ...commonAccountItems,
+    ],
+    sections: [],
+  };
 
   const configs: Record<TRole, SidebarConfig> = {
     // ── SUPER ADMIN: Gets Clustered Sections ──
@@ -323,36 +354,18 @@ export const getSidebarConfig = (role: TRole): SidebarConfig => {
           url: "/carbon-calculator",
           icon: CalculateIcon,
         },
-      ],
-      sections: [],
-    },
-    project_owner: {
-      topItems: [
-        { title: "Get Started", url: "/get-started", icon: PropertyAddIcon },
-        { title: "Dashboard", url: "/dashboard", icon: DashboardSquareAddIcon },
-        { title: "Marketplace", url: "/marketplace", icon: DiscoverCircleIcon },
-        {
-          title: "Register Project",
-          url: "/projects/new",
-          icon: PropertyAddIcon,
-        },
-        { title: "My Projects", url: "/projects", icon: ViewIcon },
-        {
-          title: "Track Verification",
-          url: "/track-verification",
-          icon: CheckListIcon,
-        },
-        {
-          title: "Compliance",
-          url: "/compliance",
-          icon: CheckmarkCircle03Icon,
-        },
-        ...transparencyItems,
+        // Field agents are primary recipients of KYC decision events — a
+        // rejection reason is written for them to act on — so they need the
+        // inbox even though this sidebar rarely renders for them.
         ...commonAccountItems,
       ],
       sections: [],
     },
+    // `project_developer` is the role the backend seeds and assigns;
+    // `project_owner` is the older name. Same surface, one definition.
+    project_developer: developerConfig,
+    project_owner: developerConfig,
   };
 
-  return configs[role] || configs.project_owner;
+  return configs[role] || developerConfig;
 };

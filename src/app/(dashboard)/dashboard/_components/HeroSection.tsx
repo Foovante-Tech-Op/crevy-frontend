@@ -46,41 +46,46 @@ const HeroSection = ({ role, userName }: HeroSectionProps) => {
   ).length;
 
   // ── Config per role ───────────────────────────────────────────────────────
-  const configs: Record<TRole, any> = {
-    project_owner: {
-      title: "Build your carbon legacy",
-      desc: "Register projects, track sequestration, and earn verified carbon credits with full transparency.",
-      cta: { label: "Register New Project", url: "/new-project", icon: Rocket },
-      badge: {
-        text:
-          projects.length === 0
-            ? "Get Started"
-            : `${projects.length} Project${projects.length !== 1 ? "s" : ""}`,
-        color: "bg-[#2cc295]/10 text-[#178a74]",
-      },
-      nextSteps: [
+  // Shared by `project_developer` (what the backend assigns) and the legacy
+  // `project_owner` key, so the two can never drift apart.
+  const developerHero = {
+    title: "Build your carbon legacy",
+    desc: "Register projects, track sequestration, and earn verified carbon credits with full transparency.",
+    cta: { label: "Register New Project", url: "/new-project", icon: Rocket },
+    badge: {
+      text:
         projects.length === 0
-          ? {
-              icon: Rocket,
-              text: "Register your first project to get started →",
-            }
-          : {
-              icon: CheckCircle2,
-              text: `${activeCount} project${activeCount !== 1 ? "s" : ""} active on the platform`,
-            },
-        pendingVerif > 0
-          ? {
-              icon: Clock,
-              text: `${pendingVerif} project${pendingVerif !== 1 ? "s" : ""} under MRV verification`,
-            }
-          : {
-              icon: Clock,
-              text: "Upload required documents to move to active status",
-            },
-      ],
-      gradFrom: "#2cc295",
-      gradTo: "#178a74",
+          ? "Get Started"
+          : `${projects.length} Project${projects.length !== 1 ? "s" : ""}`,
+      color: "bg-[#2cc295]/10 text-[#178a74]",
     },
+    nextSteps: [
+      projects.length === 0
+        ? {
+            icon: Rocket,
+            text: "Register your first project to get started →",
+          }
+        : {
+            icon: CheckCircle2,
+            text: `${activeCount} project${activeCount !== 1 ? "s" : ""} active on the platform`,
+          },
+      pendingVerif > 0
+        ? {
+            icon: Clock,
+            text: `${pendingVerif} project${pendingVerif !== 1 ? "s" : ""} under MRV verification`,
+          }
+        : {
+            icon: Clock,
+            text: "Upload required documents to move to active status",
+          },
+    ],
+    gradFrom: "#2cc295",
+    gradTo: "#178a74",
+  };
+
+  const configs: Record<TRole, any> = {
+    project_developer: developerHero,
+    project_owner: developerHero,
     admin: {
       title: "Platform Oversight",
       desc: "Manage platform health, approve users, and oversee the project verification lifecycle.",
@@ -244,7 +249,7 @@ const HeroSection = ({ role, userName }: HeroSectionProps) => {
     },
   };
 
-  const c = configs[role] || configs.project_owner;
+  const c = configs[role] || developerHero;
   const Cta = c.cta.icon;
 
   return (
