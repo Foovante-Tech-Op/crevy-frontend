@@ -67,7 +67,7 @@ export function NotificationBell({ isActive }: { isActive?: boolean }) {
               this replaces was unconditional, so it always looked like the
               user had mail. */}
           {unreadCount > 0 && (
-            <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 font-mono text-[9px] font-bold text-white">
+            <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-none bg-brand-500 px-1 font-mono text-[9px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -79,7 +79,7 @@ export function NotificationBell({ isActive }: { isActive?: boolean }) {
         className="w-88 rounded-none border-slate-200 p-0"
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
             Notifications
           </p>
           {unreadCount > 0 && (
@@ -109,7 +109,7 @@ export function NotificationBell({ isActive }: { isActive?: boolean }) {
                 <>
                   <span
                     className={cn(
-                      "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+                      "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-none border border-slate-100",
                       getNotificationStyle(n.type),
                     )}
                   >
@@ -126,7 +126,7 @@ export function NotificationBell({ isActive }: { isActive?: boolean }) {
                         {n.title}
                       </span>
                       {!n.isRead && (
-                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-none bg-brand-500" />
                       )}
                     </span>
                     <span className="mt-0.5 block line-clamp-2 text-xs text-slate-500">
@@ -141,7 +141,7 @@ export function NotificationBell({ isActive }: { isActive?: boolean }) {
 
               const rowClass = cn(
                 "flex w-full gap-3 border-b border-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-50",
-                !n.isRead && "bg-emerald-50/30",
+                !n.isRead && "bg-brand-50/30",
               );
 
               const onOpen = () => {
@@ -172,7 +172,7 @@ export function NotificationBell({ isActive }: { isActive?: boolean }) {
 
         <Link
           href="/notifications"
-          className="block border-t border-slate-100 px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest text-slate-500 transition-colors hover:text-slate-900"
+          className="block border-t border-slate-100 px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-colors hover:text-slate-900"
         >
           View all →
         </Link>

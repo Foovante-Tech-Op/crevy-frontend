@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { AlertTriangle, Bell, ChevronRight, Clock } from "lucide-react";
+import { AlertTriangle, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -67,19 +67,27 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6 space-y-12 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-slate-200 pb-12">
-        <div className="max-w-2xl">
-          <p className="text-brand-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-            <Bell size={14} /> Institutional Alert Registry
-          </p>
-          <h1 className="text-5xl font-black text-slate-900 leading-[1.1] tracking-tighter uppercase italic">
-            Command <br /> Center Notifications
-          </h1>
+    <div className="max-w-[1400px] mx-auto py-12 px-6 lg:px-10 font-sans animate-in fade-in duration-700 pb-24">
+      {/* ── Editorial Header — matches settings/organizations ── */}
+      <div className="border-b border-slate-200 pb-12 mb-12">
+        <div className="inline-flex items-center gap-3 mb-4">
+          <div className="w-6 h-[1px] bg-slate-900"></div>
+          <span className="text-slate-900 text-[10px] font-bold uppercase tracking-[0.2em]">
+            Account Activity
+          </span>
         </div>
+        <h1 className="text-4xl md:text-5xl font-sans text-slate-900 tracking-tight leading-none mb-4">
+          Notification <span className="italic text-brand">Registry.</span>
+        </h1>
+        <p className="text-slate-500 text-sm max-w-xl leading-relaxed">
+          Project updates, verification results, payout events and access
+          changes recorded against your account.
+        </p>
       </div>
 
-      <div className="space-y-8">
+      {/* Constrained inside the standard page width so lines stay readable
+          without breaking the app's outer rhythm. */}
+      <div className="max-w-4xl space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2">
             {NOTIFICATION_FILTERS.map((t) => (
@@ -87,10 +95,10 @@ export default function NotificationsPage() {
                 type="button"
                 key={t.value}
                 onClick={() => selectFilter(t.value)}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`px-5 py-2 rounded-none text-[10px] font-bold uppercase tracking-widest transition-colors border ${
                   filter === t.value
-                    ? "bg-slate-900 text-white shadow-lg"
-                    : "bg-white border border-slate-200 text-slate-400 hover:border-slate-900 hover:text-slate-900"
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white border-slate-200 text-slate-400 hover:border-slate-900 hover:text-slate-900"
                 }`}
               >
                 {t.label}
@@ -104,7 +112,7 @@ export default function NotificationsPage() {
             variant="ghost"
             onClick={() => markAllRead.mutate()}
             disabled={unreadCount === 0 || markAllRead.isPending}
-            className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-600 disabled:opacity-40"
+            className="rounded-none text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-brand-600 disabled:opacity-40"
           >
             {markAllRead.isPending ? "Marking..." : "Mark all as read"}
           </Button>
@@ -113,17 +121,16 @@ export default function NotificationsPage() {
         {/*
           An error must never look like an empty inbox. "No notifications"
           when the API is down tells the user nothing has happened, which on a
-          registry is the opposite of the truth. Same distinction the super
-          admin dashboard draws between unavailable and zero.
+          registry is the opposite of the truth.
         */}
         {isError && (
-          <div className="flex items-start gap-4 p-6 rounded-[2rem] border border-amber-200 bg-amber-50">
-            <AlertTriangle className="text-amber-500 shrink-0" size={20} />
+          <div className="flex items-start gap-4 p-6 rounded-none border border-amber-200 bg-amber-50">
+            <AlertTriangle className="text-amber-500 shrink-0" size={18} />
             <div>
-              <p className="font-black uppercase tracking-tight text-amber-900 text-sm">
+              <p className="text-sm font-bold text-amber-900">
                 Notifications could not be loaded
               </p>
-              <p className="text-amber-700 text-sm font-medium mt-1">
+              <p className="text-amber-700 text-xs font-mono mt-1 leading-relaxed">
                 This is not an empty inbox — we couldn't reach the server.
                 Refresh to try again.
               </p>
@@ -132,17 +139,14 @@ export default function NotificationsPage() {
         )}
 
         {isLoading && (
-          <div className="space-y-4">
+          <div className="border border-slate-200 bg-white rounded-none divide-y divide-slate-100">
             {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="p-8 rounded-[2rem] border border-slate-100 bg-white flex gap-8 items-start"
-              >
-                <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+              <div key={i} className="p-6 flex gap-5 items-start">
+                <Skeleton className="w-10 h-10 rounded-none shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <Skeleton className="h-5 w-1/3" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-4 w-1/3 rounded-none" />
+                  <Skeleton className="h-3 w-3/4 rounded-none" />
+                  <Skeleton className="h-3 w-24 rounded-none" />
                 </div>
               </div>
             ))}
@@ -150,12 +154,11 @@ export default function NotificationsPage() {
         )}
 
         {!isLoading && !isError && notifications.length === 0 && (
-          <div className="py-20 text-center border border-dashed border-slate-200 rounded-[2rem] bg-slate-50/60">
-            <Bell className="mx-auto text-slate-300 mb-4" size={32} />
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+          <div className="py-20 text-center border border-dashed border-slate-200 rounded-none bg-slate-50">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               {filter === "all" ? "No notifications yet" : "Nothing here"}
             </p>
-            <p className="text-slate-400 text-sm font-medium mt-3 max-w-sm mx-auto leading-relaxed">
+            <p className="text-slate-400 text-xs font-mono mt-3 max-w-sm mx-auto leading-relaxed">
               {filter === "all"
                 ? "Project updates, verification results and payout events will appear here."
                 : "No notifications match this filter."}
@@ -164,7 +167,7 @@ export default function NotificationsPage() {
         )}
 
         {!isLoading && !isError && notifications.length > 0 && (
-          <div className="space-y-4">
+          <div className="border border-slate-200 bg-white rounded-none divide-y divide-slate-100">
             {notifications.map((n) => (
               <NotificationRow
                 key={n.id}
@@ -182,7 +185,7 @@ export default function NotificationsPage() {
             <Button
               variant="ghost"
               onClick={() => setLimit((l) => l + PAGE_SIZE)}
-              className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900"
+              className="rounded-none text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900"
             >
               Load more ({notifications.length} of {total})
             </Button>
@@ -206,35 +209,33 @@ function NotificationRow({
   const body = (
     <>
       <div
-        className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-50 ${iconStyle}`}
+        className={`w-10 h-10 rounded-none flex items-center justify-center shrink-0 border border-slate-100 ${iconStyle}`}
       >
-        <Icon size={28} />
+        <Icon size={18} />
       </div>
 
-      <div className="flex-1 space-y-2 min-w-0">
+      <div className="flex-1 space-y-1.5 min-w-0">
         <div className="flex justify-between items-start gap-4">
           <h3
-            className={`font-black uppercase tracking-tight text-lg ${
-              n.isRead ? "text-slate-700" : "text-slate-900"
+            className={`text-sm font-bold tracking-tight ${
+              n.isRead ? "text-slate-600" : "text-slate-900"
             }`}
           >
             {n.title}
           </h3>
           {!n.isRead && (
-            <span className="mt-2 w-2 h-2 shrink-0 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <span className="mt-1.5 w-2 h-2 shrink-0 rounded-none bg-brand-500" />
           )}
         </div>
-        <p className="text-slate-500 font-medium leading-relaxed">
-          {n.content}
-        </p>
-        <div className="pt-4 flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-300">
-          <span className="flex items-center gap-2">
+        <p className="text-slate-500 text-sm leading-relaxed">{n.content}</p>
+        <div className="pt-3 flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-300">
+          <span className="flex items-center gap-2 font-mono normal-case tracking-wide">
             <Clock size={12} /> {relativeTime(n.createdAt)}
           </span>
           {/* Rendered only when there is somewhere real to go. The mock showed
               this affordance on every row and it led nowhere. */}
           {n.actionUrl && (
-            <span className="flex items-center gap-2 group-hover:text-slate-900 transition-colors">
+            <span className="flex items-center gap-1 group-hover:text-slate-900 transition-colors">
               Details <ChevronRight size={12} />
             </span>
           )}
@@ -243,10 +244,8 @@ function NotificationRow({
     </>
   );
 
-  const className = `group p-8 rounded-[2rem] border transition-all flex gap-8 items-start hover:shadow-xl ${
-    n.isRead
-      ? "bg-white border-slate-100"
-      : "bg-white border-brand-200 shadow-lg shadow-brand-900/5 ring-1 ring-brand-100"
+  const className = `group p-6 transition-colors flex gap-5 items-start hover:bg-slate-50 ${
+    n.isRead ? "" : "bg-brand-50/30"
   }`;
 
   if (n.actionUrl) {

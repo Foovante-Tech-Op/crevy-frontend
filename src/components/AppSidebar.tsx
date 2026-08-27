@@ -65,7 +65,7 @@ function NavItem({
       {/* Rendered only when there is something to count — a "0" badge is
           noise, and an always-on badge is a lie. */}
       {badge !== undefined && badge > 0 && (
-        <SidebarMenuBadge className="group-data-[collapsible=icon]:hidden bg-emerald-500 text-white font-mono text-[10px] rounded-full px-1.5 min-w-5 justify-center">
+        <SidebarMenuBadge className="group-data-[collapsible=icon]:hidden bg-brand-500 text-white font-mono text-[10px] rounded-none px-1.5 min-w-5 justify-center">
           {badge > 99 ? "99+" : badge}
         </SidebarMenuBadge>
       )}
