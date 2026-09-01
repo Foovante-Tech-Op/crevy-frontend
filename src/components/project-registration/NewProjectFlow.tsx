@@ -67,6 +67,26 @@ export interface NewProjectFlowProps {
   onSubmitSuccess?: (projectId: string) => void;
 }
 
+// Supplemental modules (e.g. Project Emissions & Leakage) are offered from
+// the project page after registration, never as a wizard step — they ask
+// for figures like a grid emission factor that a first-time registrant
+// does not have to hand, and blocking registration on them would cost more
+// projects than it would buy accuracy. The backend tags each module with
+// its stage; anything untagged is a core step, which keeps this correct
+// against a cached response from before the field existed.
+function isWizardModule(m: { stage?: string }) {
+  return m.stage !== "supplemental";
+}
+
+function toModuleStep(m: any): ModuleStep {
+  return {
+    moduleKey: m.moduleKey,
+    title: m.title,
+    description: m.description,
+    status: m.status,
+  };
+}
+
 const NewProjectFlow = ({
   mode = "admin",
   preselectedProjectOwnerId,
@@ -147,13 +167,7 @@ const NewProjectFlow = ({
     try {
       const res = await ProjectService.listAssessments(projectId);
       if (res.success) {
-        const serverModules = res.data.map((m: any) => ({
-          moduleKey: m.moduleKey,
-          title: m.title,
-          description: m.description,
-          status: m.status,
-        }));
-        setModules(serverModules);
+        setModules(res.data.filter(isWizardModule).map(toModuleStep));
       }
       const scoreRes = await ProjectService.getLatestScore(projectId);
       if (scoreRes?.success) setScore(scoreRes.data);
@@ -210,14 +224,9 @@ const NewProjectFlow = ({
         setIsModalOpen(false);
 
         if (assessmentsRes?.success) {
-          const serverModules: ModuleStep[] = assessmentsRes.data.map(
-            (m: any) => ({
-              moduleKey: m.moduleKey,
-              title: m.title,
-              description: m.description,
-              status: m.status,
-            }),
-          );
+          const serverModules: ModuleStep[] = assessmentsRes.data
+            .filter(isWizardModule)
+            .map(toModuleStep);
           setModules(serverModules);
 
           const firstIncompleteIndex = serverModules.findIndex(

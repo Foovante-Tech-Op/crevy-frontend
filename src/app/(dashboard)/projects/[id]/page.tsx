@@ -4,7 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import {
   Activity,
+  AlertTriangle,
   ArrowLeft,
+  Calculator,
   Calendar,
   Coins,
   FileQuestion,
@@ -29,6 +31,8 @@ import {
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
+import type { Manifest } from "@/components/assessment/AssessmentFieldRenderer";
+import { SupplementalModuleDialog } from "@/components/assessment/SupplementalModuleDialog";
 import { SpatialCoordinatePicker } from "@/components/SpatialCoordinatePicker";
 import { useUser } from "@/hooks/use-user";
 import { getErrorMessage } from "@/lib/errors";
@@ -44,6 +48,7 @@ function ProjectDetailContent() {
   const [isMounted, setIsMounted] = useState(false);
   const [activeAssessmentTab, setActiveAssessmentTab] = useState<string>("");
   const [classificationOpen, setClassificationOpen] = useState(false);
+  const [emissionsModuleOpen, setEmissionsModuleOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -98,6 +103,16 @@ function ProjectDetailContent() {
     enabled: !!id,
   });
 
+  // The assessment manifest describes every question the platform can ask,
+  // including the supplemental modules offered from this page. It is the
+  // same static payload for every project, so it is cached hard rather
+  // than refetched per project.
+  const { data: manifestRes } = useQuery({
+    queryKey: ["assessment-manifest"],
+    queryFn: () => ProjectService.getAssessmentManifest(),
+    staleTime: 60 * 60 * 1000,
+  });
+
   const queryClient = useQueryClient();
   const project = projectRes?.data;
   const verifications = verifRes?.data ?? [];
@@ -105,6 +120,25 @@ function ProjectDetailContent() {
   const auditLogs = project?.auditLogs ?? [];
   const assessments = project?.onboardingAssessments ?? [];
   const assessmentScore = project?.assessmentScore;
+  const manifest: Manifest | null = manifestRes?.data ?? null;
+
+  // Conflicts the scoring engine found in this project's answers — the
+  // reason a baseline or net figure below may be missing. Recorded on the
+  // score itself so the explanation survives long after the save-time
+  // toast that first reported it, and reaches an admin who never saw it.
+  const scoreConflicts: any[] =
+    assessmentScore?.calculationTrail?.conflicts ?? [];
+
+  // Which post-registration module this project type can still answer.
+  // Empty for project types with no gross avoided-emissions figure to net
+  // off, which is why this is asked of the manifest rather than assumed.
+  const supplementalModules: string[] = project?.projectType
+    ? (manifest?.projectTypeSupplementalModuleMap?.[project.projectType] ?? [])
+    : [];
+  const offersEmissionsModule = supplementalModules.includes(
+    "project_emissions_leakage",
+  );
+  const netTrail = assessmentScore?.calculationTrail?.baseline?.netImpact;
 
   console.log("Data: ", project, verifRes);
 
@@ -615,6 +649,56 @@ function ProjectDetailContent() {
             Assessment Scores & Methodology
           </h2>
 
+          {/* Answers that cannot all be true at once. A blocking conflict is
+              why a figure below is missing — the engine refuses to compute
+              it rather than produce a number the answers do not support.
+              This is the durable copy of the warning shown when the answers
+              were saved, so it also reaches an admin who was never there. */}
+          {scoreConflicts.length > 0 && (
+            <div className="mb-10 space-y-3">
+              {scoreConflicts.map((conflict: any) => {
+                const blocking = conflict.severity === "blocking";
+                return (
+                  <div
+                    key={conflict.code}
+                    className={cn(
+                      "border-l-2 p-5",
+                      blocking
+                        ? "border-rose-600 bg-rose-50"
+                        : "border-amber-500 bg-amber-50",
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle
+                        size={14}
+                        className={cn(
+                          "mt-0.5 shrink-0",
+                          blocking ? "text-rose-600" : "text-amber-600",
+                        )}
+                      />
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+                          {conflict.title}
+                        </p>
+                        <p className="text-xs leading-relaxed text-slate-700">
+                          {conflict.message}
+                        </p>
+                        <p className="text-xs leading-relaxed text-slate-600">
+                          {conflict.guidance}
+                        </p>
+                        {blocking && conflict.blocks?.length > 0 && (
+                          <p className="pt-1 font-mono text-[10px] uppercase tracking-widest text-rose-700">
+                            Not calculated: {conflict.blocks.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {/* Carbon Readiness Score */}
             <div className="bg-white border border-slate-200 p-6">
@@ -812,13 +896,16 @@ function ProjectDetailContent() {
                     </p>
                   </div>
                 )}
-                {assessmentScore.baselineMethanePotentialTco2e && (
+                {(assessmentScore.baselineMethanePotentialTch4 ??
+                  assessmentScore.baselineMethanePotentialTco2e) && (
                   <div>
                     <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">
                       Baseline Methane Potential
                     </span>
                     <p className="font-mono text-sm text-slate-900">
-                      {assessmentScore.baselineMethanePotentialTco2e} tCO₂e
+                      {assessmentScore.baselineMethanePotentialTch4 ??
+                        assessmentScore.baselineMethanePotentialTco2e}{" "}
+                      tCH₄
                     </p>
                   </div>
                 )}
@@ -832,27 +919,125 @@ function ProjectDetailContent() {
                     </p>
                   </div>
                 )}
-                {assessmentScore.projectedMethaneAvoidedTco2e && (
+                {(assessmentScore.projectedMethaneAvoidedTch4 ??
+                  assessmentScore.projectedMethaneAvoidedTco2e) && (
                   <div>
                     <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">
                       Projected Methane Avoided
                     </span>
                     <p className="font-mono text-sm text-slate-900">
-                      {assessmentScore.projectedMethaneAvoidedTco2e} tCO₂e
+                      {assessmentScore.projectedMethaneAvoidedTch4 ??
+                        assessmentScore.projectedMethaneAvoidedTco2e}{" "}
+                      tCH₄
                     </p>
                   </div>
                 )}
-                {assessmentScore.projectedCo2eReductionTco2e && (
+                {(assessmentScore.grossProjectedCo2eAvoidedTco2e ??
+                  assessmentScore.projectedCo2eReductionTco2e) && (
                   <div>
                     <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">
-                      Projected CO₂e Reduction
+                      Gross Projected CO₂e Avoided
                     </span>
                     <p className="font-mono text-sm text-slate-900">
-                      {assessmentScore.projectedCo2eReductionTco2e} tCO₂e
+                      {assessmentScore.grossProjectedCo2eAvoidedTco2e ??
+                        assessmentScore.projectedCo2eReductionTco2e}{" "}
+                      tCO₂e
+                    </p>
+                  </div>
+                )}
+                {assessmentScore.netProjectedCo2eReductionTco2e && (
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">
+                      Net Projected CO₂e Reduction
+                    </span>
+                    <p className="font-mono text-sm text-slate-900">
+                      {assessmentScore.netProjectedCo2eReductionTco2e} tCO₂e
+                    </p>
+                  </div>
+                )}
+                {assessmentScore.projectEmissionsEstimateTco2e && (
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">
+                      Project Emissions
+                    </span>
+                    <p className="font-mono text-sm text-slate-900">
+                      −{assessmentScore.projectEmissionsEstimateTco2e} tCO₂e
+                    </p>
+                  </div>
+                )}
+                {assessmentScore.leakageEstimateTco2e && (
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">
+                      Leakage
+                    </span>
+                    <p className="font-mono text-sm text-slate-900">
+                      −{assessmentScore.leakageEstimateTco2e} tCO₂e
                     </p>
                   </div>
                 )}
               </div>
+
+              {/* Gross → net. The figures above are gross avoided emissions
+                  until a project accounts for what its own operation emits;
+                  saying so here, next to the number, is the difference
+                  between an estimate and a claim. */}
+              {offersEmissionsModule &&
+                !assessmentScore.netProjectedCo2eReductionTco2e && (
+                  <div className="mt-8 border border-slate-900 bg-slate-50 p-6">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="max-w-2xl">
+                        <div className="mb-2 flex items-center gap-2">
+                          <Calculator size={14} className="text-brand" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+                            Net figure not yet calculated
+                          </span>
+                        </div>
+                        <p className="text-xs leading-relaxed text-slate-600">
+                          The impact above is{" "}
+                          <span className="font-semibold">gross</span> — the
+                          methane this project keeps out of the air. Registries
+                          credit the <span className="font-semibold">net</span>{" "}
+                          figure: gross minus the emissions the project itself
+                          causes (electricity, fuel, haulage), minus leakage,
+                          minus an uncertainty deduction. We hold that number
+                          back rather than guess at it.
+                        </p>
+                        {netTrail?.reason && (
+                          <p className="mt-3 font-mono text-[10px] leading-relaxed text-slate-400">
+                            {netTrail.reason}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEmissionsModuleOpen(true)}
+                        className="shrink-0 bg-foreground px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-brand"
+                      >
+                        Add project emissions & leakage
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              {offersEmissionsModule &&
+                assessmentScore.netProjectedCo2eReductionTco2e && (
+                  <div className="mt-8 flex flex-col gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[11px] leading-relaxed text-slate-500">
+                      Net figure calculated from your reported project emissions
+                      and leakage
+                      {netTrail?.quality === "indicative_only" &&
+                        " — indicative only, since the grid emission factor used has no published source"}
+                      .
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setEmissionsModuleOpen(true)}
+                      className="shrink-0 border border-slate-900 px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-900 transition-colors hover:bg-slate-900 hover:text-white"
+                    >
+                      Update emissions & leakage
+                    </button>
+                  </div>
+                )}
             </div>
           )}
 
@@ -1027,6 +1212,30 @@ function ProjectDetailContent() {
           </div>
         )}
       </section>
+
+      {/* Post-registration modules. Rendered unconditionally (its own `open`
+          prop gates it) so the project page never has to know which
+          supplemental module a project type offers — the manifest does. */}
+      {offersEmissionsModule && (
+        <SupplementalModuleDialog
+          projectId={id as string}
+          moduleKey="project_emissions_leakage"
+          manifest={manifest}
+          open={emissionsModuleOpen}
+          onOpenChange={setEmissionsModuleOpen}
+          onSubmitted={() => {
+            // The backend rescores asynchronously after a submission, so a
+            // refetch fired this instant can still read the pre-submission
+            // score. Give it a beat, then pull the project (which carries
+            // the latest score) again.
+            setTimeout(() => {
+              queryClient.invalidateQueries({
+                queryKey: ["admin-project-detail", id],
+              });
+            }, 1500);
+          }}
+        />
+      )}
     </div>
   );
 }

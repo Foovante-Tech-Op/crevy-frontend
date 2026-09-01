@@ -1,49 +1,36 @@
 // src/app/(dashboard)/projects/new/_components/AssessmentModuleStep.tsx
 "use client";
 
+// One step of the onboarding wizard: one assessment module's questions.
+//
+// The field rendering, file uploads, and conflict-warning handling all
+// live in @/components/assessment — shared with the post-registration
+// dialogs, so a question asked here and the same question asked later
+// look and behave identically. What is left in this file is only what is
+// specific to being a wizard step: fetch the module, save, submit, move on.
+
 import { ArrowLeft, CheckCircle, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  AssessmentField,
+  type FieldDef,
+  isFieldVisible,
+  type Manifest,
+} from "@/components/assessment/AssessmentFieldRenderer";
+import {
+  parseMissingRequiredFields,
+  toastAssessmentWarnings,
+  uploadPendingFiles,
+} from "@/components/assessment/assessment-io";
 import { getErrorMessage, getRawErrorMessage } from "@/lib/errors";
 import { ProjectService } from "@/lib/services/project-service";
-import { StorageService } from "@/lib/services/storage-service";
 
-// ─── Types from manifest ───────────────────────────────────────────────────
-
-export type InputType =
-  | "text"
-  | "textarea"
-  | "number"
-  | "select"
-  | "multi_select"
-  | "boolean"
-  | "percentage_split"
-  | "file"
-  | "file_multi"
-  | "geo_point";
-
-interface FieldDef {
-  label: string;
-  inputType: InputType;
-  required: boolean;
-  unit?: string;
-  options?: { value: string; label: string }[];
-  dependsOn?: { fieldKey: string; equals: unknown };
-  helpText?: string;
-}
-
-interface ModuleDef {
-  title: string;
-  description: string;
-  fields: string[];
-}
-
-interface Manifest {
-  fields: Record<string, FieldDef>;
-  modules: Record<string, ModuleDef>;
-}
-
-// ─── Component Props ───────────────────────────────────────────────────────
+export type {
+  FieldDef,
+  InputType,
+  Manifest,
+} from "@/components/assessment/AssessmentFieldRenderer";
 
 interface AssessmentModuleStepProps {
   projectId: string;
@@ -53,8 +40,6 @@ interface AssessmentModuleStepProps {
   onPrev: () => void;
   onSave: () => void;
 }
-
-// ─── Component ───────────────────────────────────────────────────────────────
 
 const AssessmentModuleStep = ({
   projectId,
@@ -96,10 +81,7 @@ const AssessmentModuleStep = ({
     .filter((f): f is { key: string; def: FieldDef } => !!f.def);
 
   const isVisible = useCallback(
-    (field: FieldDef) => {
-      if (!field.dependsOn) return true;
-      return answers[field.dependsOn.fieldKey] === field.dependsOn.equals;
-    },
+    (field: FieldDef) => isFieldVisible(field, answers),
     [answers],
   );
 
@@ -108,73 +90,16 @@ const AssessmentModuleStep = ({
     setMissingFields((prev) => prev.filter((f) => f !== fieldKey));
   };
 
-  /**
-   * Scans answers for File objects (file / file_multi fields), uploads them
-   * to the object store via presigned URL, and returns a deep-cloned answers
-   * object where every File has been replaced by its storage object key.
-   */
-  const prepareAnswersWithUploadedFiles = async (): Promise<
-    Record<string, any>
-  > => {
-    const payload: Record<string, any> = { ...answers };
-
-    for (const [fieldKey, value] of Object.entries(payload)) {
-      const def = manifest?.fields?.[fieldKey];
-      if (!def) continue;
-
-      if (def.inputType === "file" && value instanceof File) {
-        const path = `project_assessment/${projectId}/${moduleKey}/`;
-        const objectKey = await StorageService.uploadFile(value, path);
-        payload[fieldKey] = objectKey;
-      }
-
-      if (def.inputType === "file_multi" && Array.isArray(value)) {
-        const uploadedPaths: string[] = [];
-        for (const item of value) {
-          if (item instanceof File) {
-            const path = `project_assessment/${projectId}/${moduleKey}/`;
-            const objectKey = await StorageService.uploadFile(item, path);
-            uploadedPaths.push(objectKey);
-          } else if (typeof item === "string") {
-            // Already-uploaded file path — keep it
-            uploadedPaths.push(item);
-          }
-        }
-        payload[fieldKey] = uploadedPaths;
-      }
-    }
-
-    // Final safety net: no File/Blob should survive to this point for ANY
-    // field, not just ones the manifest currently tags as file/file_multi.
-    // If one does (stale manifest, a field whose inputType got typoed, a
-    // network hiccup that left an upload half-applied, etc.), axios's JSON
-    // serializer silently turns it into `{}` and the backend rejects it
-    // with an opaque "expected string, received object" — the failure mode
-    // that prompted this guard. Fail loudly here instead, with the actual
-    // field name, so it's fixable in seconds rather than re-diagnosed from
-    // a generic 400.
-    const stillBinary = Object.entries(payload).filter(([, value]) => {
-      if (value instanceof File || value instanceof Blob) return true;
-      if (Array.isArray(value)) {
-        return value.some((v) => v instanceof File || v instanceof Blob);
-      }
-      return false;
-    });
-    if (stillBinary.length > 0) {
-      const fieldNames = stillBinary.map(([key]) => key).join(", ");
-      throw new Error(
-        `Upload didn't complete for: ${fieldNames}. Please retry before saving.`,
-      );
-    }
-
-    return payload;
-  };
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const payload = await prepareAnswersWithUploadedFiles();
-      await ProjectService.upsertAssessment(
+      const payload = await uploadPendingFiles(
+        answers,
+        manifest,
+        projectId,
+        moduleKey,
+      );
+      const res = await ProjectService.upsertAssessment(
         projectId,
         moduleKey,
         payload,
@@ -184,6 +109,7 @@ const AssessmentModuleStep = ({
       setAnswers(payload);
       setStatus("in_progress");
       toast.success("Module saved");
+      toastAssessmentWarnings(res?.warnings);
       onSave();
     } catch (error: any) {
       toast.error(
@@ -200,7 +126,12 @@ const AssessmentModuleStep = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const payload = await prepareAnswersWithUploadedFiles();
+      const payload = await uploadPendingFiles(
+        answers,
+        manifest,
+        projectId,
+        moduleKey,
+      );
       const res = await ProjectService.upsertAssessment(
         projectId,
         moduleKey,
@@ -212,6 +143,12 @@ const AssessmentModuleStep = ({
         setStatus("submitted");
         setMissingFields([]);
         toast.success(`Module "${moduleDef?.title}" submitted`);
+        // Any conflict the engine found in the full answer set — e.g.
+        // burned waste reported alongside anaerobic decomposition
+        // conditions, which stops the methane baseline being calculated
+        // at all. Shown here, at the moment it is caused, rather than
+        // being discovered later as a blank figure on the project page.
+        toastAssessmentWarnings(res.warnings);
         onNext();
       }
     } catch (error: any) {
@@ -219,13 +156,9 @@ const AssessmentModuleStep = ({
       // field list it carries is camelCase, which getErrorMessage refuses to
       // display. Using the sanitized text here would silently stop the
       // missing-field highlighting from ever matching.
-      const raw = getRawErrorMessage(error);
-      if (raw.toLowerCase().includes("missing required fields")) {
-        const match = raw.match(/missing required fields: (.+)/i);
-        if (match) {
-          const missing = match[1].split(", ").map((s: string) => s.trim());
-          setMissingFields(missing);
-        }
+      const missing = parseMissingRequiredFields(getRawErrorMessage(error));
+      if (missing) {
+        setMissingFields(missing);
         toast.error("Please complete all required fields before submitting");
       } else {
         toast.error(
@@ -277,42 +210,15 @@ const AssessmentModuleStep = ({
       <div className="space-y-8">
         {fieldDefs?.map(({ key, def }) => {
           if (!isVisible(def)) return null;
-          const hasError = missingFields.includes(key);
-
           return (
-            <div key={key} className="space-y-2">
-              <label
-                htmlFor={def.label}
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900"
-              >
-                {def.label}
-                {def.required && <span className="text-brand ml-1">*</span>}
-                {def.unit && (
-                  <span className="text-slate-400 font-normal ml-1 normal-case tracking-normal">
-                    ({def.unit})
-                  </span>
-                )}
-              </label>
-
-              {def.helpText && (
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {def.helpText}
-                </p>
-              )}
-
-              <FieldRenderer
-                fieldKey={key}
-                def={def}
-                value={answers[key]}
-                onChange={(val) => updateAnswer(key, val)}
-              />
-
-              {hasError && (
-                <p className="text-red-500 text-xs font-mono">
-                  This field is required
-                </p>
-              )}
-            </div>
+            <AssessmentField
+              key={key}
+              fieldKey={key}
+              def={def}
+              value={answers[key]}
+              onChange={(val) => updateAnswer(key, val)}
+              hasError={missingFields.includes(key)}
+            />
           );
         })}
       </div>
@@ -357,286 +263,5 @@ const AssessmentModuleStep = ({
     </div>
   );
 };
-
-// ─── Field Renderer (maps inputType to concrete UI) ────────────────────────
-
-function FieldRenderer({
-  def,
-  value,
-  onChange,
-}: {
-  fieldKey: string;
-  def: FieldDef;
-  value: any;
-  onChange: (val: any) => void;
-}) {
-  switch (def.inputType) {
-    case "text":
-      return (
-        <input
-          type="text"
-          value={value ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={def.label}
-          className="w-full rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-0"
-        />
-      );
-
-    case "textarea":
-      return (
-        <textarea
-          value={value ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={def.label}
-          rows={5}
-          className="w-full rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-0 resize-y"
-        />
-      );
-
-    case "number":
-      return (
-        <input
-          type="number"
-          value={value ?? ""}
-          onChange={(e) => onChange(e.target.valueAsNumber)}
-          placeholder={def.label}
-          className="w-full rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-0"
-        />
-      );
-
-    case "select":
-      return (
-        <select
-          value={value ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 bg-white focus:border-slate-900 focus:outline-none focus:ring-0"
-        >
-          <option value="" disabled>
-            Select an option
-          </option>
-          {def.options?.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      );
-
-    case "multi_select": {
-      const selected: string[] = Array.isArray(value) ? value : [];
-      return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-200 border border-slate-200">
-          {def.options?.map((opt) => {
-            const checked = selected.includes(opt.value);
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => {
-                  const next = checked
-                    ? selected.filter((v) => v !== opt.value)
-                    : [...selected, opt.value];
-                  onChange(next);
-                }}
-                className={`flex items-start gap-3 p-4 bg-white text-left transition-colors ${
-                  checked
-                    ? "bg-slate-50 ring-2 ring-inset ring-slate-900"
-                    : "hover:bg-slate-50"
-                }`}
-              >
-                <div
-                  className={`mt-0.5 w-4 h-4 shrink-0 border transition-colors ${
-                    checked
-                      ? "bg-slate-900 border-slate-900"
-                      : "border-slate-300"
-                  }`}
-                />
-                <span className="text-sm text-slate-700 font-medium">
-                  {opt.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      );
-    }
-
-    case "boolean":
-      return (
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => onChange(true)}
-            className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest border transition-all ${
-              value === true
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-500 border-slate-300 hover:border-slate-500"
-            }`}
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange(false)}
-            className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest border transition-all ${
-              value === false
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-500 border-slate-300 hover:border-slate-500"
-            }`}
-          >
-            No
-          </button>
-        </div>
-      );
-
-    case "percentage_split": {
-      const split = value ?? { burned: 0, dumped: 0, leftOnSite: 0, reused: 0 };
-      const total =
-        (split.burned || 0) +
-        (split.dumped || 0) +
-        (split.leftOnSite || 0) +
-        (split.reused || 0);
-      const keys = ["burned", "dumped", "leftOnSite", "reused"] as const;
-      const labels: Record<string, string> = {
-        burned: "Burned",
-        dumped: "Dumped",
-        leftOnSite: "Left on site",
-        reused: "Reused / recycled",
-      };
-      return (
-        <div className="space-y-4">
-          {keys.map((k) => (
-            <div key={k} className="flex items-center gap-4">
-              <label
-                htmlFor={k}
-                className="text-xs text-slate-600 w-32 shrink-0"
-              >
-                {labels[k]}
-              </label>
-              <input
-                id={k}
-                type="number"
-                min={0}
-                max={100}
-                value={split[k] ?? 0}
-                onChange={(e) =>
-                  onChange({ ...split, [k]: e.target.valueAsNumber })
-                }
-                className="w-24 rounded-none border border-slate-300 px-3 py-2 text-sm text-foreground focus:border-slate-900 focus:outline-none focus:ring-0"
-              />
-              <span className="text-xs text-slate-400">%</span>
-            </div>
-          ))}
-          <div
-            className={`text-[10px] font-mono uppercase tracking-widest ${
-              Math.abs(total - 100) < 0.01 ? "text-brand" : "text-rose-600"
-            }`}
-          >
-            Total: {total.toFixed(1)}%{" "}
-            {Math.abs(total - 100) < 0.01 ? "✓" : "(must equal 100%)"}
-          </div>
-        </div>
-      );
-    }
-
-    case "file":
-    case "file_multi": {
-      const files: (File | string)[] = Array.isArray(value)
-        ? value
-        : value
-          ? [value]
-          : [];
-      return (
-        <div className="space-y-3">
-          <input
-            type="file"
-            multiple={def.inputType === "file_multi"}
-            onChange={(e) => {
-              const selected = Array.from(e.target.files || []);
-              if (def.inputType === "file_multi") {
-                // Append new files to existing array (allows multi-select or repeated single picks)
-                onChange([...files, ...selected]);
-              } else {
-                onChange(selected[0] ?? null);
-              }
-              // Reset the input so the same file can be re-selected if needed
-              e.target.value = "";
-            }}
-            className="w-full text-sm text-slate-500 file:mr-4 file:rounded-none file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:text-white hover:file:bg-brand"
-          />
-          {files.length > 0 && (
-            <div className="space-y-2">
-              {files.map((f: File | string, i: number) => {
-                const isFile = f instanceof File;
-                const displayName = isFile ? f.name : f.split("/").pop() || f;
-                const displayKey = isFile
-                  ? `file-${f.name}-${i}`
-                  : `path-${f}-${i}`;
-                return (
-                  <div
-                    key={displayKey}
-                    className="flex items-center justify-between p-2 bg-slate-50 border border-slate-200"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.5 shrink-0">
-                        {isFile ? "File" : "Stored"}
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-600 truncate">
-                        {displayName}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = files.filter((_, idx) => idx !== i);
-                        onChange(
-                          def.inputType === "file_multi"
-                            ? next
-                            : (next[0] ?? null),
-                        );
-                      }}
-                      className="text-[10px] font-bold uppercase tracking-widest text-rose-600 hover:text-rose-800 px-2 shrink-0"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    case "geo_point": {
-      const pt = value ?? { lat: "", lng: "" };
-      return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Latitude"
-            value={pt.lat ?? ""}
-            onChange={(e) => onChange({ ...pt, lat: e.target.value })}
-            className="w-full rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-0"
-          />
-          <input
-            type="text"
-            placeholder="Longitude"
-            value={pt.lng ?? ""}
-            onChange={(e) => onChange({ ...pt, lng: e.target.value })}
-            className="w-full rounded-none border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-0"
-          />
-        </div>
-      );
-    }
-
-    default:
-      return (
-        <p className="text-xs text-slate-400 font-mono">
-          Unsupported input type: {def.inputType}
-        </p>
-      );
-  }
-}
 
 export default AssessmentModuleStep;
